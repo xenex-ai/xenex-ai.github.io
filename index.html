@@ -100,7 +100,7 @@
   </div>
 
   <!-- SOUND BUTTON -->
-  <button id="soundButton" class="sound-button">🔊 Sound an</button>
+  <button id="soundButton" class="sound-button">🔇</button>
 
   <!-- CONTENT -->
   <div class="content">
@@ -137,7 +137,7 @@
 
       soundButton.addEventListener('click', function() {
         video.muted = !video.muted;
-        soundButton.textContent = video.muted ? '🔊 Sound an' : '🔇 Sound aus';
+        soundButton.textContent = video.muted ? '🔇' : '🔊';
       });
     });
   </script>
