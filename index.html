@@ -6,210 +6,193 @@
   <title>XenexAi - Galactic Headquarters</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    /* Reset & General Styles */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Orbitron', sans-serif;
-      background: black;
-      color: #00ffcc;
-      overflow-x: hidden;
-      /* Für 3D-Parallax */
-      perspective: 1px;
-      height: 100vh;
-      overflow-y: scroll;
-    }
-    /* Allgemeine Sektion */
-    .section {
-      position: relative;
-      min-height: 100vh;
+    /* RESET & BASE STYLES */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; font-family: 'Orbitron', sans-serif; }
+    body { background: black; color: #00ffcc; overflow-x: hidden; }
+
+    /* BACKGROUND VIDEO (PARALLAX) */
+    .video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
-      transform-style: preserve-3d;
+      height: 100%;
+      overflow: hidden;
+      z-index: -2;
     }
-    /* Parallax Hintergrund-Schichten */
-    .parallax-bg {
+    .bg-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      /* Parallax Effekt durch langsame Verschiebung */
+      transform: translateZ(0);
+    }
+    /* Overlay für bessere Lesbarkeit */
+    .video-overlay {
       position: absolute;
       top: 0;
       left: 0;
-      right: 0;
-      bottom: 0;
-      background-size: cover;
-      background-position: center;
-      z-index: -1;
-      transform: translateZ(-1px) scale(2);
-      will-change: transform;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 1;
     }
-    /* Sterne als animierter Hintergrund */
-    .stars {
-      background: url('https://xenex-ai.github.io/img/stars.jpg') no-repeat center center;
-      animation: starsMove 60s linear infinite;
-    }
-    @keyframes starsMove {
-      from { background-position: 0 0; }
-      to { background-position: 0 2000px; }
-    }
-    /* Inhalt (Vordergrund) */
+
+    /* FOREGROUND CONTENT */
     .content {
       position: relative;
-      padding: 50px 20px;
-      z-index: 1;
+      z-index: 2;
+    }
+    section {
+      padding: 100px 20px;
       text-align: center;
-      transform: translateZ(0);
+      position: relative;
+    }
+    .hero {
+      padding-top: 150px;
     }
     h1 {
       font-size: 3em;
       margin-bottom: 20px;
-      animation: fadeIn 3s ease-in-out, neonGlow 2s infinite alternate;
+      opacity: 0;
+      animation: fadeIn 2s ease-out forwards, neonGlow 1.5s infinite alternate;
     }
     h2 {
-      font-size: 1.5em;
-      margin-bottom: 30px;
-      animation: fadeIn 5s ease-in-out;
+      font-size: 1.8em;
+      margin-bottom: 40px;
+      opacity: 0;
+      animation: fadeIn 2.5s ease-out forwards;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes neonGlow {
-      from { text-shadow: 0 0 10px #00ffcc; }
-      to { text-shadow: 0 0 25px #00ffcc; }
-    }
-    /* Video-Container */
-    .video-container {
-      margin: 30px auto;
+    p {
+      font-size: 1.2em;
       max-width: 800px;
-      border: 3px solid #00ffcc;
-      box-shadow: 0 0 20px #00ffcc;
-      border-radius: 10px;
-      overflow: hidden;
+      margin: 20px auto;
+      line-height: 1.5em;
     }
-    video {
-      width: 100%;
-      display: block;
-    }
-    /* Call-to-Action Button */
     .button {
       display: inline-block;
-      margin-top: 30px;
       padding: 15px 30px;
-      font-size: 1.3em;
-      font-weight: bold;
+      font-size: 1.2em;
       color: black;
       background: #00ffcc;
       text-decoration: none;
       border-radius: 30px;
-      transition: transform 0.2s, box-shadow 0.3s;
+      transition: transform 0.3s, box-shadow 0.3s;
     }
     .button:hover {
       transform: scale(1.1);
-      box-shadow: 0 0 30px #00ffcc;
+      box-shadow: 0 0 20px #00ffcc;
     }
-    /* Floating Text */
-    .floating-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 2em;
-      opacity: 0.5;
-      white-space: nowrap;
-      animation: floatText 6s infinite alternate ease-in-out;
+
+    /* PARALLAX SECTIONS */
+    .parallax {
+      transform: translateY(0);
+      transition: transform 0.2s;
     }
-    @keyframes floatText {
-      from { transform: translate(-50%, -52%); }
-      to { transform: translate(-50%, -48%); }
-    }
-    /* Marquee Scrolling Text */
+
+    /* MARQUEE SCROLLING TEXT */
     .marquee {
       position: fixed;
-      bottom: 10px;
+      bottom: 0;
       width: 100%;
       font-size: 1.2em;
       white-space: nowrap;
       overflow: hidden;
-      z-index: 2;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 3;
     }
     .marquee span {
       display: inline-block;
       padding-left: 100%;
       animation: marqueeScroll 15s linear infinite;
     }
-    @keyframes marqueeScroll {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-100%); }
-    }
-    /* Sekundäre Section: Our Vision */
-    .section-secondary {
-      background: rgba(0, 0, 0, 0.85);
-      padding: 100px 20px;
-      text-align: center;
-    }
-    .section-secondary h2 {
-      margin-bottom: 20px;
-      font-size: 2em;
-    }
-    .section-secondary p {
-      font-size: 1.2em;
-      line-height: 1.6em;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    /* Footer */
+
+    /* FOOTER */
     .footer {
       margin-top: 50px;
       font-size: 0.9em;
       opacity: 0.7;
-      text-align: center;
+    }
+
+    /* KEYFRAMES */
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(-20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes neonGlow {
+      from { text-shadow: 0 0 10px #00ffcc; }
+      to { text-shadow: 0 0 25px #00ffcc; }
+    }
+    @keyframes marqueeScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* RESPONSIVE STYLES */
+    @media(max-width: 768px) {
+      h1 { font-size: 2.5em; }
+      h2 { font-size: 1.5em; }
+      p { font-size: 1em; }
+      .hero { padding-top: 100px; }
     }
   </style>
 </head>
 <body>
-  <!-- Section 1: Galactic Headquarters -->
-  <div class="section">
-    <!-- Parallax-Hintergrund: Stars -->
-    <div class="parallax-bg stars"></div>
-    <div class="content">
+  <!-- BACKGROUND VIDEO mit SOUND (promo_presale_small.mp4) -->
+  <div class="video-background">
+    <video class="bg-video" autoplay controls loop>
+      <source src="https://xenex-ai.github.io/img/promo_presale_small.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+    <div class="video-overlay"></div>
+  </div>
+
+  <!-- FOREGROUND CONTENT -->
+  <div class="content">
+    <!-- HERO SECTION -->
+    <section class="hero">
       <h1>Welcome to XenexAi Galactic Headquarters</h1>
-      <h2>The AI Revolution is Being Built Right Now</h2>
-      <div class="video-container">
-        <video autoplay muted loop playsinline>
-          <source src="https://xenex-ai.github.io/img/promo_presale_small.mp4" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
-      </div>
+      <h2>Experience the AI Revolution with Sound & Vision</h2>
       <a href="#" class="button">Join the Future</a>
-    </div>
-    <div class="floating-text">🚀 SYSTEM INITIATED...</div>
-  </div>
+    </section>
 
-  <!-- Section 2: Our Vision mit Parallax Scrolling -->
-  <div class="section section-secondary">
-    <h2 data-speed="0.2" class="parallax">Our Vision</h2>
-    <p data-speed="0.3" class="parallax">
-      At XenexAi, we are constructing a new era where artificial intelligence meets cosmic innovation.
-      Our Galactic Headquarters is the epicenter of a revolution that transcends time and space.
-      Join us on this journey to explore uncharted territories and redefine the future.
-    </p>
-    <div class="footer">
+    <!-- VISION SECTION (PARALLAX) -->
+    <section class="vision parallax" data-speed="0.2">
+      <h2>Our Vision</h2>
+      <p>
+        At XenexAi, we fuse cosmic innovation with advanced AI to redefine tomorrow. Our Galactic Headquarters
+        is where technology transcends boundaries, and sound fuels the revolution.
+      </p>
+    </section>
+
+    <!-- FEATURES SECTION (PARALLAX) -->
+    <section class="features parallax" data-speed="0.3">
+      <h2>Immersive Experience</h2>
+      <p>
+        Enjoy stunning animations, parallax effects, and a dynamic background video with immersive sound.
+        Optimized for every device, our platform delivers a futuristic journey like no other.
+      </p>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
       © 2025 XenexAi - The Future of AI Begins Here.
-    </div>
+    </footer>
   </div>
 
-  <!-- Marquee Scrolling Text -->
+  <!-- MARQUEE SCROLLING TEXT -->
   <div class="marquee">
     <span>XenexAi | A New Era of AI | Join the Galactic Revolution! &nbsp;&nbsp;&nbsp;</span>
   </div>
 
-  <!-- Parallax Script: Bewegt Elemente mit data-speed Attribut beim Scrollen -->
+  <!-- PARALLAX SCROLL SCRIPT -->
   <script>
     window.addEventListener('scroll', function() {
       const scrolled = window.pageYOffset;
       document.querySelectorAll('.parallax').forEach(function(el) {
         const speed = parseFloat(el.getAttribute('data-speed'));
-        el.style.transform = 'translateY(' + scrolled * speed + 'px)';
+        el.style.transform = 'translateY(' + (scrolled * speed) + 'px)';
       });
     });
   </script>
