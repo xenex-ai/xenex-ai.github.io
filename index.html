@@ -25,7 +25,6 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      /* Parallax Effekt durch langsame Verschiebung */
       transform: translateZ(0);
     }
     /* Overlay für bessere Lesbarkeit */
@@ -37,6 +36,27 @@
       height: 100%;
       background: rgba(0, 0, 0, 0.4);
       z-index: 1;
+    }
+
+    /* SOUND BUTTON */
+    .sound-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      font-size: 1em;
+      background: #00ffcc;
+      color: black;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+      z-index: 10;
+      display: none;
+    }
+    .sound-button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px #00ffcc;
     }
 
     /* FOREGROUND CONTENT */
@@ -139,25 +159,26 @@
   </style>
 </head>
 <body>
-  <!-- BACKGROUND VIDEO mit SOUND (promo_presale_small.mp4) -->
+  <!-- BACKGROUND VIDEO mit SOUND -->
   <div class="video-background">
-    <video class="bg-video" autoplay controls loop>
+    <video class="bg-video" id="bgVideo" autoplay muted loop playsinline>
       <source src="https://xenex-ai.github.io/img/promo_presale_small.mp4" type="video/mp4">
       Your browser does not support the video tag.
     </video>
     <div class="video-overlay"></div>
   </div>
 
+  <!-- SOUND BUTTON -->
+  <button id="soundButton" class="sound-button">🔊 Sound an</button>
+
   <!-- FOREGROUND CONTENT -->
   <div class="content">
-    <!-- HERO SECTION -->
     <section class="hero">
       <h1>Welcome to XenexAi Galactic Headquarters</h1>
       <h2>Experience the AI Revolution with Sound & Vision</h2>
       <a href="#" class="button">Join the Future</a>
     </section>
 
-    <!-- VISION SECTION (PARALLAX) -->
     <section class="vision parallax" data-speed="0.2">
       <h2>Our Vision</h2>
       <p>
@@ -166,7 +187,6 @@
       </p>
     </section>
 
-    <!-- FEATURES SECTION (PARALLAX) -->
     <section class="features parallax" data-speed="0.3">
       <h2>Immersive Experience</h2>
       <p>
@@ -175,13 +195,11 @@
       </p>
     </section>
 
-    <!-- FOOTER -->
     <footer class="footer">
       © 2025 XenexAi - The Future of AI Begins Here.
     </footer>
   </div>
 
-  <!-- MARQUEE SCROLLING TEXT -->
   <div class="marquee">
     <span>XenexAi | A New Era of AI | Join the Galactic Revolution! &nbsp;&nbsp;&nbsp;</span>
   </div>
@@ -193,6 +211,21 @@
       document.querySelectorAll('.parallax').forEach(function(el) {
         const speed = parseFloat(el.getAttribute('data-speed'));
         el.style.transform = 'translateY(' + (scrolled * speed) + 'px)';
+      });
+    });
+
+    // SOUND BUTTON FUNCTIONALITY
+    document.addEventListener('DOMContentLoaded', function() {
+      const video = document.getElementById('bgVideo');
+      const soundButton = document.getElementById('soundButton');
+
+      video.addEventListener('loadeddata', () => {
+        soundButton.style.display = 'block';
+      });
+
+      soundButton.addEventListener('click', function() {
+        video.muted = !video.muted;
+        soundButton.textContent = video.muted ? '🔊 Sound an' : '🔇 Sound aus';
       });
     });
   </script>
