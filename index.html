@@ -9,225 +9,99 @@
     /* RESET & BASE STYLES */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; font-family: 'Orbitron', sans-serif; }
-    body { background: black; color: #00ffcc; overflow-x: hidden; }
+    body { background: black; color: #00ffcc; overflow-x: hidden; text-align: center; }
 
-    /* BACKGROUND VIDEO (PARALLAX) */
+    /* BACKGROUND VIDEO */
     .video-background {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      z-index: -2;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      overflow: hidden; z-index: -2;
     }
-    .bg-video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform: translateZ(0);
-    }
-    /* Overlay für bessere Lesbarkeit */
+    .bg-video { width: 100%; height: 100%; object-fit: cover; }
+
+    /* OVERLAY */
     .video-overlay {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.4);
       z-index: 1;
     }
 
-    /* SOUND BUTTON */
-    .sound-button {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 15px 20px;
-      font-size: 1em;
-      background: #00ffcc;
-      color: black;
-      border: none;
-      border-radius: 30px;
-      cursor: pointer;
-      transition: transform 0.3s, box-shadow 0.3s;
-      z-index: 10;
-      display: none;
-    }
-    .sound-button:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 20px #00ffcc;
-    }
+    /* CONTENT */
+    .content { position: relative; z-index: 2; padding-top: 100px; }
+    h1 { font-size: 3em; animation: fadeIn 2s ease-out forwards; }
+    h2 { font-size: 1.8em; margin-bottom: 20px; }
+    p { font-size: 1.2em; max-width: 800px; margin: 20px auto; line-height: 1.5em; }
 
-    /* FOREGROUND CONTENT */
-    .content {
-      position: relative;
-      z-index: 2;
+    /* SOCIAL ICONS */
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
     }
-    section {
-      padding: 100px 20px;
-      text-align: center;
-      position: relative;
-    }
-    .hero {
-      padding-top: 150px;
-    }
-    h1 {
-      font-size: 3em;
-      margin-bottom: 20px;
-      opacity: 0;
-      animation: fadeIn 2s ease-out forwards, neonGlow 1.5s infinite alternate;
-    }
-    h2 {
-      font-size: 1.8em;
-      margin-bottom: 40px;
-      opacity: 0;
-      animation: fadeIn 2.5s ease-out forwards;
-    }
-    p {
-      font-size: 1.2em;
-      max-width: 800px;
-      margin: 20px auto;
-      line-height: 1.5em;
-    }
-    .button {
-      display: inline-block;
-      padding: 15px 30px;
-      font-size: 1.2em;
-      color: black;
-      background: #00ffcc;
+    .social-links a {
       text-decoration: none;
-      border-radius: 30px;
+      font-size: 2em;
+      color: #00ffcc;
       transition: transform 0.3s, box-shadow 0.3s;
     }
-    .button:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 20px #00ffcc;
-    }
-
-    /* PARALLAX SECTIONS */
-    .parallax {
-      transform: translateY(0);
-      transition: transform 0.2s;
-    }
-
-    /* MARQUEE SCROLLING TEXT */
-    .marquee {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      font-size: 1.2em;
-      white-space: nowrap;
-      overflow: hidden;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 3;
-    }
-    .marquee span {
-      display: inline-block;
-      padding-left: 100%;
-      animation: marqueeScroll 15s linear infinite;
+    .social-links a:hover {
+      transform: scale(1.2);
+      text-shadow: 0 0 15px #00ffcc;
     }
 
     /* FOOTER */
-    .footer {
-      margin-top: 50px;
-      font-size: 0.9em;
-      opacity: 0.7;
-    }
+    .footer { margin-top: 50px; font-size: 1em; opacity: 0.7; }
 
     /* KEYFRAMES */
     @keyframes fadeIn {
       0% { opacity: 0; transform: translateY(-20px); }
       100% { opacity: 1; transform: translateY(0); }
     }
-    @keyframes neonGlow {
-      from { text-shadow: 0 0 10px #00ffcc; }
-      to { text-shadow: 0 0 25px #00ffcc; }
-    }
-    @keyframes marqueeScroll {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-100%); }
-    }
 
-    /* RESPONSIVE STYLES */
+    /* RESPONSIVE */
     @media(max-width: 768px) {
       h1 { font-size: 2.5em; }
       h2 { font-size: 1.5em; }
       p { font-size: 1em; }
-      .hero { padding-top: 100px; }
     }
   </style>
 </head>
 <body>
-  <!-- BACKGROUND VIDEO mit SOUND -->
+
+  <!-- BACKGROUND VIDEO -->
   <div class="video-background">
-    <video class="bg-video" id="bgVideo" autoplay muted loop playsinline>
+    <video class="bg-video" autoplay muted loop playsinline>
       <source src="https://xenex-ai.github.io/img/promo_presale_small.mp4" type="video/mp4">
-      Your browser does not support the video tag.
     </video>
     <div class="video-overlay"></div>
   </div>
 
-  <!-- SOUND BUTTON -->
-  <button id="soundButton" class="sound-button">🔊 Sound an</button>
-
-  <!-- FOREGROUND CONTENT -->
+  <!-- CONTENT -->
   <div class="content">
-    <section class="hero">
-      <h1>Welcome to XenexAi Galactic Headquarters</h1>
-      <h2>Experience the AI Revolution with Sound & Vision</h2>
-      <a href="#" class="button">Join the Future</a>
-    </section>
+    <h1>The Birth of $XNX – A Message from the Stars</h1>
+    <p>
+      Deep in the vastness of space, we encountered an advanced AI-driven civilization.  
+      They saw our potential and sent XenexAi technology to reshape our future.  
+      But a disruption caused one ship to crash on Earth... and from its core, **$XNX** was born.  
+      Now, the power of $XNX rests in the hands of the community.  
+    </p>
+    <h2>⚡ PRESALE SOON! ⚡</h2>
+    <p>Be part of the intergalactic revolution. Stay connected!</p>
 
-    <section class="vision parallax" data-speed="0.2">
-      <h2>Our Vision</h2>
-      <p>
-        At XenexAi, we fuse cosmic innovation with advanced AI to redefine tomorrow. Our Galactic Headquarters
-        is where technology transcends boundaries, and sound fuels the revolution.
-      </p>
-    </section>
-
-    <section class="features parallax" data-speed="0.3">
-      <h2>Immersive Experience</h2>
-      <p>
-        Enjoy stunning animations, parallax effects, and a dynamic background video with immersive sound.
-        Optimized for every device, our platform delivers a futuristic journey like no other.
-      </p>
-    </section>
+    <!-- SOCIAL LINKS -->
+    <div class="social-links">
+      <a href="https://t.me/xenexAi_official" target="_blank">📢</a>
+      <a href="https://x.com/xenexAi_xnx" target="_blank">𝕏</a>
+    </div>
 
     <footer class="footer">
-      © 2025 XenexAi - The Future of AI Begins Here.
+      🚀 This website is under development. Stay tuned for updates!
     </footer>
   </div>
 
-  <div class="marquee">
-    <span>XenexAi | A New Era of AI | Join the Galactic Revolution! &nbsp;&nbsp;&nbsp;</span>
-  </div>
-
-  <!-- PARALLAX SCROLL SCRIPT -->
-  <script>
-    window.addEventListener('scroll', function() {
-      const scrolled = window.pageYOffset;
-      document.querySelectorAll('.parallax').forEach(function(el) {
-        const speed = parseFloat(el.getAttribute('data-speed'));
-        el.style.transform = 'translateY(' + (scrolled * speed) + 'px)';
-      });
-    });
-
-    // SOUND BUTTON FUNCTIONALITY
-    document.addEventListener('DOMContentLoaded', function() {
-      const video = document.getElementById('bgVideo');
-      const soundButton = document.getElementById('soundButton');
-
-      video.addEventListener('loadeddata', () => {
-        soundButton.style.display = 'block';
-      });
-
-      soundButton.addEventListener('click', function() {
-        video.muted = !video.muted;
-        soundButton.textContent = video.muted ? '🔊 Sound an' : '🔇 Sound aus';
-      });
-    });
-  </script>
 </body>
 </html>
