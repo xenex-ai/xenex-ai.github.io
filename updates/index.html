@@ -1,118 +1,137 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XenexAi Community Updates</title>
     <style>
-        body {
-            background-color: #000;
-            color: #00ffcc;
-            font-family: 'Arial', sans-serif;
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        body {
+            background: #000;
+            color: #00ffcc;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .header {
+            font-size: 2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+            text-shadow: 0 0 15px #00ffcc;
+        }
+
+        .updates-container {
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
         }
 
-        header {
-            width: 100%;
-            text-align: center;
-            padding: 20px 0;
-            background: linear-gradient(90deg, #003333, #00ffcc);
-            font-size: 24px;
-            font-weight: bold;
-            box-shadow: 0 0 15px #00ffcc;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 800px;
-            margin-top: 20px;
-        }
-
-        .update {
+        .update-card {
             background: rgba(0, 255, 204, 0.1);
-            border-left: 4px solid #00ffcc;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            box-shadow: 0 0 10px #00ffcc;
-            transition: transform 0.3s ease-in-out;
+            border: 1px solid rgba(0, 255, 204, 0.5);
+            padding: 20px;
+            width: 300px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
         }
 
-        .update:hover {
+        .update-card:hover {
             transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.8);
         }
 
-        h2 {
-            margin: 0;
-            font-size: 22px;
+        .update-time {
+            font-size: 0.9rem;
+            color: rgba(0, 255, 204, 0.7);
+            position: absolute;
+            top: 10px;
+            right: 15px;
         }
 
-        p {
-            margin: 5px 0;
-            font-size: 16px;
-        }
-
-        footer {
-            margin-top: 30px;
-            padding: 10px;
-            text-align: center;
-            background: #003333;
-            width: 100%;
-            box-shadow: 0 0 10px #00ffcc;
-        }
-
-        .glow-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            margin-top: 10px;
-            border: none;
-            background: #00ffcc;
-            color: #003333;
+        .update-title {
+            font-size: 1.3rem;
             font-weight: bold;
-            border-radius: 5px;
-            cursor: pointer;
-            box-shadow: 0 0 15px #00ffcc;
-            transition: background 0.3s, box-shadow 0.3s;
+            margin-bottom: 10px;
         }
 
-        .glow-btn:hover {
-            background: #009988;
-            box-shadow: 0 0 25px #00ffcc;
+        .update-text {
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .glow {
+            animation: glow 1.5s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #00ffcc; }
+            to { text-shadow: 0 0 25px #00ffcc; }
         }
     </style>
 </head>
 <body>
-
-    <header>
-        XenexAi - Community Updates
-    </header>
-
-    <div class="container">
-        <div class="update">
-            <h2>🚀 Neuer Token-Release!</h2>
-            <p>Wir haben $XNX erfolgreich gelauncht! Seid bereit für die Zukunft von XenexAi.</p>
-        </div>
-
-        <div class="update">
-            <h2>🎁 Überraschung für die Community</h2>
-            <p>Eine spezielle Airdrop-Aktion läuft. Sichert euch eure Belohnungen!</p>
-        </div>
-
-        <div class="update">
-            <h2>🔥 Großes Update im HQ</h2>
-            <p>Unser Web3-Ökosystem wird erweitert. Bleibt dran!</p>
-        </div>
-
-        <button class="glow-btn">Mehr Updates anzeigen</button>
+    <div class="header glow">XenexAi Community Updates</div>
+    <div class="updates-container" id="updates-container">
+        <!-- Updates werden hier eingefügt -->
     </div>
 
-    <footer>
-        XenexAi &copy; 2025 – Gemeinsam in die Zukunft 🚀
-    </footer>
+    <script>
+        const updates = [
+            { title: "New Feature Released", text: "We've just launched our AI-powered trading assistant. Try it out now!", date: "2025-03-03T15:00:00Z" },
+            { title: "XNX Price Surge", text: "XenexAi's token $XNX has surged by 15% in the last 24 hours. The future looks bright!", date: "2025-03-02T12:30:00Z" },
+            { title: "Community Voting", text: "Vote for our next major update! The poll is now live on our Discord.", date: "2025-02-25T09:00:00Z" }
+        ];
 
+        function timeAgo(date) {
+            const now = new Date();
+            const past = new Date(date);
+            const seconds = Math.floor((now - past) / 1000);
+
+            const intervals = {
+                year: 31536000,
+                month: 2592000,
+                week: 604800,
+                day: 86400,
+                hour: 3600,
+                minute: 60
+            };
+
+            for (let [unit, value] of Object.entries(intervals)) {
+                const result = Math.floor(seconds / value);
+                if (result > 1) return `${result} ${unit}s ago`;
+                if (result === 1) return `1 ${unit} ago`;
+            }
+            return "Just now";
+        }
+
+        function renderUpdates() {
+            const container = document.getElementById("updates-container");
+            updates.forEach(update => {
+                const card = document.createElement("div");
+                card.className = "update-card";
+                card.innerHTML = `
+                    <div class="update-time">${timeAgo(update.date)}</div>
+                    <div class="update-title">${update.title}</div>
+                    <div class="update-text">${update.text}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        renderUpdates();
+    </script>
 </body>
 </html>
