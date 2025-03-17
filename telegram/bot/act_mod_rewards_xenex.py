@@ -1,6 +1,7 @@
 import os
 from telegram import Update, ChatMember, ChatMemberUpdated
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import JobQueue
 from tinydb import TinyDB, Query
 import random
 from datetime import datetime, timedelta
@@ -215,6 +216,11 @@ def main():
     application.add_handler(CommandHandler("addwallet", add_wallet))
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_member))
 
+# Automatic rewards and community questions
+    application.job_queue.run_repeating(auto_reward_mods, interval=7200, first=10)
+    application.job_queue.run_repeating(ask_question, interval=10800, first=10)
+
+    print("Bot is running...")
     application.run_polling()
 
 if __name__ == "__main__":
