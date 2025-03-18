@@ -2,7 +2,7 @@ import telegram
 from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
 
-BOT_TOKEN = "DEIN_BOT_TOKEN"
+BOT_TOKEN = "7761649059:AAEQtfHDd1FXeE5wH3rPIyuXzBXnqB4eP94"
 
 async def get_chat_id(update: Update, context: CallbackContext) -> None:
     chat_id = update.message.chat_id
