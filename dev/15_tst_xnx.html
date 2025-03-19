@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xenex AI - Cyber Avatar v3.0</title>
+  
+  <style>
+    /* =============================
+       HIGH-TECH CYBERPUNK STYLE
+    ============================= */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: #0b0f24;
+      color: #fff;
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    .container {
+      margin-top: 30px;
+    }
+
+    .app-title {
+      font-size: 3rem;
+      color: #00eaff;
+      text-shadow: 0 0 20px #00eaff;
+    }
+
+    /* =============================
+       AVATAR PANEL
+    ============================= */
+    .avatar-panel {
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(0, 255, 255, 0.3);
+      border-radius: 16px;
+      padding: 30px;
+      width: 90%;
+      max-width: 400px;
+      margin: 30px auto;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+    }
+
+    .avatar-container {
+      width: 260px;
+      height: 260px;
+      margin: 0 auto;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid #00eaff;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+      position: relative;
+    }
+
+    .avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+    }
+
+    /* =============================
+       AVATAR DETAILS & PROGRESS BARS
+    ============================= */
+    .avatar-info {
+      margin-top: 20px;
+      text-align: left;
+      font-size: 1rem;
+    }
+
+    .progress-container {
+      margin-top: 10px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      transition: width 0.5s ease-in-out;
+    }
+
+    /* Farben für verschiedene Attribute */
+    .energy { background: #ff0077; }
+    .power { background: #ffdd00; }
+    .intelligence { background: #00ff99; }
+
+    /* =============================
+       BUTTON DESIGN
+    ============================= */
+    .button-row {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .action-btn {
+      background: linear-gradient(45deg, #00eaff, #0077ff);
+      color: #fff;
+      padding: 14px 24px;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: none;
+    }
+
+    .action-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+    }
+  </style>
+
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="container">
+    <h1 class="app-title">Xenex AI</h1>
+  </div>
+
+  <!-- AVATAR PANEL -->
+  <div class="avatar-panel">
+    <h2>Avatar Auswahl</h2>
+    <div class="avatar-container">
+      <img id="avatar" class="avatar" src="" alt="Avatar">
+    </div>
+
+    <div class="avatar-info">
+      <p><strong>Name:</strong> <span id="avatar-name"></span></p>
+      <p><strong>Level:</strong> <span id="avatar-level"></span></p>
+      <p><strong>Bonus:</strong> <span id="avatar-bonus"></span></p>
+
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill energy" id="progress-energy"></div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill power" id="progress-power"></div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill intelligence" id="progress-intelligence"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="button-row">
+      <button class="action-btn" onclick="changeAvatar()">Avatar wechseln</button>
+      <button class="action-btn" onclick="openProfile()">Profil anzeigen</button>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT -->
+  <script>
+    // Avatar-Datenbank
+    const avatars = [
+      { src: "../img/avatar1.png", name: "Cyber Elite", level: 10, bonus: "+15% AI Processing", energy: 80, power: 70, intelligence: 95 },
+      { src: "../img/avatar2.png", name: "Quantum Mind", level: 15, bonus: "+20% Neural Speed", energy: 90, power: 60, intelligence: 100 },
+      { src: "../img/avatar3.png", name: "Neon Phantom", level: 8, bonus: "+12% Cybernetic Boost", energy: 75, power: 85, intelligence: 80 }
+    ];
+
+    let currentIndex = 0;
+    const avatarImg = document.getElementById("avatar");
+    const avatarName = document.getElementById("avatar-name");
+    const avatarLevel = document.getElementById("avatar-level");
+    const avatarBonus = document.getElementById("avatar-bonus");
+    const progressEnergy = document.getElementById("progress-energy");
+    const progressPower = document.getElementById("progress-power");
+    const progressIntelligence = document.getElementById("progress-intelligence");
+
+    // Avatar-Preload + Animation
+    function loadAvatar() {
+      avatarImg.src = avatars[currentIndex].src;
+      setTimeout(() => {
+        avatarImg.style.opacity = "1";
+        avatarImg.style.transform = "scale(1)";
+      }, 300);
+      updateStats();
+    }
+
+    function changeAvatar() {
+      currentIndex = (currentIndex + 1) % avatars.length;
+      avatarImg.style.opacity = "0";
+      setTimeout(loadAvatar, 500);
+    }
+
+    function updateStats() {
+      let av = avatars[currentIndex];
+      avatarName.textContent = av.name;
+      avatarLevel.textContent = av.level;
+      avatarBonus.textContent = av.bonus;
+      progressEnergy.style.width = av.energy + "%";
+      progressPower.style.width = av.power + "%";
+      progressIntelligence.style.width = av.intelligence + "%";
+    }
+
+    function openProfile() {
+      alert(`Profil:\nName: ${avatars[currentIndex].name}\nLevel: ${avatars[currentIndex].level}\nBonus: ${avatars[currentIndex].bonus}`);
+    }
+
+    window.onload = loadAvatar;
+  </script>
+
+</body>
+</html>
