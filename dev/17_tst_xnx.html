@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Xenex AI - Ultra Premium UI</title>
+  <style>
+    /* ------------------------
+       FONTS & BASICS
+    ------------------------ */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      font-family: 'Roboto', sans-serif;
+      background: #0b0f24;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    /* ------------------------
+       PARALLAX BACKGROUND
+    ------------------------ */
+    body::before {
+      content: "";
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: url('https://images.unsplash.com/photo-1549923746-c502d479bed6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80') no-repeat center center/cover;
+      filter: blur(10px) brightness(0.3);
+      z-index: -2;
+    }
+    body::after {
+      content: "";
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(circle at center, rgba(0,0,0,0) 0%, #0b0f24 90%);
+      z-index: -1;
+    }
+
+    /* ------------------------
+       HEADER & PERSONAL WELCOME
+    ------------------------ */
+    header {
+      text-align: center;
+      margin-top: 20px;
+      position: relative; z-index: 2;
+    }
+    .app-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 3rem;
+      letter-spacing: 3px;
+      color: #00eaff;
+      text-shadow: 0 0 15px #00eaff, 0 0 30px #00eaff;
+      animation: flicker 2s infinite alternate;
+    }
+    @keyframes flicker {
+      0% { opacity: 1; }
+      100% { opacity: 0.85; }
+    }
+    .welcome-message {
+      font-size: 1.3rem;
+      color: #0ff;
+      margin: 10px auto;
+      padding: 10px 14px;
+      border: 1px solid #0ff;
+      border-radius: 8px;
+      display: inline-block;
+      animation: slideDown 0.8s ease-out;
+    }
+    @keyframes slideDown {
+      0% { transform: translateY(-20px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    /* ------------------------
+       MAIN WRAPPER & PANELS
+    ------------------------ */
+    .main-wrapper {
+      width: 95%;
+      max-width: 1200px;
+      margin: 30px auto 80px;
+      position: relative; z-index: 2;
+    }
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ------------------------
+       HOME PANEL (AVATAR + TASKS)
+    ------------------------ */
+    .home-panel { display: flex; flex-direction: column; gap: 40px; }
+
+    /* AVATAR PANEL */
+    .avatar-panel {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(0,255,255,0.3);
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(0,255,255,0.3);
+      padding: 30px 20px;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .avatar-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2rem;
+      color: #00eaff;
+      margin-bottom: 20px;
+      text-shadow: 0 0 8px #0ff;
+    }
+    .avatar-container {
+      width: 260px; height: 260px;
+      margin: 0 auto;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid #f0f;
+      box-shadow: 0 0 40px rgba(240,0,240,0.5);
+      position: relative;
+      transition: box-shadow 0.3s ease;
+    }
+    .avatar-container:hover {
+      box-shadow: 0 0 30px #0ff, 0 0 50px #00eaff;
+    }
+    .avatar {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      position: absolute;
+      left: -50%; /* Startwert für Animation */
+      opacity: 0;
+      animation-fill-mode: forwards;
+    }
+    /* Neue Animation: Fade-In & Slide ohne Rotation */
+    @keyframes fadeInSlide {
+      0% { left: -50%; transform: scale(0.8); opacity: 0; }
+      50% { left: 10%; transform: scale(1.05); opacity: 0.8; }
+      100% { left: 0; transform: scale(1); opacity: 1; }
+    }
+
+    .avatar-stats {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 25px;
+    }
+    .stat-box {
+      background: rgba(255,255,255,0.1);
+      padding: 12px 18px;
+      border-radius: 10px;
+      min-width: 100px;
+      box-shadow: 0 0 12px rgba(255,255,255,0.2);
+      transition: transform 0.3s;
+    }
+    .stat-box:hover { transform: scale(1.05); }
+    .stat-title { font-size: 0.8rem; color: #ccc; }
+    .stat-value {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.2rem;
+      margin-top: 6px;
+      color: #fff;
+      text-shadow: 0 0 6px #fff;
+    }
+    /* XP und Stat Fortschrittsbalken */
+    .xp-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+      margin-top: 5px;
+      overflow: hidden;
+    }
+    .xp-bar-inner {
+      height: 100%;
+      background: linear-gradient(90deg, #0ff, #00f);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    .button-row {
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    <!-– Nur die notwendigen Buttons beibehalten ––>
+    .change-avatar-btn, .show-profile-btn {
+      background: linear-gradient(45deg, #00f, #0ff);
+      color: #fff;
+      border: none;
+      padding: 16px 32px;
+      font-size: 1.1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 0 30px #0ff;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .change-avatar-btn:hover,
+    .show-profile-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 40px #00f, 0 0 50px #0ff;
+    }
+
+    /* ------------------------
+       DASHBOARD / TASKS
+    ------------------------ */
+    .dashboard {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(0,255,255,0.3);
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(0,255,255,0.3);
+      padding: 30px 25px;
+      text-align: left;
+    }
+    .dashboard-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem;
+      color: #0ff;
+      margin-bottom: 20px;
+      text-shadow: 0 0 8px #0ff;
+    }
+    .task-list { display: flex; flex-direction: column; gap: 25px; }
+    .task {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0,0,255,0.25);
+      padding: 18px 25px;
+      border-radius: 12px;
+      box-shadow: 0 0 25px rgba(0,255,255,0.25);
+      transition: background 0.3s, transform 0.3s;
+    }
+    .task:hover {
+      background: rgba(0,0,255,0.35);
+      transform: scale(1.02);
+    }
+    .task-left { display: flex; align-items: center; gap: 18px; }
+    .task-icon {
+      font-size: 2rem;
+      animation: pulse 2s infinite alternate;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.2); }
+    }
+    .task-text {
+      font-size: 1.2rem;
+      position: relative;
+      transition: color 0.3s ease;
+    }
+    .task-text:hover {
+      color: #fff;
+      text-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+    }
+    .claim-button {
+      background: linear-gradient(45deg, #ff00ff, #ff0080);
+      color: #fff;
+      border: none;
+      padding: 14px 30px;
+      font-size: 1.1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 30px #f0f;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .claim-button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 40px #f0f, 0 0 55px #ff00ff;
+    }
+    .progress-container { margin-top: 25px; }
+    .progress-label {
+      font-size: 1.1rem;
+      color: #ccc;
+      margin-bottom: 8px;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 14px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-bar-inner {
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(90deg, #0ff, #00f);
+      box-shadow: 0 0 12px #0ff;
+      animation: progress 4s linear infinite;
+    }
+    @keyframes progress {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+
+    /* ------------------------
+       STAKING PANEL
+    ------------------------ */
+    .staking-panel {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(0,255,255,0.3);
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(0,255,255,0.3);
+      padding: 30px 25px;
+    }
+    .staking-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem;
+      color: #0ff;
+      margin-bottom: 20px;
+      text-shadow: 0 0 8px #0ff;
+    }
+    .stake-content { display: flex; flex-direction: column; gap: 20px; }
+    .stake-input {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .stake-input input {
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #999;
+      flex: 1;
+    }
+    .stake-btn {
+      background: linear-gradient(45deg, #0f0, #0ff);
+      color: #fff;
+      border: none;
+      padding: 14px 30px;
+      font-size: 1.1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 30px #0ff;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .stake-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 40px #0f0, 0 0 50px #0ff;
+    }
+
+    /* ------------------------
+       QUESTS PANEL
+    ------------------------ */
+    .quests-panel {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(0,255,255,0.3);
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(0,255,255,0.3);
+      padding: 30px 25px;
+    }
+    .quests-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem;
+      color: #0ff;
+      margin-bottom: 20px;
+      text-shadow: 0 0 8px #0ff;
+    }
+    .quest-list { display: flex; flex-direction: column; gap: 20px; }
+    .quest {
+      background: rgba(255,0,255,0.15);
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 0 25px rgba(255,0,255,0.2);
+      transition: background 0.3s, transform 0.3s;
+    }
+    .quest:hover {
+      background: rgba(255,0,255,0.25);
+      transform: scale(1.02);
+    }
+
+    /* ------------------------
+       CLAIM PANEL
+    ------------------------ */
+    .claim-panel {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(0,255,255,0.3);
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(0,255,255,0.3);
+      padding: 30px 25px;
+    }
+    .claim-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem;
+      color: #0ff;
+      margin-bottom: 20px;
+      text-shadow: 0 0 8px #0ff;
+    }
+    .claim-content { text-align: center; }
+    .big-claim-btn {
+      background: linear-gradient(45deg, #ff00ff, #ff0080);
+      color: #fff;
+      border: none;
+      padding: 16px 40px;
+      font-size: 1.3rem;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 0 30px #f0f;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      margin-top: 30px;
+    }
+    .big-claim-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 40px #f0f, 0 0 55px #ff00ff;
+    }
+
+    /* ------------------------
+       BOTTOM MENU
+    ------------------------ */
+    .menu {
+      position: fixed; bottom: 0; left: 0;
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      display: flex; justify-content: space-around; align-items: center;
+      padding: 15px 0;
+      box-shadow: 0 -2px 20px rgba(0,255,255,0.3);
+      z-index: 3;
+    }
+    .menu-item {
+      font-size: 1rem;
+      text-transform: uppercase;
+      color: #ccc;
+      text-align: center;
+      flex: 1;
+      transition: transform 0.3s, color 0.3s;
+      cursor: pointer;
+    }
+    .menu-item:hover {
+      transform: scale(1.1);
+      color: #fff;
+      text-shadow: 0 0 8px #0ff;
+    }
+    .menu-item.active {
+      color: #0ff;
+      text-shadow: 0 0 10px #0ff;
+    }
+    .menu-icon {
+      display: block;
+      font-size: 1.8rem;
+      margin-bottom: 5px;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-top: 30px;
+      position: relative; z-index: 2;
+    }
+
+    /* ------------------------
+       PROFILE MODAL
+    ------------------------ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 999;
+      justify-content: center; align-items: center;
+      animation: fadeIn 0.5s forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .modal {
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(0,255,255,0.3);
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(0,255,255,0.3);
+      padding: 30px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      animation: slideDownModal 0.5s forwards;
+      position: relative;
+    }
+    @keyframes slideDownModal {
+      0% { transform: translateY(-30px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    .modal h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem;
+      color: #0ff;
+      margin-bottom: 20px;
+      text-shadow: 0 0 8px #0ff;
+    }
+    .modal-content {
+      font-size: 1rem;
+      line-height: 1.5;
+      color: #ccc;
+      margin-bottom: 20px;
+    }
+    .close-btn {
+      background: linear-gradient(45deg, #f00, #f0f);
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 20px #f0f;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .close-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px #f0f, 0 0 40px #f00;
+    }
+
+    /* ------------------------
+       RESPONSIVE MEDIA QUERIES
+    ------------------------ */
+    @media (max-width: 768px) {
+      .avatar-container { width: 180px; height: 180px; }
+      .avatar-title { font-size: 1.6rem; }
+      .button-row button { padding: 10px 20px; font-size: 1rem; }
+      .dashboard, .avatar-panel, .staking-panel, .quests-panel, .claim-panel { padding: 20px; }
+      .task { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .claim-button { width: 100%; text-align: center; }
+      .stake-input input { font-size: 0.9rem; }
+      .stake-btn { width: 100%; margin-top: 10px; }
+      .menu-item { font-size: 0.9rem; }
+      .menu-icon { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header>
+    <h1 class="app-title">Xenex AI</h1>
+  </header>
+
+  <!-- PERSONALIZED WELCOME (GET Parameter) -->
+  <div id="welcome" class="welcome-message" style="display:none;"></div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+    <!-- HOME PANEL (Default) -->
+    <div class="panel home-panel active" id="homePanel">
+      <!-- AVATAR PANEL -->
+      <div class="avatar-panel">
+        <h2 class="avatar-title">Avatar Auswahl</h2>
+        <div class="avatar-container" id="avatar-container">
+          <img id="avatar" class="avatar" src="../img/car1.png" alt="AI Avatar">
+        </div>
+        <!-- Dynamische Avatar Stats mit erweiterten Details -->
+        <div class="avatar-stats" id="avatar-stats">
+          <!-- Wird per JavaScript befüllt -->
+        </div>
+        <!-- Buttons -->
+        <div class="button-row">
+          <button class="change-avatar-btn" onclick="changeAvatar()">Avatar ändern</button>
+          <button class="show-profile-btn" onclick="openProfile()">Profil anzeigen</button>
+        </div>
+      </div>
+
+      <!-- DASHBOARD / TASKS -->
+      <div class="dashboard">
+        <h3 class="dashboard-title">Daily Tasks</h3>
+        <div class="task-list">
+          <div class="task">
+            <div class="task-left">
+              <span class="task-icon">📅</span>
+              <span class="task-text">Täglicher Bonus: 5K</span>
+            </div>
+            <button class="claim-button">Claim</button>
+          </div>
+          <div class="task">
+            <div class="task-left">
+              <span class="task-icon">🔗</span>
+              <span class="task-text">Folge Xenex auf Telegram</span>
+            </div>
+            <button class="claim-button">Erledigt</button>
+          </div>
+          <div class="task">
+            <div class="task-left">
+              <span class="task-icon">🚀</span>
+              <span class="task-text">Erreiche Level 2</span>
+            </div>
+            <button class="claim-button">Erledigt</button>
+          </div>
+          <!-- Neue Aufgaben -->
+          <div class="task">
+            <div class="task-left">
+              <span class="task-icon">🔥</span>
+              <span class="task-text">Gewinne ein Rennen</span>
+            </div>
+            <button class="claim-button">Claim</button>
+          </div>
+          <div class="task">
+            <div class="task-left">
+              <span class="task-icon">⚙️</span>
+              <span class="task-text">Upgrade deinen Avatar</span>
+            </div>
+            <button class="claim-button">Claim</button>
+          </div>
+        </div>
+        <div class="progress-container">
+          <div class="progress-label">Level-Fortschritt</div>
+          <div class="progress-bar">
+            <div class="progress-bar-inner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAKING PANEL -->
+    <div class="panel staking-panel" id="stakingPanel">
+      <h2 class="staking-title">Staking</h2>
+      <div class="stake-content">
+        <p>Lege deine Tokens an und erhalte Belohnungen.</p>
+        <div class="stake-input">
+          <input type="number" placeholder="Menge eingeben...">
+          <button class="stake-btn">Stake</button>
+        </div>
+        <p style="margin-top:10px;">Aktueller APR: <strong>15%</strong></p>
+      </div>
+    </div>
+
+    <!-- QUESTS PANEL -->
+    <div class="panel quests-panel" id="questsPanel">
+      <h2 class="quests-title">Quests</h2>
+      <div class="quest-list">
+        <div class="quest">
+          <p><strong>Quest 1:</strong> Schließe 3 Rennen ab.</p>
+        </div>
+        <div class="quest">
+          <p><strong>Quest 2:</strong> Sammle 500 XP.</p>
+        </div>
+        <div class="quest">
+          <p><strong>Quest 3:</strong> Verbessere deinen Avatar auf Level 5.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLAIM PANEL -->
+    <div class="panel claim-panel" id="claimPanel">
+      <h2 class="claim-title">Claim Rewards</h2>
+      <div class="claim-content">
+        <p>Du hast <strong>12500</strong> Rewards zum Einlösen!</p>
+        <button class="big-claim-btn">Jetzt einlösen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>© 2025 Xenex AI</footer>
+
+  <!-- BOTTOM MENU -->
+  <nav class="menu">
+    <div class="menu-item active" onclick="showPanel('homePanel', this)">
+      <span class="menu-icon">🏠</span>
+      <span>Home</span>
+    </div>
+    <div class="menu-item" onclick="showPanel('stakingPanel', this)">
+      <span class="menu-icon">💰</span>
+      <span>Staking</span>
+    </div>
+    <div class="menu-item" onclick="showPanel('questsPanel', this)">
+      <span class="menu-icon">🎯</span>
+      <span>Quests</span>
+    </div>
+    <div class="menu-item" onclick="showPanel('claimPanel', this)">
+      <span class="menu-icon">📥</span>
+      <span>Claim</span>
+    </div>
+  </nav>
+
+  <!-- PROFILE MODAL -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h2>Dein Profil</h2>
+      <div class="modal-content" id="modal-content">
+        <!-- Dynamische Profil-Daten -->
+      </div>
+      <button class="close-btn" onclick="closeProfile()">Schließen</button>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT -->
+  <script>
+    // GET-Parameter auslesen (?name=xxx&address=xxx)
+    function getParameter(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+    const userName = getParameter('name');
+    const userAddress = getParameter('address');
+    const welcomeDiv = document.getElementById('welcome');
+    if(userName || userAddress) {
+      welcomeDiv.style.display = 'inline-block';
+      welcomeDiv.textContent = `Willkommen ${userName ? userName : ''} ${userAddress ? '(' + userAddress + ')' : ''}!`;
+    }
+
+    // Panels steuern
+    const panels = document.querySelectorAll(".panel");
+    const menuItems = document.querySelectorAll(".menu-item");
+    function showPanel(panelId, el) {
+      panels.forEach(p => p.classList.remove("active"));
+      document.getElementById(panelId).classList.add("active");
+      menuItems.forEach(item => item.classList.remove("active"));
+      el.classList.add("active");
+    }
+
+    // Array mit 8 Avataren (../img/car1.png bis ../img/car8.png) inkl. erweiterter XP- und Stat-Daten
+    const avatars = [
+      { src: "../img/car1.png", name: "Speedster", level: 1, bonus: "+5% Speed", power: 120, xp: 20, maxXp: 100, topSpeed: 220, acceleration: 3.5, handling: 80 },
+      { src: "../img/car2.png", name: "RoadRacer", level: 2, bonus: "+10% Nitro", power: 180, xp: 50, maxXp: 100, topSpeed: 240, acceleration: 3.2, handling: 85 },
+      { src: "../img/car3.png", name: "ThunderTruck", level: 5, bonus: "+20% Carry", power: 350, xp: 75, maxXp: 100, topSpeed: 200, acceleration: 4.0, handling: 70 },
+      { src: "../img/car4.png", name: "BlazeRunner", level: 3, bonus: "+15% Acceleration", power: 220, xp: 40, maxXp: 100, topSpeed: 230, acceleration: 3.0, handling: 90 },
+      { src: "../img/car5.png", name: "NightStalker", level: 4, bonus: "+12% Stealth", power: 260, xp: 60, maxXp: 100, topSpeed: 210, acceleration: 3.8, handling: 75 },
+      { src: "../img/car6.png", name: "VoltViper", level: 2, bonus: "+8% Efficiency", power: 150, xp: 30, maxXp: 100, topSpeed: 225, acceleration: 3.6, handling: 82 },
+      { src: "../img/car7.png", name: "CyberCruiser", level: 6, bonus: "+25% Armor", power: 400, xp: 80, maxXp: 100, topSpeed: 250, acceleration: 2.9, handling: 88 },
+      { src: "../img/car8.png", name: "NeonNova", level: 7, bonus: "+30% Power", power: 450, xp: 90, maxXp: 100, topSpeed: 255, acceleration: 2.8, handling: 92 }
+    ];
+
+    let currentIndex = 0;
+    const avatarImg = document.getElementById("avatar");
+    const avatarStats = document.getElementById("avatar-stats");
+
+    // Initialen Avatar laden
+    window.onload = () => { loadAvatarData(currentIndex); };
+
+    function changeAvatar() {
+      currentIndex = (currentIndex + 1) % avatars.length;
+      loadAvatarData(currentIndex);
+    }
+
+    function loadAvatarData(index) {
+      const av = avatars[index];
+      avatarImg.style.animation = "none";
+      setTimeout(() => {
+        // Neue Animation: fadeInSlide (ohne Rotation)
+        avatarImg.style.animation = "fadeInSlide 0.8s forwards";
+        avatarImg.src = av.src;
+      }, 50);
+      avatarStats.innerHTML = `
+        <div class="stat-box">
+          <div class="stat-title">Name</div>
+          <div class="stat-value">${av.name}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-title">Level</div>
+          <div class="stat-value">${av.level}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-title">Bonus</div>
+          <div class="stat-value">${av.bonus}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-title">Power</div>
+          <div class="stat-value">${av.power}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-title">XP</div>
+          <div class="stat-value">${av.xp} / ${av.maxXp}</div>
+          <div class="xp-bar">
+            <div class="xp-bar-inner" style="width: ${(av.xp / av.maxXp * 100)}%;"></div>
+          </div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-title">Top Speed</div>
+          <div class="stat-value">${av.topSpeed} km/h</div>
+          <div class="xp-bar">
+            <div class="xp-bar-inner" style="width: ${(av.topSpeed / 300 * 100)}%;"></div>
+          </div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-title">Acceleration</div>
+          <div class="stat-value">${av.acceleration} s (0-100 km/h)</div>
+          <div class="xp-bar">
+            <div class="xp-bar-inner" style="width: ${((5.0 - av.acceleration) / 2.5 * 100)}%;"></div>
+          </div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-title">Handling</div>
+          <div class="stat-value">${av.handling} / 100</div>
+          <div class="xp-bar">
+            <div class="xp-bar-inner" style="width: ${(av.handling)}%;"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Profil-Modul öffnen
+    function openProfile() {
+      const modalOverlay = document.getElementById("modal-overlay");
+      const modalContent = document.getElementById("modal-content");
+      modalContent.innerHTML = `
+        <p><strong>Benutzername:</strong> ${userName ? userName : "Unbekannt"}</p>
+        <p><strong>Wallet:</strong> ${userAddress ? userAddress : "Keine"}</p>
+        <p><strong>Aktueller Avatar:</strong> ${avatars[currentIndex].name}</p>
+        <hr style="margin: 20px 0; border-color: #0ff;">
+        <p>Weitere Profilinfos, Erfolge, Statistiken usw. könnten hier stehen.</p>
+      `;
+      modalOverlay.style.display = "flex";
+    }
+
+    // Profil-Modul schließen
+    function closeProfile() {
+      document.getElementById("modal-overlay").style.display = "none";
+    }
+
+    // Fallback-Keyframes: Neue Animation "fadeInSlide" ohne Rotation
+    const styleElem = document.createElement("style");
+    styleElem.innerHTML = `
+      @keyframes fadeInSlide {
+        0% { left: -50%; transform: scale(0.8); opacity: 0; }
+        50% { left: 10%; transform: scale(1.05); opacity: 0.8; }
+        100% { left: 0; transform: scale(1); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(styleElem);
+  </script>
+</body>
+</html>
