@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xenex AI - Cyberpunk UI</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: #0b0f24;
+      color: #fff;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .container { margin-top: 30px; }
+
+    .app-title {
+      font-size: 3rem;
+      color: #00eaff;
+      text-shadow: 0 0 20px #00eaff;
+    }
+
+    /* Avatar Panel */
+    .avatar-panel {
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(0, 255, 255, 0.3);
+      border-radius: 16px;
+      padding: 30px;
+      width: 90%;
+      max-width: 400px;
+      margin: 30px auto;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+    }
+
+    /* Avatar Container */
+    .avatar-container {
+      width: 260px;
+      height: 260px;
+      margin: 0 auto;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid #00eaff;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+      position: relative;
+      animation: glow 2s infinite alternate;
+    }
+
+    @keyframes glow {
+      0% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); }
+      100% { box-shadow: 0 0 40px rgba(0, 255, 255, 0.7); }
+    }
+
+    .avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+    }
+
+    /* Glitch Effekt */
+    .glitch {
+      animation: glitch 0.5s infinite alternate;
+    }
+
+    @keyframes glitch {
+      0% { transform: translate(0, 0); opacity: 1; }
+      100% { transform: translate(-3px, 2px); opacity: 0.9; }
+    }
+
+    /* Progress Bars */
+    .progress-container { margin-top: 20px; text-align: left; font-size: 1rem; }
+    .progress-bar {
+      width: 100%;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      transition: width 0.5s ease-in-out;
+    }
+
+    /* Farben */
+    .energy { background: #ff0077; }
+    .power { background: #ffdd00; }
+    .intelligence { background: #00ff99; }
+    .security { background: #0077ff; }
+    .ai-optimization { background: #ff6600; }
+
+    /* Button Design */
+    .action-btn {
+      background: linear-gradient(45deg, #00eaff, #0077ff);
+      color: #fff;
+      padding: 14px 24px;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: none;
+    }
+
+    .action-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+    }
+  </style>
+
+</head>
+<body>
+
+  <div class="container">
+    <h1 class="app-title">Xenex AI</h1>
+  </div>
+
+  <div class="avatar-panel">
+    <h2>Avatar Auswahl</h2>
+    <div class="avatar-container">
+      <img id="avatar" class="avatar" src="" alt="Avatar">
+    </div>
+
+    <div class="progress-container">
+      <div class="progress-bar"><div class="progress-fill energy" id="progress-energy"></div></div>
+      <div class="progress-bar"><div class="progress-fill power" id="progress-power"></div></div>
+      <div class="progress-bar"><div class="progress-fill intelligence" id="progress-intelligence"></div></div>
+      <div class="progress-bar"><div class="progress-fill security" id="progress-security"></div></div>
+      <div class="progress-bar"><div class="progress-fill ai-optimization" id="progress-ai"></div></div>
+    </div>
+
+    <div class="button-row">
+      <button class="action-btn" onclick="changeAvatar()">Avatar wechseln</button>
+      <button class="action-btn" onclick="openProfile()">Profil anzeigen</button>
+    </div>
+  </div>
+
+  <script>
+    const avatars = [
+      { src: "avatar1.png", energy: 80, power: 70, intelligence: 95, security: 85, ai: 90 },
+      { src: "avatar2.png", energy: 90, power: 60, intelligence: 100, security: 80, ai: 95 },
+      { src: "avatar3.png", energy: 75, power: 85, intelligence: 80, security: 70, ai: 85 }
+    ];
+
+    let currentIndex = 0;
+    const avatarImg = document.getElementById("avatar");
+    const progressEnergy = document.getElementById("progress-energy");
+    const progressPower = document.getElementById("progress-power");
+    const progressIntelligence = document.getElementById("progress-intelligence");
+    const progressSecurity = document.getElementById("progress-security");
+    const progressAI = document.getElementById("progress-ai");
+
+    function loadAvatar() {
+      avatarImg.src = avatars[currentIndex].src;
+      avatarImg.classList.add("glitch");
+      setTimeout(() => {
+        avatarImg.style.opacity = "1";
+        avatarImg.style.transform = "scale(1)";
+        avatarImg.classList.remove("glitch");
+      }, 500);
+      updateStats();
+    }
+
+    function changeAvatar() {
+      currentIndex = (currentIndex + 1) % avatars.length;
+      avatarImg.style.opacity = "0";
+      setTimeout(loadAvatar, 500);
+    }
+
+    function updateStats() {
+      let av = avatars[currentIndex];
+      progressEnergy.style.width = av.energy + "%";
+      progressPower.style.width = av.power + "%";
+      progressIntelligence.style.width = av.intelligence + "%";
+      progressSecurity.style.width = av.security + "%";
+      progressAI.style.width = av.ai + "%";
+    }
+
+    window.onload = loadAvatar;
+  </script>
+
+</body>
+</html>
