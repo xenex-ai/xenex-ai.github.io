@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Xenex AI - Ultra Premium UI v2.0</title>
+  
+  <style>
+    /* =============================
+       FONTS & BASICS
+    ============================= */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #0b0f24;
+      color: #fff;
+      overflow-x: hidden;
+      text-align: center;
+    }
+
+    /* =============================
+       HEADER DESIGN
+    ============================= */
+    header {
+      margin-top: 20px;
+    }
+
+    .app-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 3rem;
+      letter-spacing: 2px;
+      color: #00eaff;
+      text-shadow: 0 0 10px #00eaff;
+    }
+
+    /* =============================
+       AVATAR PANEL
+    ============================= */
+    .avatar-panel {
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(0, 255, 255, 0.3);
+      border-radius: 16px;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+      padding: 30px;
+      text-align: center;
+      margin: 30px auto;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .avatar-container {
+      width: 260px;
+      height: 260px;
+      margin: 0 auto;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid #00eaff;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+      position: relative;
+    }
+
+    .avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      opacity: 0;
+      transition: opacity 0.6s ease-in-out;
+    }
+
+    .avatar-stats {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .stat-box {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      min-width: 100px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    }
+
+    .stat-value {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.2rem;
+      color: #00eaff;
+    }
+
+    /* =============================
+       BUTTON DESIGN
+    ============================= */
+    .button-row {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .action-btn {
+      background: linear-gradient(45deg, #00eaff, #0077ff);
+      color: #fff;
+      padding: 14px 24px;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: none;
+    }
+
+    .action-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+    }
+
+    /* =============================
+       FOOTER DESIGN
+    ============================= */
+    footer {
+      margin-top: 50px;
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+  </style>
+
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <h1 class="app-title">Xenex AI</h1>
+  </header>
+
+  <!-- AVATAR PANEL -->
+  <div class="avatar-panel">
+    <h2 class="avatar-title">Avatar Auswahl</h2>
+    <div class="avatar-container">
+      <img id="avatar" class="avatar" src="../img/car1.png" alt="Avatar">
+    </div>
+
+    <div class="avatar-stats" id="avatar-stats"></div>
+
+    <div class="button-row">
+      <button class="action-btn" onclick="changeAvatar()">Avatar ändern</button>
+      <button class="action-btn" onclick="openProfile()">Profil anzeigen</button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>© 2025 Xenex AI</footer>
+
+  <!-- JAVASCRIPT -->
+  <script>
+    // Avatare mit Details
+    const avatars = [
+      { src: "../img/car1.png", name: "Speedster", level: 1, bonus: "+5% Speed" },
+      { src: "../img/car2.png", name: "RoadRacer", level: 2, bonus: "+10% Nitro" },
+      { src: "../img/car3.png", name: "ThunderTruck", level: 5, bonus: "+20% Carry" },
+      { src: "../img/car4.png", name: "BlazeRunner", level: 3, bonus: "+15% Acceleration" },
+    ];
+
+    let currentIndex = 0;
+    const avatarImg = document.getElementById("avatar");
+    const avatarStats = document.getElementById("avatar-stats");
+
+    // Initialen Avatar laden
+    window.onload = () => { loadAvatarData(currentIndex); };
+
+    function changeAvatar() {
+      currentIndex = (currentIndex + 1) % avatars.length;
+      avatarImg.style.opacity = "0";
+      setTimeout(() => {
+        avatarImg.src = avatars[currentIndex].src;
+        avatarImg.style.opacity = "1";
+      }, 300);
+      updateStats();
+    }
+
+    function updateStats() {
+      const av = avatars[currentIndex];
+      avatarStats.innerHTML = `
+        <div class="stat-box"><div class="stat-title">Name</div><div class="stat-value">${av.name}</div></div>
+        <div class="stat-box"><div class="stat-title">Level</div><div class="stat-value">${av.level}</div></div>
+        <div class="stat-box"><div class="stat-title">Bonus</div><div class="stat-value">${av.bonus}</div></div>
+      `;
+    }
+
+    function openProfile() {
+      alert(`Profil:\nName: ${avatars[currentIndex].name}\nLevel: ${avatars[currentIndex].level}\nBonus: ${avatars[currentIndex].bonus}`);
+    }
+  </script>
+
+</body>
+</html>
