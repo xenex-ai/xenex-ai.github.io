@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xenex AI App</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        body {
+            background-color: #080818;
+            color: white;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+
+        header {
+            font-size: 28px;
+            text-transform: uppercase;
+            text-shadow: 0 0 15px #0ff, 0 0 30px #0ff;
+            animation: flicker 2s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 25px #f0f;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s ease-in-out, box-shadow 0.5s ease-in-out;
+        }
+
+        .avatar:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 0 35px #f0f;
+        }
+
+        .change-avatar-btn {
+            margin-top: 10px;
+            background: linear-gradient(45deg, #00f, #0ff);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 0 15px #0ff;
+            transition: 0.3s ease-in-out;
+        }
+
+        .change-avatar-btn:hover {
+            box-shadow: 0 0 25px #00f, 0 0 40px #0ff;
+            transform: scale(1.15);
+        }
+
+        .dashboard {
+            width: 90%;
+            max-width: 500px;
+            padding: 25px;
+            border: 3px solid #0ff;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.7);
+            background: rgba(0, 0, 50, 0.4);
+            text-align: left;
+        }
+
+        .task {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(0, 0, 255, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+            margin: 12px 0;
+        }
+
+        .task p {
+            font-size: 16px;
+        }
+
+        .claim-button {
+            background: linear-gradient(45deg, #ff00ff, #ff0080);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 0 15px #f0f;
+            transition: 0.3s ease-in-out;
+        }
+
+        .claim-button:hover {
+            box-shadow: 0 0 25px #f0f, 0 0 40px #ff00ff;
+            transform: scale(1.1);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .progress-bar div {
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, #0ff, #00f);
+            animation: progress 3s linear infinite;
+        }
+
+        @keyframes progress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        .menu {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 500px;
+            position: absolute;
+            bottom: 15px;
+        }
+
+        .menu-item {
+            font-size: 18px;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .menu-item:hover {
+            transform: scale(1.2);
+            text-shadow: 0 0 10px #0ff;
+        }
+
+        footer {
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>XENEX AI</header>
+
+        <div class="avatar-container">
+            <img id="avatar" class="avatar" src="../img/car1.png" alt="AI Avatar">
+            <button class="change-avatar-btn" onclick="changeAvatar()">Avatar ändern</button>
+        </div>
+
+        <div class="dashboard">
+            <div class="task">
+                <p>🔹 Täglicher Bonus: 5K</p>
+                <button class="claim-button">Claim</button>
+            </div>
+            <div class="task">
+                <p>🔹 Folge Xenex auf Telegram</p>
+                <button class="claim-button">Erledigt</button>
+            </div>
+            <div class="progress-bar">
+                <div></div>
+            </div>
+        </div>
+
+        <div class="menu">
+            <div class="menu-item">🏠 Home</div>
+            <div class="menu-item">💰 Staking</div>
+            <div class="menu-item">🎯 Quests</div>
+            <div class="menu-item">📥 Claim</div>
+        </div>
+
+        <footer>© 2025 Xenex AI</footer>
+    </div>
+
+    <script>
+        let avatars = ["../img/car1.png", "../img/car2.png", "../img/car3.png"];
+        let currentIndex = 0;
+
+        function changeAvatar() {
+            currentIndex = (currentIndex + 1) % avatars.length;
+            document.getElementById("avatar").src = avatars[currentIndex];
+        }
+    </script>
+</body>
+</html>
