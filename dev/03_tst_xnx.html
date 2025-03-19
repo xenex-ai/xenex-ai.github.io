@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xenex AI App</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        body {
+            background-color: #080818;
+            color: white;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+
+        header {
+            font-size: 24px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid #f0f;
+            box-shadow: 0 0 15px #f0f;
+            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+        .avatar.fade-out {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .avatar.fade-in {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .change-avatar-btn {
+            margin-top: 10px;
+            background: linear-gradient(45deg, #00f, #0ff);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 10px #0ff;
+            transition: 0.3s ease-in-out;
+        }
+
+        .change-avatar-btn:hover {
+            box-shadow: 0 0 20px #00f, 0 0 30px #0ff;
+            transform: scale(1.1);
+        }
+
+        .dashboard {
+            width: 90%;
+            max-width: 400px;
+            padding: 20px;
+            border: 2px solid #0ff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            background: rgba(0, 0, 50, 0.3);
+            text-align: left;
+        }
+
+        .task {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0, 0, 255, 0.1);
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+            margin: 10px 0;
+        }
+
+        .task p {
+            font-size: 14px;
+        }
+
+        .claim-button {
+            background: linear-gradient(45deg, #ff00ff, #ff0080);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 10px #f0f;
+            transition: 0.3s ease-in-out;
+        }
+
+        .claim-button:hover {
+            box-shadow: 0 0 20px #f0f, 0 0 30px #ff00ff;
+            transform: scale(1.1);
+        }
+
+        footer {
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>XENEX AI</header>
+
+        <div class="avatar-container">
+            <img id="avatar" class="avatar" src="../img/car1.png" alt="AI Avatar">
+            <button class="change-avatar-btn" onclick="changeAvatar()">Avatar ändern</button>
+        </div>
+
+        <div class="dashboard">
+            <div class="task">
+                <p>🔹 Täglicher Bonus: 5K</p>
+                <button class="claim-button">Claim</button>
+            </div>
+            <div class="task">
+                <p>🔹 Folge Xenex auf Telegram</p>
+                <button class="claim-button">Erledigt</button>
+            </div>
+            <div class="task">
+                <p>🔹 Erreiche Level 2</p>
+                <button class="claim-button">Erledigt</button>
+            </div>
+        </div>
+
+        <footer>© 2025 Xenex AI</footer>
+    </div>
+
+    <audio id="switchSound">
+        <source src="../sound/switch.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let avatars = ["../img/car1.png", "../img/car2.png", "../img/car3.png"];
+        let currentIndex = 0;
+        let avatarElement = document.getElementById("avatar");
+        let switchSound = document.getElementById("switchSound");
+
+        function changeAvatar() {
+            // Avatar langsam ausblenden
+            avatarElement.classList.add("fade-out");
+            setTimeout(() => {
+                // Neuen Avatar setzen
+                currentIndex = (currentIndex + 1) % avatars.length;
+                avatarElement.src = avatars[currentIndex];
+
+                // Sound abspielen
+                switchSound.play();
+
+                // Avatar langsam einblenden
+                avatarElement.classList.remove("fade-out");
+                avatarElement.classList.add("fade-in");
+            }, 500);
+        }
+
+        // Avatar automatisch wechseln nach 10 Sekunden
+        setInterval(changeAvatar, 10000);
+    </script>
+</body>
+</html>
