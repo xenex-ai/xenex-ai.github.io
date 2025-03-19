@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xenex AI - Ultra Premium UI</title>
+  <style>
+    /* ------------------------ */
+    /* FONTS & BASICS */
+    /* ------------------------ */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #0b0f24;
+      color: #fff;
+      overflow-x: hidden;
+    }
+    
+    /* Hintergrund mit sanftem Verlauf */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(45deg, #0b0f24, #1a2030, #0b0f24);
+      animation: gradientAnimation 20s infinite;
+      z-index: -3;
+    }
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ------------------------ */
+    /* HEADER & TITEL */
+    /* ------------------------ */
+    header {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .app-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 3rem;
+      color: #00eaff;
+      text-shadow: 0 0 15px #00eaff;
+      animation: flicker 2s infinite alternate;
+    }
+    @keyframes flicker {
+      0% { opacity: 1; }
+      100% { opacity: 0.85; }
+    }
+
+    /* ------------------------ */
+    /* AVATAR PANEL */
+    /* ------------------------ */
+    .avatar-panel {
+      text-align: center;
+      margin: 30px auto;
+      padding: 20px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(0,255,255,0.3);
+      width: 80%;
+      max-width: 400px;
+    }
+    .avatar-container {
+      width: 260px;
+      height: 260px;
+      margin: auto;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid #00eaff;
+      transition: box-shadow 0.3s ease;
+    }
+    .avatar-container:hover {
+      box-shadow: 0 0 30px #00eaff;
+    }
+    .avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* ------------------------ */
+    /* PROGRESS BAR */
+    /* ------------------------ */
+    .progress-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .progress-label {
+      font-size: 1.1rem;
+      color: #ccc;
+    }
+    .progress-bar {
+      width: 80%;
+      max-width: 300px;
+      height: 14px;
+      margin: 10px auto;
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px;
+      display: flex;
+      overflow: hidden;
+    }
+    .progress-bar div {
+      flex: 1;
+      height: 100%;
+      background: linear-gradient(90deg, #0ff, #00f);
+      transition: width 0.5s;
+    }
+
+    /* ------------------------ */
+    /* BUTTONS */
+    /* ------------------------ */
+    .button-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .button {
+      background: linear-gradient(45deg, #00f, #0ff);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .button:hover {
+      box-shadow: 0 0 15px #0ff;
+      transform: scale(1.05);
+    }
+
+    /* ------------------------ */
+    /* RESPONSIVE DESIGN */
+    /* ------------------------ */
+    @media (max-width: 768px) {
+      .avatar-container { width: 180px; height: 180px; }
+      .button { font-size: 0.9rem; padding: 8px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <h1 class="app-title">Xenex AI</h1>
+    <div class="progress-container">
+      <span class="progress-label">Level-Fortschritt</span>
+      <div class="progress-bar">
+        <div id="progressSegment1"></div>
+        <div id="progressSegment2"></div>
+        <div id="progressSegment3"></div>
+        <div id="progressSegment4"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- AVATAR PANEL -->
+  <div class="avatar-panel">
+    <h2>Dein Avatar</h2>
+    <div class="avatar-container">
+      <img id="avatar" class="avatar" src="https://via.placeholder.com/260" alt="Avatar">
+    </div>
+    <div class="button-row">
+      <button class="button" onclick="changeAvatar()">Avatar ändern</button>
+    </div>
+  </div>
+
+  <script>
+    let avatars = [
+      "https://via.placeholder.com/260/FF0000",
+      "https://via.placeholder.com/260/00FF00",
+      "https://via.placeholder.com/260/0000FF"
+    ];
+    let currentIndex = 0;
+
+    function changeAvatar() {
+      currentIndex = (currentIndex + 1) % avatars.length;
+      document.getElementById("avatar").src = avatars[currentIndex];
+    }
+
+    // Progressbar dynamisch füllen
+    function updateProgress(level) {
+      const segments = document.querySelectorAll(".progress-bar div");
+      segments.forEach((segment, index) => {
+        segment.style.opacity = index < level ? "1" : "0.2";
+      });
+    }
+    
+    updateProgress(2); // Beispiel: Level 2 von 4 gefüllt
+  </script>
+
+</body>
+</html>
