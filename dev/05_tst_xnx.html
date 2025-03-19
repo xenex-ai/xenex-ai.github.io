@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Xenex AI - Advanced UI</title>
+  <style>
+    /****************************************
+     * FONTS & BASIC SETTINGS
+     ****************************************/
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: 'Roboto', sans-serif;
+      background: #0b0f24;
+      color: #fff;
+      overflow: hidden; /* Verhindert Scrollbars, optional */
+    }
+
+    /****************************************
+     * PARALLAX BACKGROUND
+     ****************************************/
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('https://images.unsplash.com/photo-1549923746-c502d479bed6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80') no-repeat center center/cover;
+      filter: blur(8px) brightness(0.4);
+      z-index: -2;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(0,0,0,0) 0%, #0b0f24 80%);
+      z-index: -1;
+    }
+
+    /****************************************
+     * HEADER
+     ****************************************/
+    header {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .app-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.2rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #00eaff;
+      text-shadow: 0 0 10px #00eaff, 0 0 30px #00eaff;
+      animation: flicker 2s infinite alternate;
+      margin-bottom: 10px;
+    }
+
+    @keyframes flicker {
+      0% { opacity: 1; }
+      100% { opacity: 0.9; }
+    }
+
+    /****************************************
+     * MAIN LAYOUT
+     ****************************************/
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 10px auto 70px auto;
+      width: 95%;
+      max-width: 1200px;
+      position: relative;
+    }
+
+    /****************************************
+     * AVATAR SELECTION PANEL
+     ****************************************/
+    .avatar-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(0, 255, 255, 0.2);
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,255,255,0.2);
+      padding: 20px;
+      width: 90%;
+      max-width: 500px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .avatar-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      color: #00eaff;
+      text-shadow: 0 0 5px #0ff;
+    }
+
+    .avatar-container {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 0 25px #f0f;
+      transition: transform 0.4s ease;
+    }
+    .avatar-container:hover {
+      transform: scale(1.03);
+    }
+
+    .avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease-in-out, box-shadow 0.5s ease-in-out;
+    }
+    .avatar:hover {
+      transform: scale(1.08) rotate(3deg);
+      box-shadow: 0 0 35px #f0f;
+    }
+
+    .avatar-stats {
+      margin-top: 15px;
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+    }
+
+    .stat-box {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 8px 12px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.1);
+      text-align: center;
+      min-width: 80px;
+    }
+
+    .stat-title {
+      font-size: 0.8rem;
+      color: #ccc;
+    }
+    .stat-value {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      color: #fff;
+      margin-top: 4px;
+      text-shadow: 0 0 5px #fff;
+    }
+
+    .change-avatar-btn {
+      margin-top: 15px;
+      background: linear-gradient(45deg, #00f, #0ff);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 15px #0ff;
+      transition: 0.3s ease-in-out;
+    }
+    .change-avatar-btn:hover {
+      box-shadow: 0 0 25px #00f, 0 0 40px #0ff;
+      transform: scale(1.1);
+    }
+
+    /****************************************
+     * DASHBOARD (TASKS, PROGRESS)
+     ****************************************/
+    .dashboard {
+      width: 90%;
+      max-width: 800px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(0, 255, 255, 0.2);
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,255,255,0.3);
+      padding: 20px;
+      text-align: left;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .dashboard-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.3rem;
+      color: #0ff;
+      margin-bottom: 10px;
+      text-shadow: 0 0 5px #0ff;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .task {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 255, 0.2);
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0,255,255,0.2);
+      padding: 12px 15px;
+      transition: background 0.3s;
+    }
+    .task:hover {
+      background: rgba(0, 0, 255, 0.3);
+    }
+
+    .task-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .task-icon {
+      font-size: 1.4rem;
+      animation: iconPulse 2s infinite alternate;
+    }
+    @keyframes iconPulse {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.2); }
+    }
+
+    .task-text {
+      font-size: 1rem;
+    }
+
+    .claim-button {
+      background: linear-gradient(45deg, #ff00ff, #ff0080);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 15px #f0f;
+      transition: 0.3s ease-in-out;
+    }
+    .claim-button:hover {
+      box-shadow: 0 0 25px #f0f, 0 0 40px #ff00ff;
+      transform: scale(1.1);
+    }
+
+    .progress-container {
+      margin-top: 10px;
+    }
+    .progress-label {
+      font-size: 0.9rem;
+      color: #ccc;
+      margin-bottom: 5px;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-bar div {
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(90deg, #0ff, #00f);
+      box-shadow: 0 0 10px #0ff;
+      animation: progress 4s linear infinite;
+    }
+    @keyframes progress {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+
+    /****************************************
+     * MENU (BOTTOM NAV)
+     ****************************************/
+    .menu {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 0;
+      box-shadow: 0 0 15px rgba(0,255,255,0.2);
+    }
+
+    .menu-item {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      color: #ccc;
+      text-align: center;
+      flex: 1;
+      transition: 0.3s;
+      position: relative;
+    }
+    .menu-item:hover {
+      color: #fff;
+      text-shadow: 0 0 8px #0ff;
+      transform: scale(1.1);
+    }
+    .menu-item.active {
+      color: #0ff;
+      text-shadow: 0 0 10px #0ff;
+    }
+
+    .menu-icon {
+      display: block;
+      font-size: 1.4rem;
+      margin-bottom: 5px;
+    }
+
+    footer {
+      font-size: 0.8rem;
+      color: #999;
+      margin-bottom: 10px;
+    }
+
+  </style>
+</head>
+<body>
+  <!-- HEADER / TITLE -->
+  <header>
+    <h1 class="app-title">Xenex AI</h1>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-container">
+
+    <!-- AVATAR SELECTION -->
+    <div class="avatar-panel">
+      <h2 class="avatar-title">Avatar Auswahl</h2>
+      <div class="avatar-container" id="avatar-container">
+        <img id="avatar" class="avatar" src="img/car1.png" alt="AI Avatar">
+      </div>
+
+      <!-- Avatar Stats -->
+      <div class="avatar-stats" id="avatar-stats">
+        <!-- Dynamisch gefüllt per JS -->
+      </div>
+
+      <!-- Change Button -->
+      <button class="change-avatar-btn" onclick="changeAvatar()">Avatar ändern</button>
+    </div>
+
+    <!-- DASHBOARD / TASKS -->
+    <div class="dashboard">
+      <h3 class="dashboard-title">Daily Tasks</h3>
+      <div class="task-list">
+        <div class="task">
+          <div class="task-left">
+            <span class="task-icon">📅</span>
+            <span class="task-text">Täglicher Bonus: 5K</span>
+          </div>
+          <button class="claim-button">Claim</button>
+        </div>
+
+        <div class="task">
+          <div class="task-left">
+            <span class="task-icon">🔗</span>
+            <span class="task-text">Folge Xenex auf Telegram</span>
+          </div>
+          <button class="claim-button">Erledigt</button>
+        </div>
+
+        <div class="task">
+          <div class="task-left">
+            <span class="task-icon">🚀</span>
+            <span class="task-text">Erreiche Level 2</span>
+          </div>
+          <button class="claim-button">Erledigt</button>
+        </div>
+      </div>
+
+      <!-- Fortschrittsanzeige -->
+      <div class="progress-container">
+        <div class="progress-label">Level-Fortschritt</div>
+        <div class="progress-bar">
+          <div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>© 2025 Xenex AI</footer>
+
+  <!-- MENU (BOTTOM NAV) -->
+  <nav class="menu">
+    <div class="menu-item active">
+      <span class="menu-icon">🏠</span>
+      <span>Home</span>
+    </div>
+    <div class="menu-item">
+      <span class="menu-icon">💰</span>
+      <span>Staking</span>
+    </div>
+    <div class="menu-item">
+      <span class="menu-icon">🎯</span>
+      <span>Quests</span>
+    </div>
+    <div class="menu-item">
+      <span class="menu-icon">📥</span>
+      <span>Claim</span>
+    </div>
+  </nav>
+
+  <!-- JAVASCRIPT -->
+  <script>
+    // Du kannst mehr Avatare hinzufügen
+    const avatars = [
+      {
+        src: "img/car1.png",
+        name: "Speedster",
+        level: 1,
+        bonus: "+5% Speed",
+        power: 120
+      },
+      {
+        src: "img/car2.png",
+        name: "RoadRacer",
+        level: 2,
+        bonus: "+10% Nitro",
+        power: 180
+      },
+      {
+        src: "img/car3.png",
+        name: "ThunderTruck",
+        level: 5,
+        bonus: "+20% Carry",
+        power: 350
+      }
+    ];
+
+    let currentIndex = 0;
+
+    const avatarImg = document.getElementById("avatar");
+    const avatarStats = document.getElementById("avatar-stats");
+
+    // Initialer Avatar
+    window.onload = () => {
+      loadAvatarData(currentIndex);
+    };
+
+    function changeAvatar() {
+      currentIndex = (currentIndex + 1) % avatars.length;
+      loadAvatarData(currentIndex);
+    }
+
+    function loadAvatarData(index) {
+      const av = avatars[index];
+      avatarImg.src = av.src;
+      // Stats in HTML einbauen
+      avatarStats.innerHTML = `
+        <div class="stat-box">
+          <div class="stat-title">Name</div>
+          <div class="stat-value">${av.name}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-title">Level</div>
+          <div class="stat-value">${av.level}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-title">Bonus</div>
+          <div class="stat-value">${av.bonus}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-title">Power</div>
+          <div class="stat-value">${av.power}</div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
