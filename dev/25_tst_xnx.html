@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Xenex AI - Ultra Premium UI</title>
   <style>
-    /* Bestehende Styles unverändert gelassen */
+    /* ------------------------
+       FONTS & BASICS
+    ------------------------ */
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
@@ -17,19 +19,20 @@
       overflow-x: hidden;
       position: relative;
     }
-    
+
     /* Progressbar-Animation */
     @keyframes progressFill {
       from { width: 0%; }
       to   { width: var(--target-width); }
     }
-    
+
     .xp-bar-inner {
       height: 100%;
       background: linear-gradient(90deg, #0ff, #00f);
       border-radius: 4px;
       transition: width 0.8s ease-in-out;
     }
+    
   </style>
 </head>
 <body>
@@ -38,7 +41,7 @@
     <h1 class="app-title">Xenex AI</h1>
     <div class="header-extra" id="currentTime">--:--:--</div>
   </header>
-  
+
   <!-- AVATAR PANEL -->
   <div class="avatar-panel">
     <h2 class="avatar-title">Avatar Auswahl</h2>
@@ -109,7 +112,7 @@
         </div>
         <div class="stat-box">
           <div class="stat-title">Power</div>
-          <div class="stat-value">${av.power}</div>
+          <div class="stat-value" id="power-value">${av.power}</div>
         </div>
         <div class="stat-box">
           <div class="stat-title">XP</div>
@@ -118,11 +121,41 @@
             <div class="xp-bar-inner" id="xp-bar" style="width: ${(av.xp / av.maxXp * 100)}%;"></div>
           </div>
         </div>
+        <div class="stat-box">
+          <div class="stat-title">Top Speed</div>
+          <div class="stat-value" id="speed-value">${av.topSpeed} km/h</div>
+          <div class="xp-bar">
+            <div class="xp-bar-inner" id="speed-bar" style="width: ${(av.topSpeed / 300 * 100)}%;"></div>
+          </div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-title">Acceleration</div>
+          <div class="stat-value" id="acceleration-value">${av.acceleration} s (0-100 km/h)</div>
+          <div class="xp-bar">
+            <div class="xp-bar-inner" id="acceleration-bar" style="width: ${((5.0 - av.acceleration) / 2.5 * 100)}%;"></div>
+          </div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-title">Handling</div>
+          <div class="stat-value" id="handling-value">${av.handling} / 100</div>
+          <div class="xp-bar">
+            <div class="xp-bar-inner" id="handling-bar" style="width: ${(av.handling)}%;"></div>
+          </div>
+        </div>
       `;
 
       // Animierte Stat-Updates
+      animateStatChange(document.getElementById("power-value"), av.power);
       animateStatChange(document.getElementById("xp-value"), av.xp);
+      animateStatChange(document.getElementById("speed-value"), av.topSpeed);
+      animateStatChange(document.getElementById("acceleration-value"), av.acceleration);
+      animateStatChange(document.getElementById("handling-value"), av.handling);
+
+      // Progressbars animieren
       animateProgressBar(document.getElementById("xp-bar"), (av.xp / av.maxXp) * 100);
+      animateProgressBar(document.getElementById("speed-bar"), (av.topSpeed / 300) * 100);
+      animateProgressBar(document.getElementById("acceleration-bar"), ((5.0 - av.acceleration) / 2.5) * 100);
+      animateProgressBar(document.getElementById("handling-bar"), av.handling);
     }
 
     // Initial Avatar laden
