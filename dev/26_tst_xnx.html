@@ -120,24 +120,11 @@
       position: absolute; left: -50%; opacity: 0;
       animation-fill-mode: forwards;
     }
-    @keyframes fadeOutSlide {
-  0% { left: 0; transform: scale(1); opacity: 1; }
-  100% { left: 50%; transform: scale(0.8); opacity: 0; }
-}
-
-@keyframes fadeInSlide {
-  0% { left: -50%; transform: scale(0.8); opacity: 0; }
-  100% { left: 0; transform: scale(1); opacity: 1; }
-}
-
-.fade-out {
-  animation: fadeOutSlide 0.5s forwards;
-}
-
-.fade-in {
-  animation: fadeInSlide 0.5s forwards;
-}
-
+    @keyframes fadeInSlide {
+      0% { left: -50%; transform: scale(0.8); opacity: 0; }
+      50% { left: 10%; transform: scale(1.05); opacity: 0.8; }
+      100% { left: 0; transform: scale(1); opacity: 1; }
+    }
     /* Avatar-Infos als Grid */
     .avatar-stats {
       display: grid;
@@ -710,23 +697,9 @@
     window.onload = () => { preloadAvatars(); loadAvatarData(currentIndex); };
     
     function changeAvatar() {
-  const avatarImg = document.getElementById("avatar");
-
-  // Aktuellen Avatar ausblenden
-  avatarImg.classList.remove("fade-in");
-  avatarImg.classList.add("fade-out");
-
-  // Wartezeit für die Ausblend-Animation, dann Avatar wechseln
-  setTimeout(() => {
-    currentIndex = (currentIndex + 1) % avatars.length;
-    avatarImg.src = avatars[currentIndex];
-
-    // Entferne alte Animation, füge neue ein
-    avatarImg.classList.remove("fade-out");
-    avatarImg.classList.add("fade-in");
-  }, 500); // 500ms entspricht der Animation in fadeOutSlide
-}
-
+      currentIndex = (currentIndex + 1) % avatars.length;
+      loadAvatarData(currentIndex);
+    }
     
     function loadAvatarData(index) {
       const av = avatars[index];
@@ -806,6 +779,20 @@
         };
       }
     }
+
+    function sendMessage() {
+        fetch("https://api.telegram.org/bot7761649059:AAEQtfHDd1FXeE5wH3rPIyuXzBXnqB4eP94/sendMessage", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                chat_id: "-1001734852517",
+                text: "Hallo, das ist eine Nachricht von meiner Webseite!"
+            }),
+        })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error("Fehler:", error));
+    }
     
     // Profil öffnen
     function openProfile() {
@@ -819,7 +806,10 @@
         <p>Weitere Profilinfos, Erfolge, Statistiken usw. könnten hier stehen.</p>
         <a class="claim-button" href="https://t.me/xentst1_bot?start=removepoints_w3kmdo_5">withdrawal -5</a><br><br>
         <a class="claim-button" href="https://t.me/xentst1_bot?start=addpoints_${userName ? userName : "w3kmdo"}_5">claim +5</a><br><br>
-        <a class="claim-button" href="https://t.me/xentst1?start=comefrom_premium_${userName ? userName : "w3kmdo"}">back to community</a><br><br>
+        <a class="claim-button" href="https://t.me/xentst1?start=comefrom_premium_${userName ? userName : "w3kmdo"}">back to community</a>
+        <br><br><br>
+        <button onclick="sendMessage()">Nachricht an Bot senden</button>
+        <br><br><br>
       `;
       modalOverlay.style.display = "flex";
     }
