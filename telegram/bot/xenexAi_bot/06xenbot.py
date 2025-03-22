@@ -1,3 +1,24 @@
+### Telegram-Bot für XenexAi hat folgende Funktionen und Details:
+###Funktionen.###
+# 1. **Punktesystem:** 
+#  - Vergeben und Entziehen von Punkten für die Mitglieder basierend auf Aktivitäten.
+# 2. **Fragen:** 
+#  - Der Bot stellt alle 3 Stunden eine zufällige Frage.
+#  - Teilnehmer haben 1 Stunde Zeit, um zu antworten.
+#  - Der aktivste Teilnehmer erhält 100-250 Extrapunkte.
+#  - Alle 20 Minuten wird daran erinnert, dass es Extrapunkte gibt.
+# 3. **Begrüßung:** 
+#  - Der Bot begrüßt neue Mitglieder und entfernt Mitglieder ohne Benutzernamen.
+# 4. **Adminbefehle:** 
+# - `/addpoints` - Vergeben von Punkten an Mitglieder.
+#  - `/message` - Sendet Nachrichten an die Gruppe.
+#  - `/pointlist` - Zeigt die aktuelle Punktestandliste.
+###Datenmanagement:### 
+# - Alle Daten werden in JSON-Dateien gespeichert, um eine einfache Verwaltung und Nachverfolgbarkeit der Punkte und Interaktionen zu gewährleisten.
+# Der Bot soll auch eine feierliche Auswertung der Punkte und der aktivsten Teilnehmer nach jeder Fragerunde durchführen.
+###TESTED:###
+# none/nein
+
 import json
 import random
 import logging
