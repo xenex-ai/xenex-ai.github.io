@@ -786,7 +786,7 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 chat_id: "-1001734852517",
-                text: "Hallo, das ist eine Nachricht von meiner Webseite!"
+                text: "Hallo, das ist eine Nachricht von xenex-ai.gitub.io"
             }),
         })
         .then(response => response.json())
@@ -808,7 +808,7 @@
         <a class="claim-button" href="https://t.me/xentst1_bot?start=addpoints_${userName ? userName : "w3kmdo"}_5">claim +5</a><br><br>
         <a class="claim-button" href="https://t.me/xentst1?start=comefrom_premium_${userName ? userName : "w3kmdo"}">back to community</a>
         <br><br><br>
-        <button onclick="sendMessage()">Nachricht an Bot senden</button>
+        <button onclick="sendMessage()" class="claim-button">Nachricht an Bot senden</button>
         <br><br><br>
       `;
       modalOverlay.style.display = "flex";
