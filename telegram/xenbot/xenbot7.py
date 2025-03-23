@@ -379,12 +379,19 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Vergibt zufällig 1-2 Punkte für Nachrichten, sofern keine Fragerunde aktiv ist."""
     storage = get_storage(context)
+
     if "active_question" in storage:
+        await update.message.reply_text("Es läuft gerade eine Fragerunde! Punktevergabe ist deaktiviert.")
+        user = update.message.from_user
         points = 0
-        return  # Punktevergabe während der Fragerunde deaktiviert
-    user = update.message.from_user
-    points = random.choice([1, 2])
-    await add_points(user.id, user.username or user.first_name, points)
+    else:
+       user = update.message.from_user
+       points = random.choice([1, 2])
+       await add_points(user.id, user.username or user.first_name, points)
+       await update.message.reply_text(f"{user.first_name}, du hast {points} Punkte erhalten!")
+
+    
+
 
 async def pointlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Zeigt die Punkteliste an."""
