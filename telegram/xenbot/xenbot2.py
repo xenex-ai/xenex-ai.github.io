@@ -181,27 +181,23 @@ start_random_question = start_question_round
 
 async def track_user_activity(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Speichert die Nachrichtenaktivität der Benutzer während einer aktiven Fragerunde,
-    aber vergibt KEINE Punkte automatisch.
+    Speichert die Nachrichtenaktivität der Benutzer während einer aktiven Fragerunde.
+    Dadurch wird erfasst, wer wie oft geantwortet hat.
     """
     storage = get_storage(context)
     if "active_question" not in storage:
-        return  # Wenn keine Fragerunde aktiv ist, einfach zurück
+        return
 
     user = update.message.from_user
     user_id = str(user.id)
     responses = storage["active_question"].setdefault("responses", {})
-
-    # Speichere Anzahl der Nachrichten, aber vergebe KEINE Punkte
     if user_id not in responses:
         responses[user_id] = {
             "username": user.username or user.first_name,
             "messages": 0
         }
     responses[user_id]["messages"] += 1
-
     log_action(f"📩 {user.username} hat auf die Frage geantwortet! (Total: {responses[user_id]['messages']})")
-
 
 async def evaluate_question_round(context: ContextTypes.DEFAULT_TYPE):
     """
@@ -365,7 +361,7 @@ async def pointlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def claim(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Ermöglicht es Nutzern, ihre Punkte gegen $XNX einzutauschen."""
     user = update.message.from_user if update.message else update.callback_query.from_user
-    keyboard = [[InlineKeyboardButton("✅ Ja, Punkte einlösen", url=f"https://xenex-ai.github.io/dev/24_tst_xnx.html?name={user.username}")]]
+    keyboard = [[InlineKeyboardButton("✅ Ja, Punkte einlösen", url=f"https://xenex-ai.github.io/dev/27_tst_xnx.html?name={user.username}")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     log_action(f"🔄 {user.username} möchte Punkte einlösen.")
     await send_reply(update, context, "💰 Möchtest du deine Punkte gegen $XNX eintauschen?", reply_markup=reply_markup)
@@ -468,9 +464,9 @@ def main():
     # Periodische Aufgaben über den JobQueue:
     job_queue = application.job_queue
     # Rangliste täglich posten (kann nach Bedarf angepasst werden)
-    job_queue.run_repeating(show_ranking, interval=86400, first=0)
+    job_queue.run_repeating(show_ranking, interval=86400, first=10)
     # Neue Frage alle 3 Stunden (10800 Sekunden) stellen – Fragerunde dauert 1 Stunde
-    job_queue.run_repeating(start_random_question, interval=10800, first=0)
+    job_queue.run_repeating(start_random_question, interval=10800, first=20)
     # Erinnerung an Bonuspunkte alle 20 Minuten (1200 Sekunden)
     job_queue.run_repeating(remind_bonus_points, interval=1200, first=1200)
 
