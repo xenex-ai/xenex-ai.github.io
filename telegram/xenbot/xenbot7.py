@@ -355,7 +355,6 @@ async def commands_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
        (update.callback_query and update.callback_query.from_user.username in ADMIN_USERS):
         keyboard.append([InlineKeyboardButton("➕ Punkte vergeben", callback_data="/addpoints")])
         keyboard.append([InlineKeyboardButton("📢 Nachricht senden", callback_data="/message")])
-        keyboard.append([InlineKeyboardButton("🎮 Neue Fragerunde starten", callback_data="/newround")])
     reply_markup = InlineKeyboardMarkup(keyboard)
     await send_reply(update, context, "📌 **Befehlsübersicht**\n\nWähle einen Befehl aus:", reply_markup=reply_markup)
 
@@ -374,10 +373,6 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text("Nutze den Befehl direkt: /addpoints @username 10")
     elif command == "/message" and query.from_user.username in ADMIN_USERS:
         await query.message.reply_text("Nutze den Befehl direkt: /message Dein Text")
-    elif command == "/newround" and query.from_user.username in ADMIN_USERS:
-        await new_round(update, context)
-    else:
-        await query.message.reply_text("❌ Keine Berechtigung.")
 
 # Hier wurde der handle_message-Handler angepasst:
 # Wenn eine Fragerunde aktiv ist (active_question im Speicher vorhanden), wird die Punktevergabe deaktiviert.
@@ -475,32 +470,6 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         log_action(f"❌ Fehler beim Senden der Nachricht: {e}")
         await update.message.reply_text("❌ Fehler beim Senden der Nachricht.")
 
-# ------------------ Neuer Befehl: /newround (nur Admins) ------------------ #
-async def new_round(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Beendet die aktuelle Fragerunde (falls aktiv) und startet eine neue Fragerunde.
-    Dieser Befehl darf nur von Admins ausgeführt werden.
-    """
-    user = update.message.from_user
-    if user.username not in ADMIN_USERS:
-        await update.message.reply_text("❌ Du hast keine Berechtigung, diesen Befehl auszuführen.")
-        return
-
-    storage = get_storage(context)
-    if "active_question" in storage:
-        try:
-            await context.bot.unpin_chat_message(chat_id=GROUP_ID, message_id=storage["active_question"]["message_id"])
-        except Exception as e:
-            log_action(f"❌ Fehler beim Aufheben der Fixierung in /newround: {e}")
-        if "indicator_job" in storage:
-            storage["indicator_job"].schedule_removal()
-        del storage["active_question"]
-        await update.message.reply_text("🔄 Die aktuelle Fragerunde wurde beendet und zurückgesetzt.")
-
-    # Starte die neue Fragerunde
-    await start_question_round(context)
-    await update.message.reply_text("🆕 Eine neue Fragerunde wurde gestartet.")
-
 # ------------------ Hauptprogramm ------------------ #
 def main():
     """Startet den Telegram-Bot."""
@@ -514,7 +483,6 @@ def main():
     application.add_handler(CommandHandler("addpoints", addpoints))
     application.add_handler(CommandHandler("removepoints", removepoints))
     application.add_handler(CommandHandler("message", message))
-    application.add_handler(CommandHandler("newround", new_round))  # Neuer Befehl /newround
 
     # Interaktive Buttons verarbeiten
     application.add_handler(CallbackQueryHandler(button_click))
