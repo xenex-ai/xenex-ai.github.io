@@ -191,7 +191,6 @@ async def start_question_round(context: ContextTypes.DEFAULT_TYPE):
         context.job_queue.run_once(reminder_message, when=i * 1200, chat_id=GROUP_ID)
     # Fragerunde endet nach 1 Stunde
     context.job_queue.run_once(evaluate_question_round, when=3600, chat_id=GROUP_ID)
-
     # Starte den Job, der jede Minute den Countdown aktualisiert und speichere ihn
     indicator_job = context.job_queue.run_repeating(update_question_indicator, interval=60, first=60, chat_id=GROUP_ID)
     storage["indicator_job"] = indicator_job
@@ -332,7 +331,7 @@ async def greet_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
             welcome_text = random.choice(greetings).format(name=member.first_name)
             keyboard = [
                 [InlineKeyboardButton("🌐 Website", url="https://xenexai.com")],
-                [InlineKeyboardButton("🏢 Headquarters", url=f"https://xenex-ai.github.io/dev/27_tst_xnx.html?name={member.username}")]
+                [InlineKeyboardButton("🏢 Headquarters", url=f"https://xenex-ai.github.io/dev/26_tst_xnx.html?name={member.username}")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await context.bot.send_message(chat_id=update.effective_chat.id, text=welcome_text, reply_markup=reply_markup)
