@@ -466,7 +466,7 @@ def main():
     # Rangliste täglich posten (kann nach Bedarf angepasst werden)
     job_queue.run_repeating(show_ranking, interval=86400, first=10)
     # Neue Frage alle 3 Stunden (10800 Sekunden) stellen – Fragerunde dauert 1 Stunde
-    job_queue.run_repeating(start_random_question, interval=10800, first=20)
+    job_queue.run_repeating(start_random_question, interval=10800, first=10)
     # Erinnerung an Bonuspunkte alle 20 Minuten (1200 Sekunden)
     job_queue.run_repeating(remind_bonus_points, interval=1200, first=1200)
 
