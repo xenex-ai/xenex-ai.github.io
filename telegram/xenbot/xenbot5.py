@@ -332,7 +332,7 @@ async def greet_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
             welcome_text = random.choice(greetings).format(name=member.first_name)
             keyboard = [
                 [InlineKeyboardButton("🌐 Website", url="https://xenexai.com")],
-                [InlineKeyboardButton("🏢 Headquarters", url=f"https://xenex-ai.github.io/dev/26_tst_xnx.html?name={member.username}")]
+                [InlineKeyboardButton("🏢 Headquarters", url=f"https://xenex-ai.github.io/dev/27_tst_xnx.html?name={member.username}")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await context.bot.send_message(chat_id=update.effective_chat.id, text=welcome_text, reply_markup=reply_markup)
