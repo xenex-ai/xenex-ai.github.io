@@ -195,6 +195,7 @@ async def track_user_activity(update: Update, context: ContextTypes.DEFAULT_TYPE
     """
     storage = get_storage(context)
     if "active_question" not in storage:
+        log_action(f"⚠️ active_question not in storage.")
         return
 
     user = update.message.from_user
