@@ -478,12 +478,12 @@
         <div class="avatar-stats" id="avatar-stats"></div>
         <!-- Buttons -->
         <div class="button-row">
-          <button class="change-avatar-btn" onclick="changeAvatar()">Avatar ändern</button>
-          <button class="show-profile-btn" onclick="openProfile()">Profil anzeigen</button>
+          <button class="change-avatar-btn" onclick="changeAvatar()">change Avatar</button>
+          <button class="show-profile-btn" onclick="openProfile()">Dashboard</button>
         </div>
       </div>
 
-      <div>
+      <div><br><br>
     <h1>Punkteliste</h1>
     <table id="pointlist" border="1">
         <tr>
@@ -491,6 +491,7 @@
             <th>Punkte</th>
         </tr>
     </table>
+        <br><br>
 
     <script>
         fetch('https://api.telegram.org/bot7761649059:AAEQtfHDd1FXeE5wH3rPIyuXzBXnqB4eP94/getUpdates')
@@ -510,7 +511,6 @@
             })
             .catch(error => console.log('Error:', error));
     </script>
-</html>
 
 
       </div>
@@ -818,7 +818,7 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 chat_id: "-1001734852517",
-                text: "Hallo, das ist eine Nachricht von xenex-ai.github.io"
+                text: "Hello, this is message from xenex-ai.github.io"
             }),
         })
         .then(response => response.json())
