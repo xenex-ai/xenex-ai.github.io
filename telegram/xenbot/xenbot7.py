@@ -380,6 +380,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Vergibt zufällig 1-2 Punkte für Nachrichten, sofern keine Fragerunde aktiv ist."""
     storage = get_storage(context)
     if "active_question" in storage:
+        points = 0
         return  # Punktevergabe während der Fragerunde deaktiviert
     user = update.message.from_user
     points = random.choice([1, 2])
