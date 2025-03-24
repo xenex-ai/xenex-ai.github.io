@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>XenexAi Community Dashboard</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <!-- CSS Reset -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html { height: 100%; }
+  </style>
+  <!-- Dashboard Styles -->
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #0D0D2B, #2D2D86);
+      color: #FFF;
+      overflow-x: hidden;
+    }
+    header {
+      background: rgba(0,0,0,0.5);
+      padding: 20px;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+    header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      animation: fadeInDown 1s ease;
+    }
+    header p {
+      font-size: 1.2em;
+      animation: fadeInDown 1.2s ease;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      animation: fadeIn 1.5s ease;
+    }
+    .dashboard-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .dashboard-header h2 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+    .dashboard-header p {
+      font-size: 1.1em;
+      color: #CCC;
+    }
+    .input-group {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .input-group input {
+      width: 300px;
+      padding: 15px;
+      border: none;
+      border-radius: 5px 0 0 5px;
+      font-size: 1em;
+    }
+    .input-group button {
+      padding: 15px 25px;
+      border: none;
+      background-color: #FF9800;
+      color: #FFF;
+      font-size: 1em;
+      cursor: pointer;
+      border-radius: 0 5px 5px 0;
+      transition: background-color 0.3s ease;
+    }
+    .input-group button:hover {
+      background-color: #E68900;
+    }
+    #pointsDisplay {
+      text-align: center;
+      font-size: 1.3em;
+      margin-bottom: 30px;
+      min-height: 40px;
+    }
+    .exchange-section {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .exchange-section button {
+      padding: 15px 30px;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 5px;
+      font-size: 1.2em;
+      color: #FFF;
+      cursor: pointer;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+    .exchange-section button:hover {
+      background-color: #43A047;
+      transform: scale(1.05);
+    }
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 0.9em;
+      color: #AAA;
+      margin-top: 40px;
+    }
+    /* Animation Keyframes */
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    /* Responsive */
+    @media (max-width: 600px) {
+      .input-group {
+        flex-direction: column;
+        align-items: center;
+      }
+      .input-group input,
+      .input-group button {
+        width: 90%;
+        border-radius: 5px;
+        margin: 5px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>XenexAi Community Dashboard</h1>
+    <p>Verwalte deine Telegram-Punkte und tausche sie in $XNX Token um</p>
+  </header>
+
+  <div class="container">
+    <div class="dashboard-header">
+      <h2>Willkommen, Community Member!</h2>
+      <p>Gib deinen Telegram-Benutzernamen ein, um deinen aktuellen Punktestand anzuzeigen.</p>
+    </div>
+    <div class="input-group">
+      <input type="text" id="usernameInput" placeholder="Telegram-Benutzername">
+      <button id="checkPointsButton">Punkte anzeigen</button>
+    </div>
+    <div id="pointsDisplay"></div>
+    <div class="exchange-section">
+      <button id="exchangeButton">In $XNX Token umtauschen</button>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2025 XenexAi Community. Alle Rechte vorbehalten.
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // URL zur JSON-Datei (Punktedaten)
+    const jsonUrl = 'https://xenexai.com/connect/uploads/tst_point.json';
+
+    // Funktion, um die JSON-Datei zu laden
+    async function loadPoints() {
+      try {
+        const response = await fetch(jsonUrl);
+        if (!response.ok) {
+          throw new Error('Serverantwort war nicht OK. Status: ' + response.status);
+        }
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Fehler beim Laden der JSON-Daten:', error);
+        return null;
+      }
+    }
+
+    // Funktion, um den Punktestand anzuzeigen
+    async function showPoints() {
+      const username = document.getElementById('usernameInput').value.trim();
+      const display = document.getElementById('pointsDisplay');
+      
+      if (!username) {
+        display.innerHTML = '<span style="color: #FF5252;">Bitte gib einen Benutzernamen ein.</span>';
+        return;
+      }
+      
+      const pointsData = await loadPoints();
+      if (pointsData) {
+        let found = false;
+        for (const userId in pointsData) {
+          const userInfo = pointsData[userId];
+          if (userInfo.username.toLowerCase() === username.toLowerCase()) {
+            display.innerHTML = `🏅 <strong>${userInfo.username}</strong> hat <strong>${userInfo.points}</strong> Punkte!`;
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          display.innerHTML = `<span style="color: #FF5252;">Benutzer "${username}" nicht gefunden.</span>`;
+        }
+      } else {
+        display.innerHTML = '<span style="color: #FF5252;">Fehler beim Laden der Punktedaten. Bitte versuche es später erneut.</span>';
+      }
+    }
+
+    // Funktion, um Punkte in $XNX Token umzutauschen
+    function exchangePoints() {
+      const username = document.getElementById('usernameInput').value.trim();
+      if (!username) {
+        alert('Bitte gib zuerst deinen Benutzernamen ein.');
+        return;
+      }
+      // Hier könnte man eine API-Anfrage integrieren, um den Umtausch vorzunehmen.
+      // Im Beispiel simulieren wir den Umtausch per Alert.
+      alert(`Der Umtausch von Punkten in $XNX Token für ${username} wurde eingeleitet!`);
+    }
+
+    // Event Listener
+    document.getElementById('checkPointsButton').addEventListener('click', showPoints);
+    document.getElementById('exchangeButton').addEventListener('click', exchangePoints);
+  </script>
+</body>
+</html>
