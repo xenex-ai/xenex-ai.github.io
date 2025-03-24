@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Punktestand anzeigen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #points {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Punktestand eines Benutzers</h1>
+<input type="text" id="usernameInput" placeholder="Benutzername eingeben">
+<button id="checkPointsButton">Punkte anzeigen</button>
+
+<div id="points"></div>
+
+<script>
+    // Funktion, um die tst_point.json Datei zu laden
+    async function loadPoints() {
+        try {
+            const response = await fetch('https://xenexai.com/connect/uploads/tst_point.json'); // URL zur JSON-Datei
+            if (!response.ok) {
+                throw new Error('Netzwerkantwort war nicht ok');
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Fehler beim Laden der Datei:', error);
+            return null;
+        }
+    }
+
+    // Funktion, um den Punktestand anzuzeigen
+    async function showPoints() {
+        const usernameInput = document.getElementById('usernameInput').value;
+        const pointsDiv = document.getElementById('points');
+        
+        // Punkte laden
+        const pointsData = await loadPoints();
+        if (pointsData) {
+            // Suche nach dem Benutzer in den Punkten
+            for (const userId in pointsData) {
+                const userInfo = pointsData[userId];
+                if (userInfo.username === usernameInput) {
+                    pointsDiv.innerHTML = `🏅 ${userInfo.username} hat ${userInfo.points} Punkte!`;
+                    return;
+                }
+            }
+            pointsDiv.innerHTML = `❌ Benutzer "${usernameInput}" nicht gefunden.`;
+        } else {
+            pointsDiv.innerHTML = '❌ Fehler beim Laden der Punktedaten.';
+        }
+    }
+
+    // Event Listener für den Button
+    document.getElementById('checkPointsButton').addEventListener('click', showPoints);
+</script>
+
+</body>
+</html>
