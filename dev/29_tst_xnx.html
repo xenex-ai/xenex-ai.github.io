@@ -860,14 +860,13 @@
       const modalContent = document.getElementById("modal-content");
 	  
 	  const txtofpoints = document.getElementById("points");
-	  document.getElementById("pointx").innerHTML=txtofpoints.textContent;
 	  
       modalContent.innerHTML = `
         <p><strong>Benutzername:</strong> ${userName ? userName : "Unbekannt"}</p>
         <p><strong>Wallet:</strong> ${userAddress ? userAddress : "Keine"}</p>
         <p><strong>Aktueller Avatar:</strong> ${avatars[currentIndex].name}</p>
         <hr style="margin: 20px 0; border-color: #0ff;">
-        <div id="pointx">Weitere Profilinfos, Erfolge, Statistiken usw. könnten hier stehen.</div>
+        <p>${txtofpoints.textContent}</p>
         // <a class="claim-button" href="https://t.me/xentst1_bot?start=removepoints_w3kmdo_5">withdrawal -5</a><br><br>
         // <a class="claim-button" href="https://t.me/xentst1_bot?start=addpoints_${userName ? userName : "w3kmdo"}_5">claim +5</a><br><br>
         <br><br><br>
