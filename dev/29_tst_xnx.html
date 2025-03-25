@@ -867,8 +867,13 @@
         <p><strong>Aktueller Avatar:</strong> ${avatars[currentIndex].name}</p>
         <hr style="margin: 20px 0; border-color: #0ff;">
         <p>${txtofpoints.textContent}</p>
-        // <a class="claim-button" href="https://t.me/xentst1_bot?start=removepoints_w3kmdo_5">withdrawal -5</a><br><br>
-        // <a class="claim-button" href="https://t.me/xentst1_bot?start=addpoints_${userName ? userName : "w3kmdo"}_5">claim +5</a><br><br>
+	</hr>
+
+ 
+        <a class="claim-button" style="display:none;" href="https://t.me/xentst1_bot?start=removepoints_w3kmdo_5">withdrawal -5</a><br><br>
+        <a class="claim-button" style="display:none;" href="https://t.me/xentst1_bot?start=addpoints_${userName ? userName : "w3kmdo"}_5">claim +5</a>
+
+ 
         <br><br><br>
         <button onclick="sendMessage()" class="claim-button">Nachricht an Bot senden</button>
         <br><br><br>
