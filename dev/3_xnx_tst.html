@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Futuristisches UI - 1:1 Beispiel</title>
+  <style>
+    /* --- RESET / GRUNDEINSTELLUNGEN --- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Arial", sans-serif;
+    }
+    body {
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    /* --- GESAMTES UI-CONTAINER --- */
+    .ui-container {
+      width: 360px;
+      border: 2px solid #00c2ff;
+      border-radius: 8px;
+      background-color: #111;
+      box-shadow: 0 0 20px rgba(0, 194, 255, 0.5);
+      overflow: hidden; /* damit Avatar-Hintergrund nicht übersteht */
+      position: relative;
+    }
+
+    /* --- AVATAR-BEREICH MIT LILA/HINTERGRUND --- */
+    .avatar-section {
+      position: relative;
+      background: linear-gradient(135deg, #700089 0%, #bf00ff 50%, #3f004d 100%);
+      /* Du kannst hier mit den Farbwerten experimentieren,
+         um den Screenshot-Farbverlauf möglichst nachzuahmen. */
+      padding: 20px;
+      text-align: center;
+    }
+    .avatar-section img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 3px solid #00c2ff;
+      box-shadow: 0 0 10px rgba(0, 194, 255, 0.5);
+    }
+
+    /* --- HEADER-BEREICH OBEN (BUTTONS) --- */
+    .header-buttons {
+      position: absolute;
+      top: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 10px;
+    }
+    .header-buttons button {
+      background-color: #222;
+      color: #ccc;
+      border: 1px solid #555;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: 0.2s;
+    }
+    .header-buttons button:hover {
+      background-color: #00c2ff;
+      color: #000;
+    }
+    .header-buttons .icon-button {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      font-size: 1.1rem;
+    }
+
+    /* --- LEVEL & NAVIGATION --- */
+    .level-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 16px 0;
+      padding: 0 20px;
+    }
+    .arrow-btn {
+      background-color: #222;
+      border: 1px solid #555;
+      width: 36px;
+      height: 36px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+    }
+    .arrow-btn:hover {
+      background-color: #00c2ff;
+      border-color: #00c2ff;
+      color: #000;
+    }
+    .level-info {
+      text-align: center;
+      color: #00c2ff;
+      font-weight: bold;
+    }
+    .level-info .small {
+      font-size: 0.8rem;
+      color: #fff;
+      display: block;
+    }
+
+    /* --- ENGINEER x1 + UPGRADE --- */
+    .main-title-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      margin-bottom: 16px;
+    }
+    .main-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #00c2ff;
+    }
+    .upgrade-button {
+      background-color: #ff009d;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .upgrade-button:hover {
+      background-color: #ff54c7;
+    }
+
+    /* --- FREUNDE-ANZEIGE --- */
+    .friends-section {
+      display: flex;
+      justify-content: space-between;
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 4px;
+      margin: 0 20px 16px 20px;
+      padding: 8px;
+    }
+    .friends-block {
+      text-align: center;
+      flex: 1;
+    }
+    .friends-block:not(:last-child) {
+      margin-right: 10px;
+    }
+    .friends-block div {
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+    .friends-block span {
+      display: block;
+      font-size: 0.75rem;
+      margin-top: 4px;
+      color: #ccc;
+    }
+
+    /* --- DAILY TASKS --- */
+    .daily-tasks {
+      margin: 0 20px 20px 20px;
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 12px;
+    }
+    .daily-tasks h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+      color: #00c2ff;
+    }
+    .daily-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 8px;
+      margin-bottom: 8px;
+    }
+    .daily-item:last-child {
+      margin-bottom: 0;
+    }
+    .daily-item span {
+      font-size: 0.9rem;
+    }
+    .reward {
+      font-weight: bold;
+      color: #fff;
+    }
+    .progress {
+      color: #ccc;
+      font-size: 0.8rem;
+    }
+
+    /* --- KLEINERE ANIMATIONEN / HOVER-EFFEKTE --- */
+    .daily-item:hover {
+      background-color: #3a3a3a;
+    }
+
+    /* --- RESPONSIVE ANPASSUNG (optional) --- */
+    @media (max-width: 400px) {
+      .ui-container {
+        width: 95%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="ui-container">
+  <!-- AVATAR-BEREICH MIT LILA BACKGROUND -->
+  <div class="avatar-section">
+    <!-- Buttons oben links & rechts -->
+    <div class="header-buttons">
+      <button class="default-button" onclick="setAsDefault()">Set as default</button>
+      <button class="icon-button" onclick="iconAction()" title="Nuklear-Icon">&#9762;</button>
+    </div>
+    <!-- Avatar -->
+    <img id="avatar-img" src="https://xenex-ai.github.io/img/ca1.png" alt="Avatar">
+  </div>
+
+  <!-- LEVEL & NAVIGATION -->
+  <div class="level-section">
+    <button class="arrow-btn" onclick="prevAvatar()">&#10094;</button>
+    <div class="level-info">
+      <div>Level 1</div>
+      <span class="small">1K</span>
+    </div>
+    <button class="arrow-btn" onclick="nextAvatar()">&#10095;</button>
+  </div>
+
+  <!-- MAIN TITLE & UPGRADE -->
+  <div class="main-title-section">
+    <div class="main-title">Engineer x1</div>
+    <button class="upgrade-button" onclick="upgradeFunction()">Upgrade</button>
+  </div>
+
+  <!-- FREUNDE-ANZEIGE -->
+  <div class="friends-section">
+    <div class="friends-block">
+      <div>0 Friends</div>
+      <span>16% 1-tier bonus</span>
+    </div>
+    <div class="friends-block">
+      <div>0 Friends</div>
+      <span>8% 2-tier bonus</span>
+    </div>
+  </div>
+
+  <!-- DAILY TASKS -->
+  <div class="daily-tasks">
+    <h3>Daily tasks</h3>
+    <div class="daily-item" onclick="collectDailyBonus()">
+      <span>Daily Bonus</span>
+      <span class="reward" id="reward-amount">5K</span>
+      <span class="progress" id="progress-amount">0/1</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* 
+    KURZES DEMO-JAVASCRIPT:
+    - Avatare durchklicken (prev / next)
+    - "Set as default" => nur Demo-Alert
+    - Nuklear-Icon => Demo-Alert
+    - "Upgrade" => Demo-Alert
+    - Daily Bonus anklicken => 0/1 -> 1/1
+  */
+
+  const avatars = [
+    "https://xenex-ai.github.io/img/ca1.png",
+    "https://xenex-ai.github.io/img/car2.png",
+    "https://xenex-ai.github.io/img/ca1.png"
+    // Füge bei Bedarf weitere URLs hinzu
+  ];
+  let currentAvatarIndex = 0;
+
+  function setAsDefault() {
+    alert("Du hast dieses Loadout als Standard gesetzt!");
+  }
+
+  function iconAction() {
+    alert("Nuklear-Icon wurde geklickt!");
+  }
+
+  function prevAvatar() {
+    currentAvatarIndex = (currentAvatarIndex - 1 + avatars.length) % avatars.length;
+    document.getElementById("avatar-img").src = avatars[currentAvatarIndex];
+  }
+
+  function nextAvatar() {
+    currentAvatarIndex = (currentAvatarIndex + 1) % avatars.length;
+    document.getElementById("avatar-img").src = avatars[currentAvatarIndex];
+  }
+
+  function upgradeFunction() {
+    alert("Upgrade ausgeführt! (Demo)");
+  }
+
+  function collectDailyBonus() {
+    const progressEl = document.getElementById("progress-amount");
+    if (progressEl.textContent === "0/1") {
+      progressEl.textContent = "1/1";
+      alert("Daily Bonus eingesammelt!");
+    } else {
+      alert("Du hast den Bonus bereits eingesammelt.");
+    }
+  }
+</script>
+
+</body>
+</html>
