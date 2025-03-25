@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Futuristisches UI 1:1</title>
+  <style>
+    /* RESET und Basis-Styling */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+    body {
+      background-color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    
+    /* UI Container */
+    .ui-container {
+      width: 360px;
+      background: #111;
+      border: 2px solid #00c2ff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 194, 255, 0.6);
+      position: relative;
+    }
+    
+    /* Avatar-Bereich mit detailverliebtem Farbverlauf & Schatten */
+    .avatar-section {
+      position: relative;
+      background: linear-gradient(135deg, #700089, #bf00ff, #3f004d);
+      padding: 20px 10px 40px 10px;
+      text-align: center;
+    }
+    .avatar-section img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 4px solid #00c2ff;
+      box-shadow: 0 0 15px rgba(0, 194, 255, 0.7);
+      transition: transform 0.3s;
+    }
+    .avatar-section img:hover {
+      transform: scale(1.05);
+    }
+    
+    /* Header Buttons (oben im Avatar-Bereich) */
+    .header-buttons {
+      position: absolute;
+      top: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 10px;
+    }
+    .header-buttons button {
+      background-color: #222;
+      color: #ccc;
+      border: 1px solid #555;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    .header-buttons button:hover {
+      background-color: #00c2ff;
+      color: #000;
+    }
+    .header-buttons .icon-button {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+    
+    /* Level & Navigation */
+    .level-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      margin-top: -20px;
+    }
+    .arrow-btn {
+      background-color: #222;
+      border: 1px solid #555;
+      width: 36px;
+      height: 36px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+    .arrow-btn:hover {
+      background-color: #00c2ff;
+      border-color: #00c2ff;
+      color: #000;
+    }
+    .level-info {
+      text-align: center;
+      color: #00c2ff;
+      font-weight: bold;
+      line-height: 1.2;
+    }
+    .level-info .small {
+      font-size: 0.75rem;
+      color: #fff;
+      margin-top: 2px;
+    }
+    
+    /* Main Title & Upgrade */
+    .main-title-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      margin: 16px 0;
+    }
+    .main-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #00c2ff;
+      letter-spacing: 0.5px;
+    }
+    .upgrade-button {
+      background-color: #ff009d;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .upgrade-button:hover {
+      background-color: #ff54c7;
+    }
+    
+    /* Freunde-Anzeige */
+    .friends-section {
+      display: flex;
+      justify-content: space-around;
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 4px;
+      margin: 0 20px 16px 20px;
+      padding: 8px;
+    }
+    .friends-block {
+      text-align: center;
+      flex: 1;
+    }
+    .friends-block:not(:last-child) {
+      margin-right: 8px;
+    }
+    .friends-block div {
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+    .friends-block span {
+      display: block;
+      font-size: 0.75rem;
+      margin-top: 4px;
+      color: #ccc;
+    }
+    
+    /* Daily Tasks */
+    .daily-tasks {
+      margin: 0 20px 20px 20px;
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 12px;
+    }
+    .daily-tasks h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+      color: #00c2ff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .daily-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .daily-item:hover {
+      background-color: #3a3a3a;
+    }
+    .daily-item span {
+      font-size: 0.9rem;
+    }
+    .daily-item .reward {
+      font-weight: bold;
+      color: #fff;
+    }
+    .daily-item .progress {
+      color: #ccc;
+      font-size: 0.8rem;
+    }
+    
+    /* Kleine Animation für Upgrade-Button */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .upgrade-button:active {
+      animation: pulse 0.3s;
+    }
+    
+    /* Responsive (optional) */
+    @media (max-width: 400px) {
+      .ui-container {
+        width: 95%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ui-container">
+    <!-- AVATAR-BEREICH -->
+    <div class="avatar-section">
+      <!-- Header Buttons -->
+      <div class="header-buttons">
+        <button onclick="setAsDefault()">Set as default</button>
+        <button class="icon-button" onclick="iconAction()" title="Nuklear-Icon">&#9762;</button>
+      </div>
+      <!-- Avatar Bild -->
+      <img id="avatar-img" src="https://xenex-ai.github.io/img/car1.png" alt="Avatar">
+    </div>
+    
+    <!-- LEVEL & NAVIGATION -->
+    <div class="level-section">
+      <button class="arrow-btn" onclick="prevAvatar()">&#10094;</button>
+      <div class="level-info">
+        <div>Level 1</div>
+        <span class="small">1K</span>
+      </div>
+      <button class="arrow-btn" onclick="nextAvatar()">&#10095;</button>
+    </div>
+    
+    <!-- ENGINEER TITLE & UPGRADE -->
+    <div class="main-title-section">
+      <div class="main-title">Engineer x1</div>
+      <button class="upgrade-button" onclick="upgradeFunction()">Upgrade</button>
+    </div>
+    
+    <!-- FREUNDE-ANZEIGE -->
+    <div class="friends-section">
+      <div class="friends-block">
+        <div>0 Friends</div>
+        <span>16% 1-tier bonus</span>
+      </div>
+      <div class="friends-block">
+        <div>0 Friends</div>
+        <span>8% 2-tier bonus</span>
+      </div>
+    </div>
+    
+    <!-- DAILY TASKS -->
+    <div class="daily-tasks">
+      <h3>Daily tasks</h3>
+      <div class="daily-item" onclick="collectDailyBonus()">
+        <span>Daily Bonus</span>
+        <span class="reward" id="reward-amount">5K</span>
+        <span class="progress" id="progress-amount">0/1</span>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    /* JAVASCRIPT-FUNKTIONEN: Avatare wechseln, Upgrade, Daily Bonus, etc. */
+    const avatars = [
+      "https://xenex-ai.github.io/img/car1.png",
+      "https://xenex-ai.github.io/img/car2.png",
+      "https://xenex-ai.github.io/img/car3.png",
+      "https://xenex-ai.github.io/img/car4.png",
+      "https://xenex-ai.github.io/img/car5.png",
+      "https://xenex-ai.github.io/img/car6.png",
+      "https://xenex-ai.github.io/img/car7.png",
+      "https://xenex-ai.github.io/img/car8.png"
+    ];
+    let currentAvatarIndex = 0;
+    
+    function setAsDefault() {
+      // Hier könnte die Einstellung persistent gespeichert werden
+      alert("Loadout als Standard gesetzt!");
+    }
+    
+    function iconAction() {
+      alert("Nuklear-Icon geklickt!");
+    }
+    
+    function prevAvatar() {
+      currentAvatarIndex = (currentAvatarIndex - 1 + avatars.length) % avatars.length;
+      document.getElementById("avatar-img").src = avatars[currentAvatarIndex];
+    }
+    
+    function nextAvatar() {
+      currentAvatarIndex = (currentAvatarIndex + 1) % avatars.length;
+      document.getElementById("avatar-img").src = avatars[currentAvatarIndex];
+    }
+    
+    function upgradeFunction() {
+      // Beispiel: Erhöhe den "Engineer" Zähler
+      const titleEl = document.querySelector('.main-title');
+      let currentText = titleEl.textContent;
+      const parts = currentText.split(' x');
+      let count = parseInt(parts[1]) || 1;
+      count++;
+      titleEl.textContent = parts[0] + ' x' + count;
+      alert("Upgrade ausgeführt!");
+    }
+    
+    function collectDailyBonus() {
+      const progressEl = document.getElementById("progress-amount");
+      if (progressEl.textContent === "0/1") {
+        progressEl.textContent = "1/1";
+        alert("Daily Bonus eingesammelt!");
+      } else {
+        alert("Bonus bereits eingesammelt.");
+      }
+    }
+  </script>
+</body>
+</html>
