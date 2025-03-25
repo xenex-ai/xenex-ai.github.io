@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Futuristisches UI 1:1 Kopie</title>
+  <style>
+    /* 
+      RESET und Grundlayout 
+    */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Arial", sans-serif;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #0D0D0D; /* Dunkler Seitenhintergrund */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 
+      Hülle für das gesamte UI 
+    */
+    .ui-container {
+      width: 320px;  /* Anhand des Screenshots geschätzt */
+      background: #121212;
+      border: 2px solid #00c2ff;
+      border-radius: 10px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 194, 255, 0.4);
+    }
+
+    /* 
+      Oberer, pink-violetter Bereich mit Avatar 
+    */
+    .avatar-section {
+      position: relative;
+      width: 100%;
+      height: 160px; /* Höhe des oberen Bereichs (geschätzt) */
+      background: linear-gradient(160deg, #6f006a, #9c0098 50%, #3f003f);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* 
+      Neon-Rechteck hinter dem Avatar 
+      (Im Screenshot sieht man hinter der Gasmaske ein neonblaues Panel)
+    */
+    .avatar-background-panel {
+      position: absolute;
+      width: 200px;
+      height: 120px;
+      background: #0c0c0c;
+      border: 2px solid #00c2ff;
+      box-shadow: 0 0 20px rgba(0, 194, 255, 0.3);
+      z-index: 1;
+    }
+
+    /* Zentriert das Panel hinter dem Avatar */
+    .avatar-background-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      /* Zusätzlicher Glow-Effekt */
+      box-shadow: 0 0 50px 15px rgba(0, 194, 255, 0.1);
+    }
+
+    /* 
+      Platzhalter-Avatar (Gasmasken-Bild wäre hier ideal) 
+    */
+    .avatar-image {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      background: url('https://via.placeholder.com/300/0F0F0F/ffffff?text=Avatar') center/cover no-repeat;
+      border-radius: 6px;
+      z-index: 2; /* über dem Panel */
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+      border: 2px solid #222;
+    }
+
+    /* 
+      HEADER-BUTTONS (Set as default + Nuklear-Icon) 
+      im Screenshot oben links/rechts 
+    */
+    .header-buttons {
+      position: absolute;
+      top: 8px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 8px;
+      z-index: 10;
+    }
+    .header-btn {
+      background: #2a2a2a;
+      color: #ccc;
+      border: none;
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .header-btn:hover {
+      background: #00c2ff;
+      color: #000;
+    }
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      font-size: 1.2rem;
+      border-radius: 4px;
+    }
+
+    /*
+      Pfeiltasten links und rechts
+    */
+    .arrow-controls {
+      position: absolute;
+      top: calc(50% - 18px);
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 8px;
+      z-index: 10;
+    }
+    .arrow-btn {
+      width: 36px;
+      height: 36px;
+      background: #1f1f1f;
+      border: 2px solid #333;
+      border-radius: 4px;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+      font-size: 1.2rem;
+    }
+    .arrow-btn:hover {
+      background: #00c2ff;
+      color: #000;
+      border-color: #00c2ff;
+    }
+
+    /* 
+      Level-Anzeige 
+    */
+    .level-display {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      color: #fff;
+      font-size: 0.8rem;
+      z-index: 10;
+    }
+    .level-display .level-text {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #fff;
+    }
+    .level-display .level-sub {
+      font-size: 0.7rem;
+      opacity: 0.8;
+    }
+
+    /* 
+      Mittlerer Bereich (Engineer x1 + Upgrade) 
+    */
+    .middle-section {
+      padding: 10px 16px 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .middle-section .engineer-title {
+      font-size: 1.2rem;
+      color: #00c2ff;
+      font-weight: bold;
+    }
+    .middle-section .engineer-sub {
+      font-size: 0.9rem;
+      color: #fff;
+      margin-top: 2px;
+    }
+    .upgrade-btn {
+      background: #3b0057; /* dunkles Pink/Violett wie im Screenshot */
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .upgrade-btn:hover {
+      background: #6f009f;
+    }
+
+    /* 
+      Freunde-Anzeige 
+    */
+    .friends-section {
+      margin: 10px 16px 0 16px;
+      display: flex;
+      justify-content: space-between;
+      background: #000;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 8px;
+    }
+    .friend-block {
+      flex: 1;
+      text-align: center;
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .friend-block:not(:last-child) {
+      margin-right: 8px;
+    }
+    .friend-block .friend-count {
+      font-weight: bold;
+    }
+    .friend-block .friend-bonus {
+      font-size: 0.7rem;
+      color: #ccc;
+      margin-top: 2px;
+    }
+
+    /*
+      DAILY TASKS
+    */
+    .daily-tasks {
+      margin: 10px 16px;
+      padding: 10px;
+      background: #000;
+      border: 1px solid #333;
+      border-radius: 4px;
+    }
+    .daily-tasks .tasks-title {
+      font-size: 1rem;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .daily-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .daily-item:hover {
+      background: #1c1c1c;
+    }
+    .daily-item .daily-left {
+      display: flex;
+      align-items: center;
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .daily-item .daily-icon {
+      width: 24px;
+      height: 24px;
+      margin-right: 8px;
+      background: url('https://via.placeholder.com/24/FFFFFF/000000?text=DB') center/cover no-repeat;
+      border-radius: 4px;
+    }
+    .daily-item .daily-right {
+      display: flex;
+      align-items: center;
+      color: #fff;
+    }
+    .daily-item .reward {
+      font-weight: bold;
+      margin-right: 10px;
+      font-size: 0.9rem;
+      color: #fff;
+    }
+    .daily-item .progress {
+      font-size: 0.8rem;
+      color: #bbb;
+    }
+  </style>
+</head>
+<body>
+
+<div class="ui-container">
+  <!-- Oberer, pink-violetter Bereich mit Avatar -->
+  <div class="avatar-section">
+    <!-- Neon Panel hinter dem Avatar -->
+    <div class="avatar-background-panel"></div>
+
+    <!-- Header Buttons (Set as default, Icon) -->
+    <div class="header-buttons">
+      <button class="header-btn" onclick="setAsDefault()">Set as default</button>
+      <button class="header-btn icon-btn" onclick="iconAction()" title="Nuklear-Icon">
+        &#9762;
+      </button>
+    </div>
+
+    <!-- Pfeiltasten links und rechts -->
+    <div class="arrow-controls">
+      <button class="arrow-btn" onclick="prevAvatar()">
+        &#10094;
+      </button>
+      <button class="arrow-btn" onclick="nextAvatar()">
+        &#10095;
+      </button>
+    </div>
+
+    <!-- Avatar-Bild (Gasmasken-Platzhalter) -->
+    <div class="avatar-image" id="avatar"></div>
+
+    <!-- Level-Anzeige unten -->
+    <div class="level-display">
+      <div class="level-text">Level 1</div>
+      <div class="level-sub">1K</div>
+    </div>
+  </div>
+
+  <!-- Middle Section (Engineer x1 + Upgrade) -->
+  <div class="middle-section">
+    <div>
+      <div class="engineer-title">Engineer</div>
+      <div class="engineer-sub" id="engineer-count">x1</div>
+    </div>
+    <button class="upgrade-btn" onclick="upgradeFunction()">Upgrade</button>
+  </div>
+
+  <!-- Freunde-Anzeige -->
+  <div class="friends-section">
+    <div class="friend-block">
+      <div class="friend-count">0 Friends</div>
+      <div class="friend-bonus">16% 1-tier bonus</div>
+    </div>
+    <div class="friend-block">
+      <div class="friend-count">0 Friends</div>
+      <div class="friend-bonus">8% 2-tier bonus</div>
+    </div>
+  </div>
+
+  <!-- Daily Tasks -->
+  <div class="daily-tasks">
+    <div class="tasks-title">Daily tasks</div>
+    <div class="daily-item" onclick="collectDailyBonus()">
+      <div class="daily-left">
+        <div class="daily-icon"></div>
+        <div>Daily Bonus</div>
+      </div>
+      <div class="daily-right">
+        <div class="reward" id="reward-amount">5 K</div>
+        <div class="progress" id="progress-amount">0/1</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /*
+    Einfaches JS für Demo-Zwecke:
+    - Pfeiltasten wechseln (theoretisch) Avatare
+    - "Upgrade" erhöht x1 -> x2 usw.
+    - Daily Bonus kann einmalig "gesammelt" werden
+  */
+
+  const avatarUrls = [
+    'https://via.placeholder.com/300/0F0F0F/ffffff?text=Avatar1',
+    'https://via.placeholder.com/300/202020/ffffff?text=Avatar2',
+    'https://via.placeholder.com/300/333333/ffffff?text=Avatar3'
+  ];
+  let currentAvatarIndex = 0;
+
+  function setAsDefault() {
+    alert('Set as default clicked!');
+  }
+  function iconAction() {
+    alert('Nuklear-Icon clicked!');
+  }
+  function prevAvatar() {
+    currentAvatarIndex = (currentAvatarIndex - 1 + avatarUrls.length) % avatarUrls.length;
+    document.getElementById('avatar').style.backgroundImage = `url('${avatarUrls[currentAvatarIndex]}')`;
+  }
+  function nextAvatar() {
+    currentAvatarIndex = (currentAvatarIndex + 1) % avatarUrls.length;
+    document.getElementById('avatar').style.backgroundImage = `url('${avatarUrls[currentAvatarIndex]}')`;
+  }
+  function upgradeFunction() {
+    const countEl = document.getElementById('engineer-count');
+    let currentText = countEl.textContent.replace('x','');
+    let newVal = parseInt(currentText) + 1;
+    countEl.textContent = 'x' + newVal;
+    alert('Upgrade done! (x' + newVal + ')');
+  }
+  function collectDailyBonus() {
+    const progressEl = document.getElementById('progress-amount');
+    if (progressEl.textContent === '0/1') {
+      progressEl.textContent = '1/1';
+      alert('Daily Bonus collected!');
+    } else {
+      alert('Already collected.');
+    }
+  }
+</script>
+
+</body>
+</html>
