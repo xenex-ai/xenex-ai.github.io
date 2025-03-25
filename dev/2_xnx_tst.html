@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuristisches UI</title>
+    <style>
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: radial-gradient(circle at center, #3d0057 0%, #000 80%);
+        }
+
+        .container {
+            width: 360px;
+            background-color: #111;
+            border: 2px solid #00c2ff;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 0 10px rgba(0, 194, 255, 0.5);
+            text-align: center;
+            position: relative;
+        }
+
+        /* Avatar */
+        .avatar-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 2px solid #00c2ff;
+            object-fit: cover;
+        }
+
+        /* Buttons */
+        .button {
+            background-color: #222;
+            color: #ccc;
+            border: 1px solid #555;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .button:hover {
+            background-color: #00c2ff;
+            color: #000;
+        }
+
+        .level-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .arrow {
+            background-color: #222;
+            border: 1px solid #555;
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: 0.2s;
+        }
+
+        .arrow:hover {
+            background-color: #00c2ff;
+            color: #000;
+        }
+
+        .level-info {
+            text-align: center;
+            font-size: 1rem;
+            color: #00c2ff;
+        }
+
+        /* Title Section */
+        .title-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .title {
+            font-size: 1.2rem;
+            color: #00c2ff;
+        }
+
+        .upgrade-button {
+            background-color: #ff009d;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: none;
+            color: white;
+        }
+
+        .upgrade-button:hover {
+            background-color: #ff54c7;
+        }
+
+        /* Friends Section */
+        .friends-section {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+
+        .friends-box {
+            text-align: center;
+        }
+
+        /* Daily Tasks */
+        .daily-tasks {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: left;
+        }
+
+        .task {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            background: #2a2a2a;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+
+        .claim-button {
+            background: #00c2ff;
+            color: black;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .claim-button:hover {
+            background: #009dcc;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Avatar -->
+        <div class="avatar-container">
+            <img src="https://xenex-ai.github.io/img/ca1.png" class="avatar" id="avatar">
+        </div>
+
+        <!-- Buttons -->
+        <button class="button" onclick="setDefault()">Set as default</button>
+
+        <!-- Level Selection -->
+        <div class="level-container">
+            <button class="arrow" onclick="changeLevel(-1)">&#10094;</button>
+            <div class="level-info">
+                <div id="level">Level 1</div>
+                <span id="points">1K</span>
+            </div>
+            <button class="arrow" onclick="changeLevel(1)">&#10095;</button>
+        </div>
+
+        <!-- Title & Upgrade -->
+        <div class="title-section">
+            <div class="title">Engineer x1</div>
+            <button class="upgrade-button" onclick="upgrade()">Upgrade</button>
+        </div>
+
+        <!-- Friends Section -->
+        <div class="friends-section">
+            <div class="friends-box">
+                <div id="friends-count">0 Friends</div>
+                <span>16% 1-tier bonus</span>
+            </div>
+            <div class="friends-box">
+                <div>0 Friends</div>
+                <span>8% 2-tier bonus</span>
+            </div>
+        </div>
+
+        <!-- Daily Tasks -->
+        <div class="daily-tasks">
+            <h3>Daily Tasks</h3>
+            <div class="task">
+                <span>Daily Bonus</span>
+                <span>5K</span>
+                <button class="claim-button" onclick="claimBonus()">Claim</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let level = 1;
+        let points = 1000;
+        let avatarIndex = 1;
+
+        function changeLevel(direction) {
+            level += direction;
+            if (level < 1) level = 1;
+            document.getElementById("level").textContent = "Level " + level;
+            points += direction * 500;
+            document.getElementById("points").textContent = points + "K";
+        }
+
+        function upgrade() {
+            alert("Upgraded to next level!");
+        }
+
+        function claimBonus() {
+            alert("Daily Bonus Claimed!");
+        }
+
+        function setDefault() {
+            avatarIndex = (avatarIndex % 4) + 1;
+            document.getElementById("avatar").src = `https://xenex-ai.github.io/img/ca${avatarIndex}.png`;
+        }
+    </script>
+
+</body>
+</html>
