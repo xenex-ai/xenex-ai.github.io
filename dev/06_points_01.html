@@ -113,9 +113,9 @@
       overflow: hidden;
     }
     .swap-box.points {
-      border-color: #ff0000;
-      background: rgba(255, 0, 0, 0.15);
-      color: #ff0000;
+      border-color: #ff007f;
+      background: rgba(255, 0, 127, 0.15);
+      color: #ff007f;
     }
     .swap-box.xnx {
       border-color: #00ffea;
@@ -251,7 +251,7 @@
     <div class="swap-title">Punkte Swap</div>
     <div class="swap-panel">
       <div class="swap-box points" id="pointsBox"><span>0</span><br>Punkte</div>
-      <div class="swap-box xnx" id="xnxBox"><span>0.0000</span><br>XNX</div>
+      <div class="swap-box xnx" id="xnxBox"><span>0.0000000</span><br>XNX</div>
     </div>
     <div class="swap-details">
       <div><span>Wechselkurs: 1 $xnx = 0.0001648 Punkte</span></div>
@@ -354,7 +354,7 @@
       const pointsBox = document.getElementById("pointsBox");
       const xnxBox = document.getElementById("xnxBox");
       animateValue(pointsBox, userPoints, 0, duration, 0, '', '');
-      animateValue(xnxBox, 0, userPoints * conversionFactor, duration, 7, '$', '');
+      animateValue(xnxBox, 0, userPoints * conversionFactor, duration, 7, '', '');
       // Nach Abschluss der Animation (leicht verzögert) Modal anzeigen
       setTimeout(() => {
         const finalXnx = (userPoints * conversionFactor);
