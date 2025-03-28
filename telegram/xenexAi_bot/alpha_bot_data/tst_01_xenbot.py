@@ -378,7 +378,7 @@ async def welcome_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_text(message)
 
 
-### ?? STANDARD BOT-BEFEHLE ###
+### STANDARD BOT-BEFEHLE ###
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Standard /start-Befehl, der den Bot vorstellt.
@@ -420,7 +420,7 @@ async def claim(update: Update, context: ContextTypes.DEFAULT_TYPE):
 	    
     data = load_data(POINTS_FILE)
     user_points = data.get(str(user.id), {}).get("points", 0)
-    keyboard = [[InlineKeyboardButton("? Ja, Punkte einlösen", url=f"https://xenex-ai.github.io/dev/27_tst_xnx.html?name={user.username}&address={user_points}")]]
+    keyboard = [[InlineKeyboardButton("✅️ Ja, Punkte einlösen", url=f"https://xenex-ai.github.io/dev/27_tst_xnx.html?name={user.username}&address={user_points}")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await update.effective_message.reply_text(f"Möchtest du deine Punkte gegen $XNX eintauschen? Du hast {user_points} Punkte!", reply_markup=reply_markup)
@@ -530,9 +530,9 @@ async def adm_protocol(update: Update, context: ContextTypes.DEFAULT_TYPE):
         action_str = entry.get("action", "Unbekannt")
         message += (
             f"🔹 **Zeit:** {time_str}\n"
-            f"    **Benutzer:** {user_str}\n"
-            f"    **Aktion:** {action_str}\n"
-            f"────────────────────────\n"
+            f"     **Benutzer:** {user_str}\n"
+            f"     **Aktion:** {action_str}\n"
+            f"────────────────────\n"
         )
 
     # Falls die Nachricht zu lang ist, splitte sie in mehrere Teile
