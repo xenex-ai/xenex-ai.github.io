@@ -251,7 +251,7 @@
     <div class="swap-title">Punkte Swap</div>
     <div class="swap-panel">
       <div class="swap-box points" id="pointsBox"><span>0</span><br>Punkte</div>
-      <div class="swap-box xnx" id="xnxBox"><span>$0.0000</span><br>$xnx</div>
+      <div class="swap-box xnx" id="xnxBox"><span>0.0000</span><br>XNX</div>
     </div>
     <div class="swap-details">
       <div><span>Wechselkurs: 1 $xnx = 0.0001648 Punkte</span></div>
@@ -325,7 +325,7 @@
     function updateDisplays(points) {
       document.getElementById('pointsBox').innerHTML = `<span>${points}</span><br>Punkte`;
       const xnxValue = (points * conversionFactor).toFixed(4);
-      document.getElementById('xnxBox').innerHTML = `<span>$${xnxValue}</span><br>$xnx`;
+      document.getElementById('xnxBox').innerHTML = `<span>$${xnxValue}</span><br>XNXx`;
     }
 
     // Allgemeine Animationsfunktion für Zahlen
