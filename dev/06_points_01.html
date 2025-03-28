@@ -325,7 +325,7 @@
     function updateDisplays(points) {
       document.getElementById('pointsBox').innerHTML = `<span>${points}</span><br>Punkte`;
       const xnxValue = (points * conversionFactor).toFixed(7);
-      document.getElementById('xnxBox').innerHTML = `<span>0.0000000</span><br>XNXx`;
+      document.getElementById('xnxBox').innerHTML = `<span>0.0000000</span><br>XNX`;
     }
 
     // Allgemeine Animationsfunktion für Zahlen
@@ -354,11 +354,11 @@
       const pointsBox = document.getElementById("pointsBox");
       const xnxBox = document.getElementById("xnxBox");
       animateValue(pointsBox, userPoints, 0, duration, 0, '', '');
-      animateValue(xnxBox, 0, userPoints * conversionFactor, duration, 4, '$', '');
+      animateValue(xnxBox, 0, userPoints * conversionFactor, duration, 7, '$', '');
       // Nach Abschluss der Animation (leicht verzögert) Modal anzeigen
       setTimeout(() => {
-        const finalXnx = (userPoints * conversionFactor).toFixed(4);
-        document.getElementById("swappedXnx").textContent = `$${finalXnx}`;
+        const finalXnx = (userPoints * conversionFactor);
+        document.getElementById("swappedXnx").textContent = `${finalXnx}`;
         openModal();
       }, duration + 200);
     }
