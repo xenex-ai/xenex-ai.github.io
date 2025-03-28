@@ -422,7 +422,8 @@ async def claim(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_points = data.get(str(user.id), {}).get("points", 0)
     keyboard = [[InlineKeyboardButton("? Ja, Punkte einlösen", url=f"https://xenex-ai.github.io/dev/27_tst_xnx.html?name={user.username}&address={user_points}")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(f"?? Möchtest du deine Punkte gegen $XNX eintauschen? Du hast {user_points} Punkte!", reply_markup=reply_markup)
+
+    await update.effective_message.reply_text(f"Möchtest du deine Punkte gegen $XNX eintauschen? Du hast {user_points} Punkte!", reply_markup=reply_markup)
 
 # ---------------------- Bot SEND --------------------- #
 async def bot_send(update: Update, context: ContextTypes.DEFAULT_TYPE):
