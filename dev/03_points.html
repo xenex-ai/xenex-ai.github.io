@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Xenex AI – Punkte tauschen</title>
+  <style>
+    /* ------------------------
+       Grundlegende Styles und Fonts
+    ------------------------ */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      font-family: 'Roboto', sans-serif;
+      background: #0b0f24;
+      color: #fff;
+      overflow-x: hidden;
+      position: relative;
+    }
+    /* Animierter, gradienter Hintergrund */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(45deg, #0b0f24, #1a2030, #0b0f24);
+      background-size: 400% 400%;
+      animation: gradientAnimation 20s ease infinite;
+      z-index: -3;
+    }
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    /* Blurred Hintergrundbild */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: url('https://images.unsplash.com/photo-1549923746-c502d479bed6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80') no-repeat center center/cover;
+      filter: blur(10px) brightness(0.3);
+      z-index: -2;
+    }
+    /* Header */
+    header {
+      text-align: center;
+      margin-top: 20px;
+      position: relative;
+      z-index: 2;
+    }
+    .app-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 3rem;
+      letter-spacing: 3px;
+      color: #00eaff;
+      text-shadow: 0 0 15px #00eaff, 0 0 30px #00eaff;
+      animation: flicker 2s infinite alternate;
+    }
+    @keyframes flicker { 0% { opacity: 1; } 100% { opacity: 0.85; } }
+    .header-extra {
+      margin-top: 10px;
+      font-size: 1.1rem;
+      color: #0ff;
+    }
+    /* Willkommen & Nutzerdetails */
+    .welcome-message {
+      font-size: 1.3rem;
+      color: #0ff;
+      margin: 10px auto;
+      padding: 10px 14px;
+      border: 1px solid #0ff;
+      border-radius: 8px;
+      display: inline-block;
+      animation: slideDown 0.8s ease-out;
+    }
+    @keyframes slideDown {
+      0% { transform: translateY(-20px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    /* Container für den Austausch */
+    .exchange-container {
+      width: 95%;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 30px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid #0f3460;
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(0,255,255,0.3);
+      position: relative;
+      z-index: 2;
+      text-align: center;
+    }
+    .exchange-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2rem;
+      color: #00eaff;
+      margin-bottom: 20px;
+      text-shadow: 0 0 8px #0ff;
+    }
+    /* Zwei Spalten: links Originalpunkte, rechts $xnx */
+    .exchange-values {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 20px 0;
+    }
+    .value-box {
+      width: 45%;
+      padding: 20px;
+      border: 2px solid #ff0080;
+      border-radius: 12px;
+      background: rgba(255, 0, 255, 0.1);
+      box-shadow: 0 0 20px rgba(255,0,255,0.3);
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .value-box.points {
+      border-color: #ff0000;
+      background: rgba(255,0,0,0.1);
+      color: #ff0000;
+    }
+    .value-box.xnx {
+      border-color: #00ffea;
+      background: rgba(0,255,234,0.1);
+      color: #00ffea;
+    }
+    /* Button */
+    .exchange-button {
+      background: linear-gradient(45deg, #00f, #0ff);
+      color: #fff;
+      border: none;
+      padding: 14px 28px;
+      font-size: 1.2rem;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 0 30px #0ff;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .exchange-button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 40px #00f, 0 0 50px #0ff;
+    }
+    /* Responsive */
+    @media (max-width: 600px) {
+      .exchange-values { flex-direction: column; }
+      .value-box { width: 90%; margin-bottom: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header>
+    <h1 class="app-title">Xenex AI</h1>
+    <div class="header-extra" id="currentTime">--:--:--</div>
+  </header>
+  
+  <!-- WILLKOMMENSMELDUNG (falls GET-Parameter vorhanden) -->
+  <div id="welcome" class="welcome-message" style="display:none;"></div>
+  
+  <!-- EXCHANGE PANEL -->
+  <div class="exchange-container">
+    <div class="exchange-title">Punkte tauschen</div>
+    <div class="exchange-values">
+      <div class="value-box points" id="pointsBox">0 Punkte</div>
+      <div class="value-box xnx" id="xnxBox">$0.0000 xnx</div>
+    </div>
+    <button class="exchange-button" onclick="animateExchange()">Tauschen</button>
+  </div>
+  
+  <!-- JAVASCRIPT -->
+  <script>
+    // Global: Punktedaten
+    let userPoints = null;
+    const conversionFactor = 0.0001648; // 1 $xnx = 0.0001648 Punkte
+    
+    // Uhrzeit aktualisieren
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('currentTime').textContent = now.toLocaleTimeString('de-DE');
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+    
+    // GET-Parameter auslesen
+    function getParameter(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
+    const userName = getParameter('name');
+    const userAddress = getParameter('address');
+    const welcomeDiv = document.getElementById('welcome');
+    if(userName || userAddress) {
+      welcomeDiv.style.display = 'inline-block';
+      welcomeDiv.textContent = `Willkommen ${userName ? userName : ''} ${userAddress ? '(' + userAddress + ')' : ''}!`;
+    }
+    
+    // Funktion, um die Punktedaten aus der JSON zu laden
+    async function loadPoints() {
+      try {
+        const response = await fetch('https://corenetwork.io/xenexAi/connect/uploads/tst_point.json');
+        if (!response.ok) {
+          throw new Error('Netzwerkantwort war nicht ok');
+        }
+        const data = await response.json();
+        // Suche nach dem Benutzer (basierend auf GET-Parameter "name")
+        if (userName) {
+          for (const userId in data) {
+            const userInfo = data[userId];
+            if (userInfo.username === userName) {
+              userPoints = userInfo.points;
+              updateBoxes(userPoints);
+              return;
+            }
+          }
+          // Falls nicht gefunden
+          document.getElementById('pointsBox').textContent = `❌ "${userName}" nicht gefunden`;
+        } else {
+          document.getElementById('pointsBox').textContent = 'Keine Nutzerdaten vorhanden';
+        }
+      } catch (error) {
+        console.error('Fehler beim Laden der Punkte:', error);
+        document.getElementById('pointsBox').textContent = 'Fehler beim Laden der Punkte.';
+      }
+    }
+    
+    // Aktualisiere die statische Anzeige (ohne Animation)
+    function updateBoxes(points) {
+      document.getElementById('pointsBox').textContent = points + " Punkte";
+      const xnx = (points * conversionFactor).toFixed(4);
+      document.getElementById('xnxBox').textContent = "$" + xnx + " xnx";
+    }
+    
+    // Allgemeine Animationsfunktion
+    function animateValue(element, start, end, duration, decimals = 0, prefix = "", suffix = "") {
+      const range = end - start;
+      const startTime = performance.now();
+      function step(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const value = start + range * progress;
+        element.textContent = prefix + (decimals === 0 ? Math.floor(value) : value.toFixed(decimals)) + suffix;
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        }
+      }
+      requestAnimationFrame(step);
+    }
+    
+    // Beim Klick auf "Tauschen" werden beide Werte animiert:
+    // Links: von userPoints auf 0, rechts: von 0 auf (userPoints * conversionFactor)
+    function animateExchange() {
+      if (userPoints === null) {
+        alert("Punktedaten noch nicht geladen!");
+        return;
+      }
+      const pointsBox = document.getElementById("pointsBox");
+      const xnxBox = document.getElementById("xnxBox");
+      const duration = 2000; // 2 Sekunden
+      animateValue(pointsBox, userPoints, 0, duration, 0, "", " Punkte");
+      animateValue(xnxBox, 0, userPoints * conversionFactor, duration, 4, "$", " xnx");
+    }
+    
+    // Punkte laden, sobald die Seite lädt
+    loadPoints();
+  </script>
+</body>
+</html>
