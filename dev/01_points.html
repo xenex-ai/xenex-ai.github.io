@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XenexAI Points Exchange</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #0d0d0d;
+            color: #fff;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .points, .xnx {
+            font-size: 3em;
+            font-weight: bold;
+            transition: transform 0.5s ease-in-out;
+        }
+        .hidden {
+            display: none;
+        }
+        .button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.5em;
+            background: #ff00ff;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .button:hover {
+            background: #cc00cc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Exchange Your Points for $XNX</h1>
+        <p class="points">Loading...</p>
+        <p class="xnx hidden">0 $XNX</p>
+        <button class="button" onclick="convertPoints()">Convert to $XNX</button>
+    </div>
+
+    <script>
+        let points = 1000; // Simulierte JSON-Daten
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelector(".points").textContent = points + " Points";
+        });
+
+        function animateNumber(element, start, end, duration) {
+            let range = end - start;
+            let current = start;
+            let increment = range / (duration / 10);
+            let timer = setInterval(() => {
+                current += increment;
+                element.textContent = Math.floor(current) + (element.classList.contains('xnx') ? " $XNX" : " Points");
+                if (current >= end) {
+                    clearInterval(timer);
+                    element.textContent = end + (element.classList.contains('xnx') ? " $XNX" : " Points");
+                }
+            }, 10);
+        }
+
+        function convertPoints() {
+            let pointsElement = document.querySelector(".points");
+            let xnxElement = document.querySelector(".xnx");
+
+            animateNumber(pointsElement, points, 0, 1000);
+            setTimeout(() => {
+                pointsElement.classList.add("hidden");
+                xnxElement.classList.remove("hidden");
+                animateNumber(xnxElement, 0, points / 10, 1000);
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
