@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Xenex AI - Ultra Premium UI</title>
+  <style>
+    /* ------------------------
+       FONTS & BASICS
+    ------------------------ */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      font-family: 'Roboto', sans-serif;
+      background: #0b0f24; color: #fff;
+      overflow-x: hidden; position: relative;
+    }
+    /* ------------------------
+       ANIMIERTER GRADIENTEN-HINTERGRUND
+    ------------------------ */
+    body::before {
+      content: "";
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(45deg, #0b0f24, #1a2030, #0b0f24);
+      background-size: 400% 400%;
+      animation: gradientAnimation 20s ease infinite;
+      z-index: -3;
+    }
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    /* ------------------------
+       PARALLAX & BLUR HINTERGRUND (Bild)
+    ------------------------ */
+    body::after {
+      content: "";
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: url('https://images.unsplash.com/photo-1549923746-c502d479bed6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80') no-repeat center center/cover;
+      filter: blur(10px) brightness(0.3);
+      z-index: -2;
+    }
+    /* ------------------------
+       HEADER, TITEL & UHRZEIT
+    ------------------------ */
+    header {
+      text-align: center; margin-top: 20px; position: relative; z-index: 2;
+    }
+    .app-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 3rem; letter-spacing: 3px;
+      color: #00eaff;
+      text-shadow: 0 0 15px #00eaff, 0 0 30px #00eaff;
+      animation: flicker 2s infinite alternate;
+    }
+    @keyframes flicker { 0% { opacity: 1; } 100% { opacity: 0.85; } }
+    .header-extra { margin-top: 10px; font-size: 1.1rem; color: #0ff; }
+    /* ------------------------
+       PERSONAL WELCOME MESSAGE
+    ------------------------ */
+    .welcome-message {
+      font-size: 1.3rem; color: #0ff;
+      margin: 10px auto; padding: 10px 14px;
+      border: 1px solid #0ff; border-radius: 8px;
+      display: inline-block; animation: slideDown 0.8s ease-out;
+    }
+    @keyframes slideDown { 0% { transform: translateY(-20px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+    /* ------------------------
+       MAIN WRAPPER & PANELS
+    ------------------------ */
+    .main-wrapper {
+      width: 95%; max-width: 1200px;
+      margin: 30px auto 80px;
+      position: relative; z-index: 2;
+      padding-bottom: 100px;
+    }
+    .panel { display: none; } .panel.active { display: block; }
+    /* ------------------------
+       HOME PANEL (AVATAR, TASKS & ACHIEVEMENTS)
+    ------------------------ */
+    .home-panel { display: flex; flex-direction: column; gap: 40px; }
+    /* AVATAR PANEL */
+    .avatar-panel {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(0,255,255,0.3);
+      border-radius: 16px; box-shadow: 0 0 40px rgba(0,255,255,0.3);
+      padding: 30px 20px; text-align: center;
+      overflow: hidden; position: relative;
+    }
+    .avatar-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2rem; color: #00eaff;
+      margin-bottom: 20px; text-shadow: 0 0 8px #0ff;
+    }
+    .avatar-container {
+      width: 260px; height: 260px;
+      margin: 0 auto; border-radius: 50%;
+      overflow: hidden; border: 4px solid #f0f;
+      box-shadow: 0 0 40px rgba(240,0,240,0.5);
+      position: relative; transition: box-shadow 0.3s ease;
+    }
+    .avatar-container:hover {
+      box-shadow: 0 0 30px #0ff, 0 0 50px #00eaff;
+    }
+    .avatar-container::after {
+      content: ""; position: absolute;
+      top: 50%; left: 50%;
+      width: 80%; height: 80%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      box-shadow: 0 0 0px 0px rgba(0,255,255,0);
+      pointer-events: none;
+    }
+    .avatar {
+      width: 100%; height: 100%; object-fit: cover;
+      position: absolute; left: -50%; opacity: 0;
+      animation-fill-mode: forwards;
+    }
+    @keyframes fadeInSlide {
+      0% { left: -50%; transform: scale(0.8); opacity: 0; }
+      50% { left: 10%; transform: scale(1.05); opacity: 0.8; }
+      100% { left: 0; transform: scale(1); opacity: 1; }
+    }
+    /* Avatar-Infos als Grid */
+    .avatar-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 8px; margin-top: 15px;
+    }
+    .stat-box {
+      background: rgba(255,255,255,0.1);
+      padding: 5px 8px; border-radius: 6px;
+      box-shadow: 0 0 8px rgba(255,255,255,0.2);
+      transition: transform 0.3s;
+    }
+    .stat-box:hover { transform: scale(1.05); }
+    .stat-title { font-size: 0.65rem; color: #ccc; margin-bottom: 2px; }
+    .stat-value {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem; color: #fff;
+      text-shadow: 0 0 4px #fff; margin-bottom: 2px;
+    }
+    .xp-bar {
+      width: 100%; height: 4px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px; overflow: hidden;
+    }
+    .xp-bar-inner {
+      height: 100%;
+      background: linear-gradient(90deg, #0ff, #00f);
+      border-radius: 4px;
+      transition: width 1s ease-in-out;
+    }
+    /* BUTTONS */
+    .button-row {
+      margin-top: 25px;
+      display: flex; justify-content: center;
+      gap: 20px; flex-wrap: wrap;
+    }
+    .change-avatar-btn, .show-profile-btn {
+      background: linear-gradient(45deg, #00f, #0ff);
+      color: #fff; border: none;
+      padding: 14px 28px; font-size: 1.1rem;
+      border-radius: 12px; cursor: pointer;
+      box-shadow: 0 0 30px #0ff;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .change-avatar-btn:hover,
+    .show-profile-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 40px #00f, 0 0 50px #0ff;
+    }
+    /* ------------------------
+       DASHBOARD / TASKS
+    ------------------------ */
+    .dashboard {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(0,255,255,0.3);
+      border-radius: 16px; box-shadow: 0 0 40px rgba(0,255,255,0.3);
+      padding: 30px 25px; text-align: left;
+    }
+    .dashboard-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem; color: #0ff;
+      margin-bottom: 20px; text-shadow: 0 0 8px #0ff;
+    }
+    .task-list { display: flex; flex-direction: column; gap: 25px; }
+    .task {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      background: rgba(0,0,255,0.25);
+      padding: 18px 25px; border-radius: 12px;
+      box-shadow: 0 0 25px rgba(0,255,255,0.25);
+      transition: background 0.3s, transform 0.3s;
+    }
+    .task:hover { background: rgba(0,0,blue,0.35); transform: scale(1.02); }
+    .task-left { display: flex; align-items: center; gap: 18px; }
+    .task-icon {
+      font-size: 2rem;
+      animation: pulse 2s infinite alternate;
+    }
+    @keyframes pulse { 0% { transform: scale(1); } 100% { transform: scale(1.2); } }
+    .task-text { font-size: 1.2rem; transition: color 0.3s ease; }
+    .task-text:hover { color: #fff; text-shadow: 0 0 5px #0ff, 0 0 10px #0ff; }
+    .claim-button {
+      background: linear-gradient(45deg, #ff00ff, #ff0080);
+      color: #fff; border: none;
+      padding: 14px 30px; font-size: 1.1rem;
+      border-radius: 10px; cursor: pointer;
+      box-shadow: 0 0 30px #f0f;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .claim-button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 40px #f0f, 0 0 55px #ff00ff;
+    }
+    .progress-container { margin-top: 25px; }
+    .progress-label { font-size: 1.1rem; color: #ccc; margin-bottom: 8px; }
+    .progress-bar {
+      width: 100%; height: 14px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px; overflow: hidden;
+      position: relative;
+    }
+    .progress-bar-inner {
+      width: 40%; height: 100%;
+      background: linear-gradient(90deg, #0ff, #00f);
+      box-shadow: 0 0 12px #0ff;
+      animation: progress 4s linear infinite;
+    }
+    @keyframes progress { 0% { width: 0%; } 100% { width: 100%; } }
+    /* ------------------------
+       ACHIEVEMENTS PANEL
+    ------------------------ */
+    .achievements-panel {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,215,0,0.5);
+      border-radius: 16px; box-shadow: 0 0 40px rgba(255,215,0,0.5);
+      padding: 20px 25px;
+    }
+    .achievements-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.6rem; color: #ffd700;
+      margin-bottom: 15px; text-shadow: 0 0 5px #ffd700;
+    }
+    .achievement-list { display: flex; flex-direction: column; gap: 10px; }
+    .achievement {
+      background: rgba(255,215,0,0.1);
+      padding: 10px; border-radius: 8px;
+      display: flex; align-items: center; gap: 10px;
+      transition: background 0.3s;
+    }
+    .achievement:hover { background: rgba(255,215,0,0.2); }
+    .achievement-icon { font-size: 1.5rem; }
+    .achievement-text { font-size: 1rem; }
+    /* ------------------------
+       STAKING PANEL
+    ------------------------ */
+    .staking-panel {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(0,255,255,0.3);
+      border-radius: 16px; box-shadow: 0 0 40px rgba(0,255,255,0.3);
+      padding: 30px 25px;
+    }
+    .staking-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem; color: #0ff;
+      margin-bottom: 20px; text-shadow: 0 0 8px #0ff;
+    }
+    .stake-content { display: flex; flex-direction: column; gap: 20px; }
+    .stake-input { display: flex; gap: 10px; align-items: center; }
+    .stake-input input {
+      padding: 10px; font-size: 1rem;
+      border-radius: 8px; border: 1px solid #999;
+      flex: 1;
+    }
+    .stake-btn {
+      background: linear-gradient(45deg, #0f0, #0ff);
+      color: #fff; border: none;
+      padding: 14px 30px; font-size: 1.1rem;
+      border-radius: 10px; cursor: pointer;
+      box-shadow: 0 0 30px #0ff;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .stake-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 40px #0f0, 0 0 50px #0ff;
+    }
+    /* ------------------------
+       QUESTS PANEL
+    ------------------------ */
+    .quests-panel {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(0,255,255,0.3);
+      border-radius: 16px; box-shadow: 0 0 40px rgba(0,255,255,0.3);
+      padding: 30px 25px;
+    }
+    .quests-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem; color: #0ff;
+      margin-bottom: 20px; text-shadow: 0 0 8px #0ff;
+    }
+    .quest-list { display: flex; flex-direction: column; gap: 20px; }
+    .quest {
+      background: rgba(255,0,255,0.15);
+      padding: 18px; border-radius: 12px;
+      box-shadow: 0 0 25px rgba(255,0,255,0.2);
+      transition: background 0.3s, transform 0.3s;
+    }
+    .quest:hover { background: rgba(255,0,255,0.25); transform: scale(1.02); }
+    /* ------------------------
+       CLAIM PANEL
+    ------------------------ */
+    .claim-panel {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(0,255,255,0.3);
+      border-radius: 16px; box-shadow: 0 0 40px rgba(0,255,255,0.3);
+      padding: 30px 25px;
+    }
+    .claim-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem; color: #0ff;
+      margin-bottom: 20px; text-shadow: 0 0 8px #0ff;
+    }
+    .claim-content { text-align: center; }
+    .big-claim-btn {
+      background: linear-gradient(45deg, #ff00ff, #ff0080);
+      color: #fff; border: none;
+      padding: 16px 40px; font-size: 1.3rem;
+      border-radius: 12px; cursor: pointer;
+      box-shadow: 0 0 30px #f0f;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      margin-top: 30px;
+    }
+    .big-claim-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 40px #f0f, 0 0 55px #ff00ff;
+    }
+    /* ------------------------
+       BOTTOM MENU & COMING SOON OVERLAY
+    ------------------------ */
+    .menu {
+      position: fixed; bottom: 0; left: 0;
+      width: 100%; background: rgba(255,255,255,0.06);
+      display: flex; justify-content: space-around;
+      align-items: center; padding: 15px 0;
+      box-shadow: 0 -2px 20px rgba(0,255,255,0.3);
+      z-index: 3;
+    }
+    .menu-item {
+      font-size: 1rem; text-transform: uppercase;
+      color: #ccc; text-align: center; flex: 1;
+      transition: transform 0.3s, color 0.3s;
+      cursor: pointer;
+    }
+    .menu-item:hover {
+      transform: scale(1.1);
+      color: #fff;
+      text-shadow: 0 0 8px #0ff;
+    }
+    .menu-item.active {
+      color: #0ff;
+      text-shadow: 0 0 10px #0ff;
+    }
+    .menu-icon {
+      display: block; font-size: 1.8rem;
+      margin-bottom: 5px;
+    }
+    footer {
+      text-align: center; font-size: 0.8rem;
+      color: #aaa; margin-top: 30px;
+      position: relative; z-index: 2;
+    }
+    /* ------------------------
+       PROFILE MODAL
+    ------------------------ */
+    .modal-overlay {
+      display: none; position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 999;
+      justify-content: center; align-items: center;
+      animation: fadeIn 0.5s forwards;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal {
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(0,255,255,0.3);
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(0,255,255,0.3);
+      padding: 30px; max-width: 400px;
+      width: 90%; text-align: center;
+      animation: slideDownModal 0.5s forwards;
+      position: relative;
+    }
+    @keyframes slideDownModal { 0% { transform: translateY(-30px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+    .modal h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem; color: #0ff;
+      margin-bottom: 20px; text-shadow: 0 0 8px #0ff;
+    }
+    .modal-content {
+      font-size: 1rem; line-height: 1.5;
+      color: #ccc; margin-bottom: 20px;
+    }
+    .close-btn {
+      background: linear-gradient(45deg, #f00, #f0f);
+      color: #fff; border: none;
+      padding: 12px 20px; font-size: 1rem;
+      border-radius: 8px; cursor: pointer;
+      box-shadow: 0 0 20px #f0f;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .close-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px #f0f, 0 0 40px #f00;
+    }
+    /* Coming Soon Overlay */
+    .coming-soon-overlay {
+      display: none; position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.95);
+      z-index: 1000;
+      color: #fff; font-size: 2rem;
+      align-items: center;
+      justify-content: center; flex-direction: column;
+      text-align: center; padding: 20px;
+    }
+    .coming-soon-overlay button {
+      margin-top: 20px; padding: 10px 20px;
+      font-size: 1rem; background: #00eaff;
+      border: none; border-radius: 8px; cursor: pointer;
+    }
+    /* ------------------------
+       RESPONSIVE MEDIA QUERIES
+    ------------------------ */
+    @media (max-width: 768px) {
+      .avatar-container { width: 180px; height: 180px; }
+      .avatar-title { font-size: 1.6rem; }
+      .button-row button { padding: 10px 20px; font-size: 1rem; }
+      .dashboard, .avatar-panel, .staking-panel, .quests-panel, .claim-panel { padding: 20px; }
+      .task { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .claim-button { width: 100%; text-align: center; }
+      .stake-input input { font-size: 0.9rem; }
+      .stake-btn { width: 100%; margin-top: 10px; }
+      .menu-item { font-size: 0.9rem; }
+      .menu-icon { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header>
+    <h1 class="app-title">Xenex AI</h1>
+    <div class="header-extra" id="currentTime">--:--:--</div>
+  </header>
+  
+  <!-- PERSONALIZED WELCOME MESSAGE -->
+  <div id="welcome" class="welcome-message" style="display:none;"></div>
+  
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+    <!-- HOME PANEL -->
+    <div class="panel home-panel active" id="homePanel">
+      <!-- AVATAR PANEL -->
+      <div class="avatar-panel">
+        <h2 class="avatar-title">Avatar Auswahl</h2>
+        <div class="avatar-container" id="avatar-container">
+          <img id="avatar" class="avatar" src="../img/car1.png" alt="AI Avatar">
+        </div>
+        <!-- Avatar-Infos (wird per JS befüllt und animiert) -->
+        <div class="avatar-stats" id="avatar-stats"></div>
+        <!-- Buttons -->
+        <div class="button-row">
+          <button class="change-avatar-btn" onclick="changeAvatar()">change Avatar</button>
+          <button class="show-profile-btn" onclick="openProfile()">Dashboard</button>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:20px;">
+        <!-- Hier werden die Punktedaten aus der JSON angezeigt -->
+        <div id="points"></div>
+        <!-- Neuer Button, um den umgerechneten $xnx Wert animiert herunterzuzählen -->
+        <button id="animateXnxButton" onclick="animateXnx()">Animate $xnx</button>
+      </div>
+      
+      <!-- DASHBOARD / TASKS -->
+      <div class="dashboard">
+        <h3 class="dashboard-title">Daily Tasks</h3>
+        <div class="task-list">
+          <div class="task">
+            <div class="task-left">
+              <span class="task-icon">📅</span>
+              <span class="task-text">Täglicher Bonus: 5K</span>
+            </div>
+            <button class="claim-button" href="https://t.me/xentst1_bot?start=addpoints_${userName ? userName : 'w3kmdo'}_500">Claim</button>
+          </div>
+          <div class="task">
+            <div class="task-left">
+              <span class="task-icon">🔗</span>
+              <span class="task-text">Folge Xenex auf Telegram</span>
+            </div>
+            <button class="claim-button">Erledigt</button>
+          </div>
+          <div class="task">
+            <div class="task-left">
+              <span class="task-icon">🚀</span>
+              <span class="task-text">Erreiche Level 2</span>
+            </div>
+            <button class="claim-button">Erledigt</button>
+          </div>
+          <div class="task">
+            <div class="task-left">
+              <span class="task-icon">🔥</span>
+              <span class="task-text">Gewinne ein Rennen</span>
+            </div>
+            <button class="claim-button">Claim</button>
+          </div>
+          <div class="task">
+            <div class="task-left">
+              <span class="task-icon">⚙️</span>
+              <span class="task-text">Upgrade deinen Avatar</span>
+            </div>
+            <button class="claim-button">Claim</button>
+          </div>
+        </div>
+        <div class="progress-container">
+          <div class="progress-label">Level-Fortschritt</div>
+          <div class="progress-bar">
+            <div class="progress-bar-inner"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- ACHIEVEMENTS PANEL -->
+      <div class="achievements-panel">
+        <h3 class="achievements-title">Achievements</h3>
+        <div class="achievement-list">
+          <div class="achievement">
+            <div class="achievement-icon">🏆</div>
+            <div class="achievement-text">Erstes Rennen gewonnen</div>
+          </div>
+          <div class="achievement">
+            <div class="achievement-icon">🚩</div>
+            <div class="achievement-text">Level 5 erreicht</div>
+          </div>
+          <div class="achievement">
+            <div class="achievement-icon">💎</div>
+            <div class="achievement-text">10000 XP gesammelt</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- STAKING PANEL -->
+    <div class="panel staking-panel" id="stakingPanel">
+      <h2 class="staking-title">Staking</h2>
+      <div class="stake-content">
+        <p>Lege deine Tokens an und erhalte Belohnungen.</p>
+        <div class="stake-input">
+          <input type="number" placeholder="Menge eingeben...">
+          <button class="stake-btn">Stake</button>
+        </div>
+        <p style="margin-top:10px;">Aktueller APR: <strong>15%</strong></p>
+      </div>
+    </div>
+    
+    <!-- QUESTS PANEL -->
+    <div class="panel quests-panel" id="questsPanel">
+      <h2 class="quests-title">Quests</h2>
+      <div class="quest-list">
+        <div class="quest">
+          <p><strong>Quest 1:</strong> Schließe 3 Rennen ab.</p>
+        </div>
+        <div class="quest">
+          <p><strong>Quest 2:</strong> Sammle 500 XP.</p>
+        </div>
+        <div class="quest">
+          <p><strong>Quest 3:</strong> Verbessere deinen Avatar auf Level 5.</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- CLAIM PANEL -->
+    <div class="panel claim-panel" id="claimPanel">
+      <h2 class="claim-title">Claim Rewards</h2>
+      <div class="claim-content">
+        <p>Du hast <strong>12500</strong> Rewards zum Einlösen!</p>
+        <button class="big-claim-btn">Jetzt einlösen</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- FOOTER -->
+  <footer>© 2025 Xenex AI</footer>
+  
+  <!-- BOTTOM MENU -->
+  <nav class="menu">
+    <div class="menu-item" onclick="openComingSoon('Home')">
+      <span class="menu-icon">🏠</span>
+      <span>Home</span>
+    </div>
+    <div class="menu-item" onclick="openComingSoon('Staking')">
+      <span class="menu-icon">💰</span>
+      <span>Staking</span>
+    </div>
+    <div class="menu-item" onclick="openComingSoon('Quests')">
+      <span class="menu-icon">🎯</span>
+      <span>Quests</span>
+    </div>
+    <div class="menu-item" onclick="openComingSoon('Claim')">
+      <span class="menu-icon">📥</span>
+      <span>Claim</span>
+    </div>
+  </nav>
+  
+  <!-- COMING SOON OVERLAY -->
+  <div class="coming-soon-overlay" id="comingSoonOverlay">
+    <div id="comingSoonText">Coming Soon</div>
+    <button onclick="closeComingSoon()">Schließen</button>
+  </div>
+  
+  <!-- PROFILE MODAL -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h2>Dein Profil</h2>
+      <div class="modal-content" id="modal-content">
+        <!-- Dynamische Profil-Daten -->
+      </div>
+      <button class="close-btn" onclick="closeProfile()">Schließen</button>
+    </div>
+  </div>
+  
+  <!-- JAVASCRIPT -->
+  <script>
+    // Globale Variable, um die geladenen Punkte zu speichern
+    var userPoints = null;
+    
+    // Uhrzeit aktualisieren
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('currentTime').textContent = now.toLocaleTimeString('de-DE');
+    }
+    setInterval(updateTime, 1000); updateTime();
+    
+    // GET-Parameter auslesen
+    function getParameter(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
+    const userName = getParameter('name');
+    const userAddress = getParameter('address');
+    const welcomeDiv = document.getElementById('welcome');
+    if(userName || userAddress) {
+      welcomeDiv.style.display = 'inline-block';
+      welcomeDiv.textContent = `Willkommen ${userName ? userName : ''} ${userAddress ? '(' + userAddress + ')' : ''}!`;
+    }
+    
+    // Panels
+    const panels = document.querySelectorAll(".panel");
+    function showPanel(panelId) {
+      panels.forEach(p => p.classList.remove("active"));
+      document.getElementById(panelId).classList.add("active");
+    }
+    
+    // Funktion, um die tst_point.json Datei zu laden
+    async function loadPoints() {
+        try {
+            const response = await fetch('https://corenetwork.io/xenexAi/connect/uploads/tst_point.json'); // URL zur JSON-Datei
+            if (!response.ok) {
+                throw new Error('Netzwerkantwort war nicht ok');
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Fehler beim Laden der Datei:', error);
+            return null; // Gibt null zurück, wenn ein Fehler auftritt
+        }
+    }
+
+    // Funktion, um den Punktestand anzuzeigen und den globalen Wert zu speichern
+    async function showPoints() {
+        const fixedUsername = userName; // Fester Benutzername
+        const pointsDiv = document.getElementById('points');
+        
+        // Punkte laden
+        const pointsData = await loadPoints();
+        if (pointsData) {
+            // Suche nach dem festen Benutzer in den Punkten
+            let gefunden = false;
+            for (const userId in pointsData) {
+                const userInfo = pointsData[userId];
+                if (userInfo.username === fixedUsername) {
+                    userPoints = userInfo.points;
+                    pointsDiv.innerHTML = `🏅 ${userInfo.username} hat ${userInfo.points} Punkte!`;
+                    gefunden = true;
+                    break;
+                }
+            }
+            if (!gefunden) {
+                pointsDiv.innerHTML = `❌ Benutzer "${fixedUsername}" nicht gefunden.`;
+            }
+        } else {
+            pointsDiv.innerHTML = '❌ Fehler beim Laden der Punktedaten. Bitte versuche es später erneut.';
+        }
+    }
+
+    // Punkte beim Laden der Seite anzeigen
+    showPoints();
+    
+    // Zahlenanimation (wird bereits für Avatare genutzt – hier wiederverwendet)
+    function animateValue(element, start, end, duration, decimals = 0) {
+      let range = end - start, startTime = null;
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        let progress = timestamp - startTime;
+        let value = start + range * (progress / duration);
+        if ((range > 0 && value > end) || (range < 0 && value < end)) value = end;
+        element.textContent = decimals === 0 ? Math.floor(value) : value.toFixed(decimals);
+        if (progress < duration) window.requestAnimationFrame(step);
+        else element.textContent = decimals === 0 ? end : end.toFixed(decimals);
+      }
+      window.requestAnimationFrame(step);
+    }
+    
+    // Neuer Funktionsaufruf, der den in $xnx (umgerechnet mit 1$xnx = 0.0001648 punkte, also $xnx = punkte * 0.0001648) angezeigten Punktestand animiert herunterzählt
+    function animateXnx() {
+      if (userPoints === null) {
+          alert("Punktedaten noch nicht geladen!");
+          return;
+      }
+      const display = document.getElementById("points");
+      // Umrechnung: (z. B. 10000 Punkte * 0.0001648 = 1.648 $xnx)
+      const startValue = userPoints * 0.0001648;
+      // Animation: Von startValue bis 0 (Dauer 2000ms, 4 Nachkommastellen)
+      animateValue(display, startValue, 0, 2000, 4);
+    }
+    
+    // Avatare
+    const avatars = [
+      { src: "../img/car1.png", name: "Speedster", level: 1, bonus: "+5% Speed", power: 120, xp: 20, maxXp: 100, topSpeed: 220, acceleration: 3.5, handling: 80 },
+      { src: "../img/car2.png", name: "RoadRacer", level: 2, bonus: "+10% Nitro", power: 180, xp: 50, maxXp: 100, topSpeed: 240, acceleration: 3.2, handling: 85 },
+      { src: "../img/car3.png", name: "ThunderTruck", level: 5, bonus: "+20% Carry", power: 350, xp: 75, maxXp: 100, topSpeed: 200, acceleration: 4.0, handling: 70 },
+      { src: "../img/car4.png", name: "BlazeRunner", level: 3, bonus: "+15% Acceleration", power: 220, xp: 40, maxXp: 100, topSpeed: 230, acceleration: 3.0, handling: 90 },
+      { src: "../img/car5.png", name: "NightStalker", level: 4, bonus: "+12% Stealth", power: 260, xp: 60, maxXp: 100, topSpeed: 210, acceleration: 3.8, handling: 75 },
+      { src: "../img/car6.png", name: "VoltViper", level: 2, bonus: "+8% Efficiency", power: 150, xp: 30, maxXp: 100, topSpeed: 225, acceleration: 3.6, handling: 82 },
+      { src: "../img/car7.png", name: "CyberCruiser", level: 6, bonus: "+25% Armor", power: 400, xp: 80, maxXp: 100, topSpeed: 250, acceleration: 2.9, handling: 88 },
+      { src: "../img/car8.png", name: "NeonNova", level: 7, bonus: "+30% Power", power: 450, xp: 90, maxXp: 100, topSpeed: 255, acceleration: 2.8, handling: 92 }
+    ];
+    
+    let currentIndex = 0;
+    const avatarImg = document.getElementById("avatar");
+    const avatarStats = document.getElementById("avatar-stats");
+    let currentAvatarData = null;
+    
+    // Zahlenanimation für Avatare (wie oben verwendet)
+    function animateAvatarValue(element, start, end, duration, decimals = 0) {
+      let range = end - start, startTime = null;
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        let progress = timestamp - startTime;
+        let value = start + range * (progress / duration);
+        if ((range > 0 && value > end) || (range < 0 && value < end)) value = end;
+        element.textContent = decimals === 0 ? Math.floor(value) : value.toFixed(decimals);
+        if (progress < duration) window.requestAnimationFrame(step);
+        else element.textContent = decimals === 0 ? end : end.toFixed(decimals);
+      }
+      window.requestAnimationFrame(step);
+    }
+    
+    // Avatare vorladen
+    function preloadAvatars() {
+      avatars.forEach(av => { const img = new Image(); img.src = av.src; });
+    }
+    window.onload = () => { preloadAvatars(); loadAvatarData(currentIndex); };
+    
+    function changeAvatar() {
+      currentIndex = (currentIndex + 1) % avatars.length;
+      loadAvatarData(currentIndex);
+    }
+    
+    function loadAvatarData(index) {
+      const av = avatars[index];
+      avatarImg.style.animation = "none";
+      setTimeout(() => { avatarImg.style.animation = "fadeInSlide 0.8s forwards"; avatarImg.src = av.src; }, 50);
+      
+      if (!document.getElementById("stat-name")) {
+        avatarStats.innerHTML = `
+          <div class="stat-box">
+            <div class="stat-title">Name</div>
+            <div class="stat-value" id="stat-name">${av.name}</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">Level</div>
+            <div class="stat-value" id="stat-level">${av.level}</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">Bonus</div>
+            <div class="stat-value" id="stat-bonus">${av.bonus}</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">Power</div>
+            <div class="stat-value" id="stat-power">${av.power}</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">XP</div>
+            <div class="stat-value" id="stat-xp">${av.xp}</div> / ${av.maxXp}
+            <div class="xp-bar">
+              <div class="xp-bar-inner" id="xp-bar-inner" style="width: ${(av.xp / av.maxXp * 100)}%;"></div>
+            </div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">Top Speed</div>
+            <div class="stat-value" id="stat-topspeed">${av.topSpeed} km/h</div>
+            <div class="xp-bar">
+              <div class="xp-bar-inner" id="topspeed-bar-inner" style="width: ${(av.topSpeed / 300 * 100)}%;"></div>
+            </div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">Acceleration</div>
+            <div class="stat-value" id="stat-acceleration">${av.acceleration} s (0-100 km/h)</div>
+            <div class="xp-bar">
+              <div class="xp-bar-inner" id="acceleration-bar-inner" style="width: ${((5.0 - av.acceleration) / 2.5 * 100)}%;"></div>
+            </div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">Handling</div>
+            <div class="stat-value" id="stat-handling">${av.handling}</div> / 100
+            <div class="xp-bar">
+              <div class="xp-bar-inner" id="handling-bar-inner" style="width: ${(av.handling)}%;"></div>
+            </div>
+          </div>
+        `;
+        currentAvatarData = {
+          level: av.level, power: av.power, xp: av.xp,
+          topSpeed: av.topSpeed, acceleration: av.acceleration, handling: av.handling
+        };
+      } else {
+        animateAvatarValue(document.getElementById("stat-level"), currentAvatarData.level, av.level, 1000);
+        animateAvatarValue(document.getElementById("stat-power"), currentAvatarData.power, av.power, 1000);
+        animateAvatarValue(document.getElementById("stat-xp"), currentAvatarData.xp, av.xp, 1000);
+        animateAvatarValue(document.getElementById("stat-topspeed"), currentAvatarData.topSpeed, av.topSpeed, 1000);
+        animateAvatarValue(document.getElementById("stat-acceleration"), currentAvatarData.acceleration, av.acceleration, 1000, 1);
+        animateAvatarValue(document.getElementById("stat-handling"), currentAvatarData.handling, av.handling, 1000);
+        document.getElementById("stat-name").textContent = av.name;
+        document.getElementById("stat-bonus").textContent = av.bonus;
+        document.getElementById("xp-bar-inner").style.width = (av.xp / av.maxXp * 100) + "%";
+        document.getElementById("topspeed-bar-inner").style.width = (av.topSpeed / 300 * 100) + "%";
+        document.getElementById("acceleration-bar-inner").style.width = ((5.0 - av.acceleration) / 2.5 * 100) + "%";
+        document.getElementById("handling-bar-inner").style.width = (av.handling) + "%";
+        document.getElementById("stat-topspeed").textContent = av.topSpeed + " km/h";
+        document.getElementById("stat-acceleration").textContent = av.acceleration + " s (0-100 km/h)";
+        document.getElementById("stat-handling").textContent = av.handling;
+        currentAvatarData = {
+          level: av.level, power: av.power, xp: av.xp,
+          topSpeed: av.topSpeed, acceleration: av.acceleration, handling: av.handling
+        };
+      }
+    }
+
+    function sendMessage() {
+        fetch("https://api.telegram.org/bot7761649059:AAEQtfHDd1FXeE5wH3rPIyuXzBXnqB4eP94/sendMessage", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                chat_id: "-1001734852517",
+                text: "Hello, this is message from xenex-ai.github.io"
+            }),
+        })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error("Fehler:", error));
+    }
+    
+    // Profil öffnen
+    function openProfile() {
+      const modalOverlay = document.getElementById("modal-overlay");
+      const modalContent = document.getElementById("modal-content");
+      const txtofpoints = document.getElementById("points");
+      
+      modalContent.innerHTML = `
+        <p><strong>Benutzername:</strong> ${userName ? userName : "Unbekannt"}</p>
+        <p><strong>Wallet:</strong> ${userAddress ? userAddress : "Keine"}</p>
+        <p><strong>Aktueller Avatar:</strong> ${avatars[currentIndex].name}</p>
+        <hr style="margin: 20px 0; border-color: #0ff;">
+        <p>${txtofpoints.textContent}</p>
+        <a class="claim-button" style="display:none;" href="https://t.me/xentst1_bot?start=removepoints_w3kmdo_5">withdrawal -5</a><br><br>
+        <a class="claim-button" style="display:none;" href="https://t.me/xentst1_bot?start=addpoints_${userName ? userName : "w3kmdo"}_5">claim +5</a>
+        <br><br><br>
+        <button onclick="sendMessage()" class="claim-button">Nachricht an Bot senden</button>
+        <br><br><br>
+      `;
+      modalOverlay.style.display = "flex";
+    }
+    function closeProfile() { document.getElementById("modal-overlay").style.display = "none"; }
+    
+    function openComingSoon(panelName) {
+      document.getElementById("comingSoonText").textContent = `Coming Soon: ${panelName}`;
+      document.getElementById("comingSoonOverlay").style.display = "flex";
+    }
+    function closeComingSoon() { document.getElementById("comingSoonOverlay").style.display = "none"; }
+    
+    const styleElem = document.createElement("style");
+    styleElem.innerHTML = `
+      @keyframes fadeInSlide {
+        0% { left: -50%; transform: scale(0.8); opacity: 0; }
+        50% { left: 10%; transform: scale(1.05); opacity: 0.8; }
+        100% { left: 0; transform: scale(1); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(styleElem);
+  </script>
+</body>
+</html>
