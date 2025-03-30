@@ -1,4 +1,12 @@
-
+# Der Bot verwaltet Community-Aktivitäten:
+# Er vergibt Punkte bei Nachrichten
+# organisiert und beendet Frage-Events (automatisch und manuell)
+# zeigt stündlich Ranglisten an und
+# loggt alle Aktionen.
+# Dabei werden Daten in JSON-Dateien gespeichert und
+# per Inline-Buttons interaktiv abgefragt.
+# Zudem können Admins spezielle Befehle
+# wie Nachrichtenversand und Protokollabruf nutzen.  
 
 import json
 import os
