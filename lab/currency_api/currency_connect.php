@@ -1,5 +1,9 @@
 <?php
 // currency_connect.php
+// Diese Datei muss auf
+// SERVER-URL/xenexAi/connect
+// hochgeladen werden.
+
 header('Content-Type: application/json');
 
 // Nur POST-Anfragen zulassen
