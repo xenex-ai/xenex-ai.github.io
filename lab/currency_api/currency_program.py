@@ -1,3 +1,16 @@
+# Das Skript sammelt alle 2 Minuten
+# Kryptowährungsdaten von
+# CoinGecko, CoinPaprika und CoinCap
+# wandelt USD-Preise mit einem alle 5 Stunden aktualisierten
+# Wechselkurs in EUR um und speichert
+# die Daten als token_price.json
+# Anschließend wird die Datei automatisch auf den Server
+# SERVER-URL/xenexAi/connect/currency_connect.php hochgeladen
+
+# Für Effizienz werden API-Anfragen parallel verarbeitet
+# Ein Scheduler steuert die regelmäßigen Updates
+# Das Programm läuft dauerhaft, bis es manuell gestoppt wird
+
 import requests
 import json
 import time
