@@ -25,7 +25,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Ersetze 'DEIN_BOT_TOKEN' mit dem tatsächlichen Token deines Bots!
-BOT_TOKEN = 'DEIN_BOT_TOKEN'
+BOT_TOKEN = '823556168:AAExXQu7T_-olKcPkcm5sJ8Z0DDmYKC7GbE'
 
 
 def start(update: Update, context: CallbackContext) -> None:
