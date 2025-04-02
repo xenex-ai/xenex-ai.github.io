@@ -27,7 +27,7 @@ from tinydb import TinyDB, Query
 # // DEAKTIVIERT
 
 # ------------------ Bot-Konfiguration ------------------ #
-BOT_TOKEN = "7761649059:AAEQtfHDd1FXeE5wH3rPIyuXzBXnqB4eP94"
+BOT_TOKEN = "7761649059:AAEQtfHDd1FXeE5wH3rPIyuXzBXnqB4eXXX"
 CHANNEL_ID = "@xentst"
 GROUP_ID = "-1001734852517"
 ADMIN_USERS = ["w3kmdo", "Den_XNX"]  # Nur diese Nutzer dürfen Admin-Befehle nutzen
