@@ -7,6 +7,7 @@
 # per Inline-Buttons interaktiv abgefragt.
 # Zudem können Admins spezielle Befehle
 # wie Nachrichtenversand und Protokollabruf nutzen.
+# emojis:📜🔐🔑📃📒📖🔎🔍📑💳💰💸🔒🔓👽🤚
 
 import json
 import os
@@ -14,11 +15,12 @@ import requests
 import random
 import logging
 import asyncio
+import hashlib
 from datetime import datetime, timezone, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, ChatMember, ChatMemberUpdated
-from telegram.ext import JobQueue, Application, CommandHandler, MessageHandler, CallbackQueryHandler, ChatMemberHandler, ContextTypes, filters, CallbackContext
+from telegram.ext import JobQueue, Application, CommandHandler, MessageHandler, CallbackQueryHandler, ChatMemberHandler, \
+    ContextTypes, filters, CallbackContext
 from tinydb import TinyDB, Query
-
 
 # ------------ APSCHEDULER NOTES unterdrücken ------------#
 # logging.getLogger('apscheduler').setLevel(logging.WARNING)
@@ -42,11 +44,13 @@ wallet_db = TinyDB(WALLETS_FILE)
 
 ACTIVITY_FILE = ADM_ACTIVITY_FILE
 
+
 def ensure_activity_file():
     """Stellt sicher, dass die Datei existiert und initialisiert sie bei Bedarf."""
     if not os.path.exists(ACTIVITY_FILE):
         with open(ACTIVITY_FILE, "w", encoding="utf-8") as f:
             json.dump([], f)  # Leere Liste als Standardwert speichern
+
 
 def load_activity_data():
     """Lädt die letzten 100 Einträge aus tst_activity.json oder legt die Datei neu an."""
@@ -60,6 +64,7 @@ def load_activity_data():
     except (json.JSONDecodeError, FileNotFoundError):
         ensure_activity_file()
         return []
+
 
 def log_activity(user, action):
     """Speichert eine Benutzeraktion in tst_activity.json mit erweiterten Infos."""
@@ -84,9 +89,11 @@ def log_activity(user, action):
     with open(ACTIVITY_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 
+
 # ------------------ Logging einrichten ------------------ #
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - [%(levelname)s] %(message)s")
 logging.getLogger("httpx").setLevel(logging.WARNING)
+
 
 # ------------ Hilfsfunktion zum Antworten ------------- #
 async def send_reply(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, reply_markup=None):
@@ -96,10 +103,12 @@ async def send_reply(update: Update, context: ContextTypes.DEFAULT_TYPE, text: s
     elif update.callback_query and update.callback_query.message:
         await update.callback_query.message.reply_text(text, reply_markup=reply_markup)
 
+
 # ---------------------- EVENT-STATUS ------------------- #
 event_active = False
-winners_list = []      # Speichert die letzten Gewinner (maximal 3 Einträge)
-next_event_time = None # Speichert den Zeitpunkt der nächsten automatischen Fragerunde
+winners_list = []  # Speichert die letzten Gewinner (maximal 3 Einträge)
+next_event_time = None  # Speichert den Zeitpunkt der nächsten automatischen Fragerunde
+
 
 # // Gibt an, ob ein Frage-Event aktiv ist
 
@@ -115,12 +124,14 @@ def load_data(file):
     except FileNotFoundError:
         return {}
 
+
 def save_data(file, data):
     """
     Speichert Daten in eine JSON-Datei mit schöner Formatierung.
     """
     with open(file, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
+
 
 # -------------------- PUNKTE-VERGABE -------------------- #
 async def add_points(user_id, username, points):
@@ -153,6 +164,7 @@ async def add_points(user_id, username, points):
             logging.info(f"Fehler: {str(e)}")
     # ************************************************************************************
 
+
 # ------------------ RANGLISTE ZEIGEN -------------------- #
 async def show_ranking(context: ContextTypes.DEFAULT_TYPE):
     """
@@ -170,6 +182,7 @@ async def show_ranking(context: ContextTypes.DEFAULT_TYPE):
     logging.info("Rangliste wurde gesendet.")
     await context.bot.send_message(chat_id=GROUP_ID, text=message)
 
+
 # ---------- ZEIT-ERINNERUNGEN WÄHREND DES EVENT --------- #
 async def send_time_reminder(context: ContextTypes.DEFAULT_TYPE):
     """
@@ -181,6 +194,7 @@ async def send_time_reminder(context: ContextTypes.DEFAULT_TYPE):
     reminder_message = data["message"]
     text = f"ℹ️ Noch {remaining} Minuten bis zum Ende des Frage-Events! ⏳\n\n{reminder_message}"
     await context.bot.send_message(chat_id=GROUP_ID, text=text)
+
 
 def schedule_reminders(job_queue):
     """
@@ -205,6 +219,7 @@ def schedule_reminders(job_queue):
     job_queue.run_once(send_time_reminder, when=25 * 60, data={"remaining": 5, "message": reminders[3]})
     logging.info("Zeit-Erinnerungen wurden geplant.")
 
+
 # --------------- AUTOMATISCHES FRAGE-EVENT --------------- #
 async def auto_question(context: ContextTypes.DEFAULT_TYPE):
     """
@@ -216,7 +231,7 @@ async def auto_question(context: ContextTypes.DEFAULT_TYPE):
     """
     global event_active, next_event_time
     # Aktualisiere den Zeitpunkt der nächsten Fragerunde
-    next_event_time = datetime.now(timezone.utc) + timedelta(seconds=7200*2)
+    next_event_time = datetime.now(timezone.utc) + timedelta(seconds=7200 * 2)
 
     # Lade Daten aus der questions.json
     questions = load_data(QUESTIONS_FILE).get("questions", [])
@@ -247,6 +262,7 @@ async def auto_question(context: ContextTypes.DEFAULT_TYPE):
 
     # Plane automatisches Beenden des Events in 30 Minuten
     context.job_queue.run_once(auto_stop_event, when=30 * 60, data=question_message.message_id)
+
 
 ### ?? AUTOMATISCHES EVENT-BEENDEN ###
 async def auto_stop_event(context: ContextTypes.DEFAULT_TYPE):
@@ -305,6 +321,7 @@ async def auto_stop_event(context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logging.error("Fehler beim Entfixieren der Nachricht: " + str(e))
 
+
 ### ?? EVENT-START (manuell durch Admin) ###
 async def start_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -327,6 +344,7 @@ async def start_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Plane Zeit-Erinnerungen (4 Nachrichten)
     schedule_reminders(context.job_queue)
+
 
 ### ?? EVENT-BEENDEN & GEWINNER KÜREN (manuell durch Admin) ###
 async def stop_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -382,6 +400,7 @@ async def stop_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if len(winners_list) > 3:
         winners_list.pop(0)
 
+
 ### NEUE FUNKTION: EVENT-STATUS ANZEIGEN (/event) ###
 async def event_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -407,7 +426,8 @@ async def event_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message += "\n🏆 Noch keine Gewinner registriert."
     await update.effective_message.reply_text(message)
 
-### ?? NEUE MITGLIEDER BEGRÜSSEN ###
+
+### NEUE MITGLIEDER BEGRÜSSEN ###
 async def welcome_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Begrüßt neue Mitglieder in der Gruppe und vergibt automatisch 3 Willkommenspunkte.
@@ -418,10 +438,20 @@ async def welcome_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE)
         message = f"Willkommen {username} in der Xenex AI Community!"
         await update.message.reply_text(message)
 
+
 ### STANDARD BOT-BEFEHLE ###
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """ Standard /start-Befehl, der den Bot vorstellt. """
-    await update.message.reply_text("Willkommen beim XenexAI Ultra! Nutze /com, um diverse Befehle abzurufen.")
+    """Startet den Bot und führt optional einen Befehl aus."""
+    if context.args:
+        if context.args[0] == "addwallet":
+            await add_wallet_request(update, context)
+        elif context.args[0] == "claim":
+            await claim(update, context)
+        else:
+            await update.message.reply_text("Willkommen beim XenexAI Ultra! Nutze /com, um diverse Befehle abzurufen.")
+    else:
+        await update.message.reply_text("Willkommen beim XenexAI Ultra! Nutze /com, um diverse Befehle abzurufen.")
+
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -433,6 +463,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     points = 2 if update.message.reply_to_message else 1
     await add_points(user.id, user.username or user.first_name, points)
 
+
 async def points(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Zeigt dem Nutzer seine aktuellen Punkte aus POINTS_FILE an.
@@ -442,29 +473,52 @@ async def points(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     data = load_data(POINTS_FILE)
     user_points = data.get(str(user.id), {}).get("points", 0)
-    await update.effective_message.reply_text(f"👤 {user.username or user.first_name}, du hast {user_points} Punkte!", parse_mode="HTML")
+    await update.effective_message.reply_text(f"👤 {user.username or user.first_name}, du hast {user_points} Punkte!",
+                                              parse_mode="HTML")
+
 
 # -CLAIM-funktion------------------------------------------- #
 async def claim(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Zeigt dem Nutzer eine Option, Punkte einzulösen, mit einem Inline-Button.
     """
+    # Überprüfen, ob der Chat privat ist (also 1:1 mit dem Bot) ------------------------
+    if update.effective_chat.type != "private":
+        await update.message.reply_text("🤚 Type /com & use the 'Claim Points' button.")
+        return
+    # ----------------------------------------------------------------------------------
+
+
     user = update.effective_user  # Funktioniert auch für CallbackQueries
     if not user:
         return
+
+    # SHA256-Hash vom Nutzernamen erstellen, falls vorhanden
+    if user.username:
+        hashed_username = hashlib.sha256(user.username.encode('utf-8')).hexdigest()
+    else:
+        hashed_username = "unbekannt"
+
+    # Punkte aus den Daten laden
     data = load_data(POINTS_FILE)
     user_points = data.get(str(user.id), {}).get("points", 0)
-    keyboard = [[InlineKeyboardButton("✅️ Ja, Punkte einlösen", url=f"https://xenex-ai.github.io/dev/06_points_01.html?name={user.username}")]]
+
+    # Inline-Button mit verschlüsseltem Nutzernamen
+    keyboard = [[InlineKeyboardButton("✅️ Ja, Punkte einlösen",
+                                      url=f"https://xenexai.com/claim/points.html?n={hashed_username}")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.effective_message.reply_text(f"Möchtest du deine Punkte gegen $XNX eintauschen? Du hast {user_points} Punkte!", reply_markup=reply_markup)
+
+    await update.effective_message.reply_text(
+        f"Möchtest du deine Punkte gegen $XNX eintauschen? Du hast {user_points} Punkte!",
+        reply_markup=reply_markup
+    )
 
 
-# -ADD-WALLET funktion--(Solana adresse hinzufügen)--------- #
-# Diese Funktion wird aufgerufen, wenn der Befehl /addwallet eingegeben wird.
+# -Wallet-adresse-hinzufügen-------------------------------- #
 async def add_wallet_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Wir nutzen immer die private User-ID, um ForceReply korrekt zu verwenden
     if update.callback_query:
-        # Statt auf update.callback_query.message zuzugreifen, hole die Chat-ID und sende eine neue Nachricht.
-        chat_id = update.callback_query.message.chat.id if update.callback_query.message else update.callback_query.from_user.id
+        chat_id = update.callback_query.from_user.id
         await context.bot.send_message(
             chat_id=chat_id,
             text="Bitte gib deine Solana Adresse ein:",
@@ -476,27 +530,109 @@ async def add_wallet_request(update: Update, context: ContextTypes.DEFAULT_TYPE)
             reply_markup=ForceReply(selective=True)
         )
 
-
-
-
-
-
-# Diese Funktion fängt die Antwort des Nutzers (als Reply) ab und speichert die Daten.
 async def add_wallet_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Prüfe, ob die Antwort auf unsere Aufforderung erfolgt ist.
-    if update.message.reply_to_message and update.message.reply_to_message.text.startswith("Bitte gib deine Solana Adresse ein:"):
-        wallet_address = update.message.text
-        username = update.message.from_user.username
-        timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+    # Sicherstellen, dass es sich um eine Antwort auf die Abfrage handelt
+    if not update.message or not update.message.reply_to_message:
+        return
 
-        # Aktualisiere oder füge einen neuen Eintrag in der Wallet-Datenbank hinzu.
-        User = Query()
-        wallet_db.upsert(
-            {"username": username, "wallet_address": wallet_address, "timestamp": timestamp},
-            User.username == username
+    if not update.message.reply_to_message.text.startswith("Bitte gib deine Solana Adresse ein:"):
+        return
+
+    wallet_address = update.message.text.strip()
+    username = update.message.from_user.username or "Unbekannt"
+    timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+
+    # Vorhandene Daten laden oder ein neues Dictionary erstellen
+    wallets_data = {"_default": {}}
+    if os.path.exists(WALLETS_FILE):
+        try:
+            with open(WALLETS_FILE, "r") as file:
+                wallets_data = json.load(file)
+        except (json.JSONDecodeError, FileNotFoundError):
+            logging.warning("Wallet-Datei ist beschädigt oder nicht vorhanden. Es wird eine neue Datei erstellt.")
+
+    # Prüfen, ob der Nutzername bereits vorhanden ist
+    found = False
+    for key, entry in wallets_data.get("_default", {}).items():
+        if entry.get("username") == username:
+            wallets_data["_default"][key] = {
+                "username": username,
+                "wallet_address": wallet_address,
+                "timestamp": timestamp
+            }
+            found = True
+            break
+
+    # Falls nicht vorhanden, neuen Eintrag anlegen
+    if not found:
+        new_id = str(len(wallets_data.get("_default", {})) + 1)
+        wallets_data["_default"][new_id] = {
+            "username": username,
+            "wallet_address": wallet_address,
+            "timestamp": timestamp
+        }
+
+    # Daten in die Datei schreiben
+    with open(WALLETS_FILE, "w") as file:
+        json.dump(wallets_data, file, indent=4)
+
+    await update.message.reply_text(f"✅ Wallet-Adresse für @{username} gespeichert!")
+    logging.info(f"{username} hat seine Wallet-Adresse hinzugefügt oder aktualisiert: {wallet_address} um {timestamp}")
+
+
+    # Jetzt die Datei hochladen **********************************************************
+    url = "https://corenetwork.io/xenexAi/connect/wallet_connect.php"
+    files = {"file": open(WALLETS_FILE, "rb")}  # Die Datei, die hochgeladen werden soll
+    with open(WALLETS_FILE, "rb") as file:
+        try:
+            response = requests.post(url, files={"file": file})
+            if response.status_code == 200:
+                log_activity(username, "solana-address added")  # Speichert Aktion
+                logging.info("wallet upload erfolgreich!")
+            else:
+                logging.info(f"Fehler beim Hochladen von wallet-data: {response.status_code}")
+        except Exception as e:
+            logging.info(f"Fehler: {str(e)}")
+    # ************************************************************************************
+
+
+
+
+
+
+
+async def view_wallets(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Zeigt alle gespeicherten Wallet-Adressen mit Benutzernamen an."""
+    if not os.path.exists(WALLETS_FILE):
+        await update.effective_message.reply_text("❌ Keine Wallets gespeichert.")
+        return
+
+    try:
+        with open(WALLETS_FILE, "r") as file:
+            wallets_data = json.load(file)
+
+        wallets = wallets_data.get("_default", {})
+        if not wallets:
+            await update.effective_message.reply_text("❌ Keine Wallets gespeichert.")
+            return
+
+        # Erzeugen einer sortierten Ausgabe mit HTML-Formatierung
+        wallet_list = "\n".join(
+            [f"👤 @{entry.get('username', 'Unbekannt')} → 💳 <code>{entry.get('wallet_address', 'Keine Adresse')}</code>"
+             for entry in wallets.values()]
         )
-        await update.message.reply_text(f"✅ Wallet-Adresse für @{username} gespeichert!")
-        logging.info(f"{username} hat seine Wallet-Adresse hinzugefügt: {wallet_address} um {timestamp}")
+
+        await update.effective_message.reply_text(
+            f"📜 <b>Gespeicherte Wallets:</b>\n\n{wallet_list}",
+            parse_mode="HTML"
+        )
+    except (json.JSONDecodeError, FileNotFoundError):
+        await update.effective_message.reply_text("⚠️ Fehler: Wallet-Datei beschädigt.")
+    except Exception as e:
+        await update.effective_message.reply_text("⚠️ Fehler beim Abrufen der Wallets.")
+        logging.error(f"Fehler beim Abrufen der Wallets: {e}")
+
+
 
 
 # ---------------------- Bot SEND --------------------- #
@@ -543,34 +679,39 @@ async def event_btn(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("STOP event", callback_data="/stop_event")]
         ]
 
-
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.effective_message.reply_text(f"{text} ▶️ START Event:\n\n(1) Gib eine Frage aus.\n(2) Fixiere die Frage.\n(3) Starte ein (manuelles) Event. \n\nACHTUNG:\nvergiss nicht das Event manuell zu stoppen!\n\n\n⏹️ STOP Event:\n\n(1) Stoppe das Event mit /stop_event \n(2) Eventfrage entpinnen", reply_markup=reply_markup)
+    await update.effective_message.reply_text(
+        f"{text} ▶️ START Event:\n\n(1) Gib eine Frage aus.\n(2) Fixiere die Frage.\n(3) Starte ein (manuelles) Event. \n\nACHTUNG:\nvergiss nicht das Event manuell zu stoppen!\n\n\n⏹️ STOP Event:\n\n(1) Stoppe das Event mit /stop_event \n(2) Eventfrage entpinnen",
+        reply_markup=reply_markup)
+
 
 # MENU #
 # -------------- Kommandoliste mit Buttons ------------- #
 async def commands_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Zeigt alle Befehle mit klickbaren Buttons an."""
     keyboard = [
-        [InlineKeyboardButton("🏁 Start", callback_data="/start")],
         [InlineKeyboardButton("🚨 Event Status", callback_data="/event")],
         [InlineKeyboardButton("💎 Meine Punkte", callback_data="/points")],
-        [InlineKeyboardButton("💰 Punkte einlösen", callback_data="/claim")],
-        [InlineKeyboardButton("💳 Add wallet", callback_data="/addwallet")]
+       # [InlineKeyboardButton("💰 Punkte einlösen", callback_data="/claim")],
+        [InlineKeyboardButton("💰 Punkte einlösen", url=f"https://t.me/{context.bot.username}?start=claim")],
+        [InlineKeyboardButton("💳 Add wallet", url=f"https://t.me/{context.bot.username}?start=addwallet")]
     ]
     user = update.message.from_user if update.message else update.callback_query.from_user
     if user.username in ADMIN_USERS:
-        keyboard.append([InlineKeyboardButton("⬇️ Admin Bereich ⬇️", callback_data="dummy")])
-        keyboard.append([InlineKeyboardButton("📢 Nachricht senden", callback_data="/botsend")])
-        keyboard.append([InlineKeyboardButton("👋 Admin Protocol", callback_data="/protocol")])
-        keyboard.append([InlineKeyboardButton("Fragenevent Manuell", callback_data="/event_btn")])
+        keyboard.append([InlineKeyboardButton("🔐 Admin Bereich ⬇️", callback_data="dummy")])
+        keyboard.append([InlineKeyboardButton("👽 Nachricht senden", callback_data="/botsend")])
+        keyboard.append([InlineKeyboardButton("📃 Admin Protocol", callback_data="/protocol")])
+        keyboard.append([InlineKeyboardButton("📜 Wallet list", callback_data="/view_wallets")])
+        keyboard.append([InlineKeyboardButton("🤚 Fragenevent Manuell", callback_data="/event_btn")])
         # keyboard.append([InlineKeyboardButton("➕ Fragenevent starten", callback_data="/start_event")])
         # keyboard.append([InlineKeyboardButton("❌ Fragenevent stoppen", callback_data="/stop_event")])
     reply_markup = InlineKeyboardMarkup(keyboard)
     if update.message:
         await update.message.reply_text("📌 Befehlsübersicht\n\nWähle einen Befehl aus:", reply_markup=reply_markup)
     elif update.callback_query:
-        await update.callback_query.message.edit_text("📌 Befehlsübersicht\n\nWähle einen Befehl aus:", reply_markup=reply_markup)
+        await update.callback_query.message.edit_text("📌 Befehlsübersicht\n\nWähle einen Befehl aus:",
+                                                      reply_markup=reply_markup)
+
 
 async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Reagiert auf Buttons und führt den entsprechenden Befehl aus."""
@@ -579,37 +720,32 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     command = query.data
     user = query.from_user
     # Befehle für alle Benutzer
-    if command == "/start":
-        await start(update, context)
-    elif command == "/points":
+    if command == "/points":
         await points(update, context)
     elif command == "/claim":
         await claim(update, context)
     elif command == "/event":
         await event_status(update, context)
-
-
     elif command == "/addwallet":
-        await context.bot.send_message(
-            chat_id=query.message.chat_id,
-            text=f"@{query.from_user.username}, starte mit 👉 '/addwallet'"
-        )
+        await add_wallet_request(update, context)
 
 
-
-
-    # Admin-Befehle (nur für ADMIN_USERS)
+    # Admin-Befehle (nur für ADMIN_USERS) ************************************* #
     elif user.username in ADMIN_USERS:
         if command == "/event_btn":
             await event_btn(update, context)
         elif command == "/start_event":
-            await query.message.reply_text("(1) Gib eine Frage aus.\n\n(2) Fixiere die Frage.\n\n(3) Starte ein (manuelles) Event mit /start_event \n\n⚠️ACHTUNG:\nvergiss nicht das event manuell zu stoppen!")
+            await query.message.reply_text(
+                "(1) Gib eine Frage aus.\n\n(2) Fixiere die Frage.\n\n(3) Starte ein (manuelles) Event mit /start_event \n\n⚠️ACHTUNG:\nvergiss nicht das event manuell zu stoppen!")
         elif command == "/stop_event":
             await query.message.reply_text("(1) Stoppe das Event mit /stop_event \n\n(2) Eventfrage entpinnen.")
         elif command == "/botsend":
             await query.message.reply_text("Sende eine Nachricht direkt über den Bot\n /botsend <message>")
         elif command == "/protocol":
             await adm_protocol(update, context)
+        elif command == "/view_wallets":
+            await view_wallets(update, context)
+
 
 # ---------------- Admin Protocol ---------------- #
 async def adm_protocol(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -650,6 +786,7 @@ async def adm_protocol(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.effective_message.reply_text(message, parse_mode="HTML")
 
+
 # -------------- Hauptprogramm / BOT start -------------- #
 def main():
     """
@@ -659,7 +796,7 @@ def main():
       - Das automatische Frage-Event alle 2 Stunden eingeplant.
     """
     app = Application.builder().token(BOT_TOKEN).build()
-    # ?? Befehle registrieren
+    # Befehle registrieren
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("com", commands_list))
     app.add_handler(CommandHandler("points", points))
@@ -675,7 +812,8 @@ def main():
 
     # Handler, der Textnachrichten abfängt, die als Antwort (Reply) auf unsere "Bitte gib deine Solana Adresse ein:"-Nachricht gesendet wurden.
     app.add_handler(MessageHandler(filters.TEXT & filters.REPLY, add_wallet_response))
-
+    # Gespeicherte Solana adressen + username anzeigen!
+    app.add_handler(CommandHandler("view_wallets", view_wallets))
 
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_member))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
@@ -687,6 +825,7 @@ def main():
     app.job_queue.run_repeating(auto_question, interval=7200, first=10)
     logging.info("Bot läuft [erfolgreich]")
     app.run_polling()
+
 
 if __name__ == "__main__":
     main()
