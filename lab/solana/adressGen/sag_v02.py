@@ -295,7 +295,7 @@ if __name__ == "__main__":
     gen_thread.start()
     
     # Für ca. 900 Schlüssel/Adressen pro Sekunde nutzen wir einen kleineren Pool (z.B. 50 Worker)
-    worker_count = 50
+    worker_count = 15
     executor = ThreadPoolExecutor(max_workers=worker_count)
     for _ in range(worker_count):
         executor.submit(worker_task, target, token_check_enabled)
