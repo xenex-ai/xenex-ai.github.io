@@ -1,5 +1,3 @@
-Hier ist ein kurzer Text, den du als readme.txt verwenden kannst:
-
 ---
 
 **sosca v0.7.1 – Phantom Wallet Key Converter für Solana**
