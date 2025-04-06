@@ -275,7 +275,8 @@ if __name__ == "__main__":
      ) )   )    (    ( ( (__  ) 
  ___/ /   /  /\  \    \ \__/ /  
 /____/   /__(  )__\    \____/   
-                                SolanaAdressGenerator
+    SolanaAdressGenerator
+      a xenexAi product
     """
     console.print(header, style="bold blue")
     
