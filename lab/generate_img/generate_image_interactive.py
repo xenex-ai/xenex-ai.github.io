@@ -1,3 +1,6 @@
+# python generate_image_interactive.py --api_key c823557b-203e-45a1-8858-f4605afe9705
+
+
 import requests
 import argparse
 import sys
