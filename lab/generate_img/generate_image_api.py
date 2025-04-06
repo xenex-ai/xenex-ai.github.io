@@ -1,4 +1,4 @@
-# python generate_image_api.py --api_key DEIN_API_KEY --prompt "Dein individueller Prompt hier" --output "meinbild.png"
+# python generate_image_api.py --api_key c823557b-203e-45a1-8858-f4605afe9705 --prompt "Dein individueller Prompt hier" --output "meinbild.png"
 
 
 import requests
