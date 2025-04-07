@@ -1,3 +1,10 @@
+# install
+# pip install flask pynacl rich requests base58
+# pkg update
+# pkg install python clang libffi openssl
+# pip install --upgrade pip
+
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
