@@ -1,3 +1,18 @@
+import os
+import json
+import base58
+import time
+import threading
+import queue
+import requests
+from flask import Flask, jsonify
+from nacl.signing import SigningKey
+from rich.live import Live
+from rich.table import Table
+from rich.panel import Panel
+from rich.console import Console
+from concurrent.futures import ThreadPoolExecutor
+
 # install
 # pip install flask pynacl rich requests base58
 # pkg update
@@ -19,21 +34,6 @@
      a xenexAi product
      
 """
-
-import os
-import json
-import base58
-import time
-import threading
-import queue
-import requests
-from flask import Flask, jsonify
-from nacl.signing import SigningKey
-from rich.live import Live
-from rich.table import Table
-from rich.panel import Panel
-from rich.console import Console
-from concurrent.futures import ThreadPoolExecutor
 
 # Solana RPC Endpoint (Mainnet Beta)
 SOLANA_RPC_URL = "https://api.mainnet-beta.solana.com"
