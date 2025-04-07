@@ -6,6 +6,14 @@ from nacl.signing import SigningKey
 from tqdm import tqdm
 from colorama import init, Fore, Style
 
+
+# install **************
+# pip install base58
+# pip install pynacl
+# pip install tqdm
+# pip install colorama
+# **********************
+
 # Initialisiere colorama (automatischer Reset bei jedem Print)
 init(autoreset=True)
 
