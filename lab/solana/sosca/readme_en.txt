@@ -1,5 +1,3 @@
----
-
 **sosca v0.7.1 – Phantom Wallet Key Converter for Solana**
 
 This Python program generates an ed25519 keypair and converts the private key into multiple formats compatible with Phantom Wallet:
@@ -34,4 +32,3 @@ Follow the on-screen instructions in the terminal.
 >> [https://xenex-ai.github.io/lab/solana/based/based_v1.py](https://xenex-ai.github.io/lab/solana/based/based_v1.py)  
 >> Launch it and follow the instructions in your terminal.
 
----
