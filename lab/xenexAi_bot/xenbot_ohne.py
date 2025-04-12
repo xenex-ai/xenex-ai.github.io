@@ -1,20 +1,3 @@
-# Der Bot verwaltet Community-Aktivitäten:
-# Er vergibt Punkte bei Nachrichten
-# organisiert und beendet Frage-Events (automatisch und manuell)
-# zeigt stündlich Ranglisten an und
-# loggt alle Aktionen.
-# Dabei werden Daten in JSON-Dateien gespeichert und
-# per Inline-Buttons interaktiv abgefragt.
-
-"""
-██   ██ ███████ ███    ██ ███████ ██   ██  █████  ██         ██████   ██████  ████████
- ██ ██  ██      ████   ██ ██       ██ ██  ██   ██ ██         ██   ██ ██    ██    ██
-  ███   █████   ██ ██  ██ █████     ███   ███████ ██         ██████  ██    ██    ██
- ██ ██  ██      ██  ██ ██ ██       ██ ██  ██   ██ ██         ██   ██ ██    ██    ██
-██   ██ ███████ ██   ████ ███████ ██   ██ ██   ██ ██         ██████   ██████     ██
-v.0.4
-"""
-
 import json
 import os
 import requests
