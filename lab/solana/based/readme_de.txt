@@ -1,6 +1,5 @@
 based v.1.0 [DE]
 
----
 
 # Phantom Wallet Key Converter für Solana
 
@@ -35,5 +34,3 @@ Starte das Programm mit:
 python <dateiname>.py
 ```
 Folge der Eingabeaufforderung und gib deinen privaten Schlüssel in einem der unterstützten Formate ein. Anschließend wird der Phantom-kompatible, Base58-codierte Schlüssel angezeigt.
-
----
