@@ -1,4 +1,3 @@
---------------------------------------------------
 **Solana Address Generator (SAG) – a xenexAi product**
 
 **Overview:**  
@@ -40,5 +39,3 @@ This Python program continuously generates ed25519 key pairs, converts the publi
 3. Choose whether to also check token accounts (y/n).  
 4. The generator will start and continuously display the current status.  
 5. Successful addresses can be retrieved via the local web server.
-
---------------------------------------------------
