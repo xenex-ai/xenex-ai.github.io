@@ -1,4 +1,3 @@
---------------------------------------------------
 **Solana Address Generator (SAG) – a xenexAi product**
 
 **Übersicht:**  
@@ -41,4 +40,3 @@ Dieses Python-Programm generiert fortlaufend ed25519-Schlüsselpaaren, wandelt d
 4. Der Generator startet und zeigt kontinuierlich den aktuellen Status an.  
 5. Erfolgreiche Adressen können über den lokalen Webserver abgerufen werden.
 
---------------------------------------------------
