@@ -1,5 +1,3 @@
----
-
 **sosca v0.7.1 – Phantom Wallet Key Converter für Solana**
 
 Dieses Python-Programm generiert ein ed25519-Schlüsselpaar und wandelt den privaten Schlüssel in mehrere Formate um, die mit Phantom Wallet kompatibel sind:
