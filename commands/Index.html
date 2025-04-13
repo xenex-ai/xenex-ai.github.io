@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Linux-Commands for WSL & Termux (DE)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2em;
+    }
+    #searchContainer {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #searchInput {
+      width: 90%;
+      max-width: 500px;
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .command-card {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 15px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .command-details {
+      max-width: 90%;
+    }
+    .command {
+      font-weight: bold;
+      font-size: 1.1em;
+      margin: 0;
+      font-family: Consolas, monospace;
+    }
+    .description {
+      margin: 5px 0 0 0;
+      font-size: 0.95em;
+      color: #555;
+    }
+    .copy-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      outline: none;
+      padding: 5px;
+    }
+    .copy-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: #007BFF;
+      transition: fill 0.2s;
+    }
+    .copy-btn:hover svg {
+      fill: #0056b3;
+    }
+    @media (max-width: 600px) {
+      .command-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .copy-btn {
+        align-self: flex-end;
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Linux-Befehle für WSL &amp; Termux</h1>
+    <p>Übersichtliche Sammlung gängiger Linux-Befehle inkl. virtueller Umgebungen und Session-Erstellung</p>
+  </header>
+  
+  <div id="searchContainer">
+    <input type="text" id="searchInput" placeholder="Befehl suchen...">
+  </div>
+  
+  <div id="commands">
+    <!-- Befehl: ls -->
+    <div class="command-card" data-command="ls">
+      <div class="command-details">
+        <p class="command">ls</p>
+        <p class="description">Zeigt den Inhalt des aktuellen Ordners an</p>
+      </div>
+      <button class="copy-btn" onclick="copyToClipboard('ls')"
+              title="Befehl kopieren">
+        <!-- Kopier Icon (SVG) -->
+        <svg viewBox="0 0 24 24">
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Befehl: cd ordnername -->
+    <div class="command-card" data-command="cd ordnername">
+      <div class="command-details">
+        <p class="command">cd ordnername</p>
+        <p class="description">Wechselt in den Ordner <em>ordnername</em></p>
+      </div>
+      <button class="copy-btn" onclick="copyToClipboard('cd ordnername')" title="Befehl kopieren">
+        <svg viewBox="0 0 24 24">
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Befehl: cd .. -->
+    <div class="command-card" data-command="cd ..">
+      <div class="command-details">
+        <p class="command">cd ..</p>
+        <p class="description">Geht einen Ordner nach oben</p>
+      </div>
+      <button class="copy-btn" onclick="copyToClipboard('cd ..')" title="Befehl kopieren">
+        <svg viewBox="0 0 24 24">
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Befehl: cd / -->
+    <div class="command-card" data-command="cd /">
+      <div class="command-details">
+        <p class="command">cd /</p>
+        <p class="description">Wechselt ins Root-Verzeichnis</p>
+      </div>
+      <button class="copy-btn" onclick="copyToClipboard('cd /')" title="Befehl kopieren">
+        <svg viewBox="0 0 24 24">
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Befehl: cd ~ -->
+    <div class="command-card" data-command="cd ~">
+      <div class="command-details">
+        <p class="command">cd ~</p>
+        <p class="description">Wechselt ins Home-Verzeichnis</p>
+      </div>
+      <button class="copy-btn" onclick="copyToClipboard('cd ~')" title="Befehl kopieren">
+        <svg viewBox="0 0 24 24">
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Befehl: pwd -->
+    <div class="command-card" data-command="pwd">
+      <div class="command-details">
+        <p class="command">pwd</p>
+        <p class="description">Zeigt den aktuellen Pfad an</p>
+      </div>
+      <button class="copy-btn" onclick="copyToClipboard('pwd')" title="Befehl kopieren">
+        <svg viewBox="0 0 24 24">
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Virtuelle Umgebung: Python (WSL/Termux) -->
+    <div class="command-card" data-command="python3 -m venv env">
+      <div class="command-details">
+        <p class="command">python3 -m venv env</p>
+        <p class="description">Erstellt eine virtuelle Python-Umgebung</p>
+      </div>
+      <button class="copy-btn" onclick="copyToClipboard('python3 -m venv env')" title="Befehl kopieren">
+        <svg viewBox="0 0 24 24">
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="command-card" data-command="source env/bin/activate">
+      <div class="command-details">
+        <p class="command">source env/bin/activate</p>
+        <p class="description">Aktiviert die erstellte virtuelle Umgebung</p>
+      </div>
+      <button class="copy-btn" onclick="copyToClipboard('source env/bin/activate')" title="Befehl kopieren">
+        <svg viewBox="0 0 24 24">
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Session erstellen mit tmux -->
+    <div class="command-card" data-command="tmux new -s sessionname">
+      <div class="command-details">
+        <p class="command">tmux new -s sessionname</p>
+        <p class="description">Erstellt eine neue tmux Session mit dem Namen <em>sessionname</em></p>
+      </div>
+      <button class="copy-btn" onclick="copyToClipboard('tmux new -s sessionname')" title="Befehl kopieren">
+        <svg viewBox="0 0 24 24">
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="command-card" data-command="tmux attach -t sessionname">
+      <div class="command-details">
+        <p class="command">tmux attach -t sessionname</p>
+        <p class="description">Tritt der bestehenden tmux Session <em>sessionname</em> bei</p>
+      </div>
+      <button class="copy-btn" onclick="copyToClipboard('tmux attach -t sessionname')" title="Befehl kopieren">
+        <svg viewBox="0 0 24 24">
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  <script>
+    // Funktion zum Kopieren in die Zwischenablage
+    function copyToClipboard(text) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+          alert('Befehl "' + text + '" kopiert!');
+        }, function(err) {
+          alert('Fehler beim Kopieren: ' + err);
+        });
+      } else {
+        // Fallback für ältere Browser
+        var textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          alert('Befehl "' + text + '" kopiert!');
+        } catch (err) {
+          alert('Fehler beim Kopieren: ' + err);
+        }
+        document.body.removeChild(textArea);
+      }
+    }
+    
+    // Live-Suche
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+      var searchValue = this.value.toLowerCase();
+      var commands = document.querySelectorAll('.command-card');
+      commands.forEach(function(card) {
+        var commandText = card.getAttribute('data-command');
+        if (commandText.toLowerCase().includes(searchValue)) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
