@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Linux-Befehle bearbeiten, kopieren & speichern</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header h1 {
+      font-size: 2em;
+      margin: 0;
+      padding-bottom: 10px;
+    }
+    #searchContainer {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #searchInput {
+      width: 90%;
+      max-width: 500px;
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #commandList {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .command-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .command-content {
+      flex: 1;
+      min-width: 250px;
+      margin-right: 10px;
+    }
+    .command-content input[type="text"],
+    .command-content textarea {
+      width: 100%;
+      font-family: Consolas, monospace;
+      font-size: 1em;
+      padding: 5px;
+      margin: 3px 0;
+      box-sizing: border-box;
+    }
+    .buttons {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+    button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+    }
+    button svg {
+      width: 24px;
+      height: 24px;
+      fill: #007BFF;
+      transition: fill 0.2s;
+    }
+    button:hover svg {
+      fill: #0056b3;
+    }
+    #addCommandBtn {
+      display: block;
+      margin: 20px auto;
+      font-size: 1.2em;
+      padding: 10px 20px;
+      border: 2px solid #007BFF;
+      border-radius: 5px;
+      color: #007BFF;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #addCommandBtn:hover {
+      background: #007BFF;
+      color: #fff;
+    }
+    @media (max-width: 600px) {
+      .command-card {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .buttons {
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Linux-Befehle bearbeiten & speichern</h1>
+    <p>Bearbeite, kopiere und speichere deine Linux-Befehle dauerhaft – ideal für WSL, Termux und mehr.</p>
+  </header>
+  
+  <div id="searchContainer">
+    <input type="text" id="searchInput" placeholder="Befehl suchen...">
+  </div>
+  
+  <div id="commandList">
+    <!-- Befehle werden hier dynamisch eingefügt -->
+  </div>
+  
+  <button id="addCommandBtn" title="Neuen Befehl hinzufügen">
+    <!-- Plus-Symbol -->
+    <svg viewBox="0 0 24 24">
+      <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+    </svg>
+    Neuer Befehl
+  </button>
+  
+  <script>
+    // Standardbefehle als Beispiele
+    const defaultCommands = [
+      { id: Date.now() + 1, command: "ls", description: "Zeigt den Inhalt des aktuellen Ordners an" },
+      { id: Date.now() + 2, command: "cd ordnername", description: "Wechselt in den Ordner ordnername" },
+      { id: Date.now() + 3, command: "cd ..", description: "Geht einen Ordner nach oben" },
+      { id: Date.now() + 4, command: "cd /", description: "Wechselt ins Root-Verzeichnis" },
+      { id: Date.now() + 5, command: "cd ~", description: "Wechselt ins Home-Verzeichnis" },
+      { id: Date.now() + 6, command: "pwd", description: "Zeigt den aktuellen Pfad an" },
+      { id: Date.now() + 7, command: "python3 -m venv env", description: "Erstellt eine virtuelle Python-Umgebung" },
+      { id: Date.now() + 8, command: "source env/bin/activate", description: "Aktiviert die erstellte Umgebung" },
+      { id: Date.now() + 9, command: "tmux new -s sessionname", description: "Erstellt eine neue tmux Session" },
+      { id: Date.now() + 10, command: "tmux attach -t sessionname", description: "Tritt der vorhandenen tmux Session bei" }
+    ];
+
+    let commands = [];
+    
+    // Speichere Befehle in localStorage
+    function saveCommands() {
+      localStorage.setItem('commands', JSON.stringify(commands));
+    }
+    
+    // Lade Befehle aus localStorage (oder Defaultwerte, falls nichts vorhanden)
+    function loadCommands() {
+      const stored = localStorage.getItem('commands');
+      if (stored) {
+        commands = JSON.parse(stored);
+      } else {
+        commands = defaultCommands;
+        saveCommands();
+      }
+    }
+    
+    // Erstelle eine Karten-HTML für einen einzelnen Befehl
+    function createCommandCard(commandObj) {
+      const div = document.createElement('div');
+      div.className = 'command-card';
+      div.setAttribute('data-id', commandObj.id);
+      
+      // Container für bearbeitbare Inhalte
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'command-content';
+      
+      // Eingabefeld für den Befehl
+      const commandInput = document.createElement('input');
+      commandInput.type = 'text';
+      commandInput.value = commandObj.command;
+      commandInput.placeholder = 'Befehl eingeben';
+      commandInput.addEventListener('input', () => {
+        commandObj.command = commandInput.value;
+        saveCommands();
+      });
+      
+      // Textarea für die Beschreibung
+      const descInput = document.createElement('textarea');
+      descInput.value = commandObj.description;
+      descInput.placeholder = 'Beschreibung eingeben';
+      descInput.rows = 2;
+      descInput.addEventListener('input', () => {
+        commandObj.description = descInput.value;
+        saveCommands();
+      });
+      
+      contentDiv.appendChild(commandInput);
+      contentDiv.appendChild(descInput);
+      
+      // Container für Buttons
+      const buttonDiv = document.createElement('div');
+      buttonDiv.className = 'buttons';
+      
+      // Kopier-Button
+      const copyBtn = document.createElement('button');
+      copyBtn.title = 'Befehl kopieren';
+      copyBtn.innerHTML = `<svg viewBox="0 0 24 24">
+        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+      </svg>`;
+      copyBtn.addEventListener('click', () => {
+        const textToCopy = commandInput.value;
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(textToCopy)
+            .then(() => alert('Befehl kopiert: ' + textToCopy))
+            .catch(err => alert('Fehler beim Kopieren: ' + err));
+        } else {
+          // Fallback
+          const textArea = document.createElement("textarea");
+          textArea.value = textToCopy;
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand('copy');
+            alert('Befehl kopiert: ' + textToCopy);
+          } catch (err) {
+            alert('Fehler beim Kopieren: ' + err);
+          }
+          document.body.removeChild(textArea);
+        }
+      });
+      
+      // Löschen-Button (Minus)
+      const deleteBtn = document.createElement('button');
+      deleteBtn.title = 'Befehl löschen';
+      deleteBtn.innerHTML = `<svg viewBox="0 0 24 24">
+        <path d="M19 13H5V11H19V13Z"/>
+      </svg>`;
+      deleteBtn.addEventListener('click', () => {
+        if (confirm('Diesen Befehl wirklich löschen?')) {
+          commands = commands.filter(cmd => cmd.id !== commandObj.id);
+          saveCommands();
+          renderCommands();
+        }
+      });
+      
+      buttonDiv.appendChild(copyBtn);
+      buttonDiv.appendChild(deleteBtn);
+      
+      div.appendChild(contentDiv);
+      div.appendChild(buttonDiv);
+      
+      return div;
+    }
+    
+    // Rendern der Befehlsliste
+    function renderCommands() {
+      const commandList = document.getElementById('commandList');
+      commandList.innerHTML = '';
+      // Filtern nach Suchbegriff (falls eingegeben)
+      const filter = document.getElementById('searchInput').value.toLowerCase();
+      commands.forEach(cmd => {
+        if (cmd.command.toLowerCase().includes(filter) || cmd.description.toLowerCase().includes(filter)) {
+          const card = createCommandCard(cmd);
+          commandList.appendChild(card);
+        }
+      });
+    }
+    
+    // Neuen Befehl hinzufügen
+    function addNewCommand() {
+      const newCmd = { id: Date.now(), command: "neuer_befehl", description: "Beschreibung" };
+      commands.push(newCmd);
+      saveCommands();
+      renderCommands();
+    }
+    
+    // Suchfunktion
+    document.getElementById('searchInput').addEventListener('input', renderCommands);
+    
+    // Event-Listener für globalen Hinzufügen-Button
+    document.getElementById('addCommandBtn').addEventListener('click', addNewCommand);
+    
+    // Initial laden und rendern
+    loadCommands();
+    renderCommands();
+  </script>
+</body>
+</html>
