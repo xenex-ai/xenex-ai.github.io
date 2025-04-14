@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ultimate Linux-Befehle Editor – Pro Edition 2.0</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    /* Basis-Reset und grundlegende Styles */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark-mode {
+      background: #1e1e1e;
+      color: #ddd;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    header h1 {
+      font-size: 2.8em;
+      margin-bottom: 10px;
+      color: #007bff;
+      transition: color 0.3s;
+    }
+    body.dark-mode header h1 {
+      color: #66aaff;
+    }
+    header p {
+      font-size: 1.15em;
+      color: #555;
+      transition: color 0.3s;
+    }
+    body.dark-mode header p {
+      color: #aaa;
+    }
+    /* Toolbar mit modernen Effekten */
+    .toolbar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .toolbar button {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 10px 15px;
+      border: 2px solid #007bff;
+      border-radius: 30px;
+      background: transparent;
+      color: #007bff;
+      font-size: 0.95em;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s, transform 0.2s;
+    }
+    .toolbar button:hover {
+      background: #007bff;
+      color: #fff;
+      transform: translateY(-3px);
+    }
+    .toolbar button.active {
+      background: #007bff;
+      color: #fff;
+    }
+    .toolbar input[type="file"] {
+      display: none;
+    }
+    /* Such- und Filterbereich */
+    #searchContainer {
+      text-align: center;
+      margin: 20px auto 30px auto;
+      max-width: 500px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    #searchInput, #categoryFilter {
+      padding: 14px;
+      font-size: 1em;
+      border: 1px solid #ddd;
+      border-radius: 30px;
+      outline: none;
+      transition: border 0.3s;
+      flex: 1 1 auto;
+    }
+    #searchInput:focus, #categoryFilter:focus {
+      border-color: #007bff;
+    }
+    /* Befehlsliste im modernen Karten-Design */
+    #commandList {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 20px;
+      min-height: 220px;
+    }
+    .command-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: move;
+      position: relative;
+    }
+    .command-card.dragging {
+      opacity: 0.5;
+    }
+    body.dark-mode .command-card {
+      background: #2b2b2b;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    }
+    .command-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+    .command-content {
+      flex: 1;
+      margin-right: 15px;
+      min-width: 250px;
+    }
+    .command-content input[type="text"],
+    .command-content textarea {
+      width: 100%;
+      font-family: Consolas, 'Courier New', monospace;
+      font-size: 1em;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      transition: border 0.3s, background 0.3s;
+      background: #fafafa;
+    }
+    body.dark-mode .command-content input[type="text"],
+    body.dark-mode .command-content textarea {
+      background: #3a3a3a;
+      border-color: #555;
+      color: #eee;
+    }
+    .command-content input[type="text"]:focus,
+    .command-content textarea:focus {
+      border-color: #007bff;
+      background: #f0f8ff;
+    }
+    body.dark-mode .command-content input[type="text"]:focus,
+    body.dark-mode .command-content textarea:focus {
+      background: #4a4a4a;
+      border-color: #66aaff;
+    }
+    /* Kategorie-Feld (optional im Befehl bearbeiten) */
+    .category-field {
+      font-size: 0.9em;
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-top: 5px;
+      background: #fff;
+      transition: border 0.3s, background 0.3s;
+      width: auto;
+    }
+    body.dark-mode .category-field {
+      background: #3a3a3a;
+      border-color: #555;
+      color: #eee;
+    }
+    /* Buttons (Copy, Favorit, Löschen) */
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .buttons button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 10px;
+      border-radius: 50%;
+      transition: background 0.3s ease, transform 0.2s;
+    }
+    .buttons button:hover {
+      background: rgba(0, 123, 255, 0.15);
+      transform: scale(1.1);
+    }
+    .buttons button svg {
+      width: 26px;
+      height: 26px;
+      fill: #007bff;
+    }
+    /* "Neuer Befehl"-Button im Footer */
+    #addCommandBtn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px auto;
+      padding: 14px 24px;
+      font-size: 1.1em;
+      border: 2px solid #007bff;
+      border-radius: 30px;
+      color: #007bff;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.3s ease, color 0.3s ease, transform 0.2s;
+    }
+    #addCommandBtn:hover {
+      background: #007bff;
+      color: #fff;
+      transform: translateY(-3px);
+    }
+    /* Toast-Benachrichtigungen modern und zentral */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 6px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      z-index: 1100;
+      font-size: 0.95em;
+    }
+    .toast.show {
+      opacity: 1;
+    }
+    /* Floating Copy Icon mit Tooltip */
+    .floating-copy {
+      position: fixed;
+      right: 30px;
+      background: #007bff;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 1101;
+      transition: opacity 0.3s, transform 0.3s;
+      opacity: 0;
+      font-size: 0.95em;
+      user-select: none;
+    }
+    .floating-copy.show {
+      opacity: 1;
+    }
+    .floating-copy::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 125%;
+      right: 0;
+      background-color: #333;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.8em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      white-space: nowrap;
+    }
+    .floating-copy:hover::after {
+      opacity: 1;
+    }
+    /* Copy Success Animation – elegant und dezent */
+    .copy-success {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-30px);
+      background: #28a745;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 6px;
+      opacity: 0;
+      z-index: 1102;
+      transition: opacity 0.5s, transform 0.5s;
+      font-size: 1em;
+    }
+    .copy-success.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Ultimate Linux-Befehle Editor – Pro Edition 2.0</h1>
+    <p>Bearbeite, gruppiere, kopiere und speichere deine Linux-Befehle – ideal für WSL, Termux und mehr.</p>
+  </header>
+
+  <!-- Toolbar -->
+  <nav class="toolbar" aria-label="Toolbar mit Funktionen">
+    <button id="exportBtn" title="Befehle exportieren" aria-label="Exportieren">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5,20h14c1.1,0,2-0.9,2-2V10h-2v8H5V10H3v8C3,19.1,3.9,20,5,20z M19,4h-4V2H9v2H5l7,7L19,4z"></path>
+      </svg>
+      Export
+    </button>
+    <button id="importBtn" title="Befehle importieren" aria-label="Importieren">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M19,13v6H5v-6H3v6c0,1.1,0.9,2,2,2h14c1.1,0,2-.9,2-2v-6H19z M11,2L6.5,6.5L8,8l3-3l3,3l1.5-1.5L13,2H11z"></path>
+      </svg>
+      Import
+      <input type="file" id="fileInput" accept=".json" aria-hidden="true" />
+    </button>
+    <button id="resetBtn" title="Auf Standardbefehle zurücksetzen" aria-label="Reset">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 5V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.63-.66 3.11-1.73 4.19l1.42 1.42C19.07 15.73 20 13.96 20 12c0-4.42-3.58-8-8-8zm-6.36.64L4.22 7.06C2.85 8.37 2 10.11 2 12c0 4.42 3.58 8 8 8v4l4-4-4-4v3c-3.31 0-6-2.69-6-6 0-1.24.39-2.39 1.04-3.36z"></path>
+      </svg>
+      Reset
+    </button>
+    <button id="darkModeBtn" title="Dark Mode umschalten" aria-label="Dark Mode umschalten">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9.37 5.51A7 7 0 0 0 12 19a7 7 0 0 0 5.49-2.63A9 9 0 1 1 9.37 5.51z"></path>
+      </svg>
+      Dark Mode
+    </button>
+    <button id="favFilterBtn" title="Nur Favoriten anzeigen" class="inactive" aria-label="Favoriten filtern">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
+      </svg>
+      Favoriten
+    </button>
+  </nav>
+
+  <!-- Such- und Filterbereich -->
+  <section id="searchContainer">
+    <input type="text" id="searchInput" placeholder="Befehl oder Beschreibung suchen..." />
+    <select id="categoryFilter">
+      <option value="">Alle Kategorien</option>
+    </select>
+  </section>
+
+  <!-- Hauptbereich mit dynamischer Liste -->
+  <main id="commandList" aria-live="polite">
+    <!-- Befehls-Karten werden hier dynamisch erstellt -->
+  </main>
+
+  <footer>
+    <button id="addCommandBtn" title="Neuen Befehl hinzufügen" aria-label="Neuer Befehl hinzufügen">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"></path>
+      </svg>
+      Neuer Befehl
+    </button>
+  </footer>
+
+  <!-- Toast-Benachrichtigung -->
+  <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
+  <!-- Floating Copy Icon -->
+  <div id="floatingCopy" class="floating-copy" data-tooltip="Kopieren"></div>
+  <!-- Copy Success Animation -->
+  <div id="copySuccess" class="copy-success" aria-hidden="true">✔ Kopiert!</div>
+
+  <script>
+    /********************
+     * ULTIMATE MASTER SCRIPT – Pro Edition 2.0
+     * Erweiterte Version mit Unterteilungsmöglichkeiten
+     * Funktionen: Inline-Bearbeitung, Kategorien, Drag & Drop, Toasts, Floating Copy, Favoritenfilter, Export/Import, Reset & Dark Mode
+     ********************/
+
+    // Standardbefehle inkl. Kategorie und Favorit-Status
+    const defaultCommands = [
+      {
+        id: Date.now() + "_1",
+        command: "ls",
+        description: "Zeigt den Inhalt des aktuellen Ordners an",
+        category: "Navigation",
+        favorite: true
+      },
+      {
+        id: Date.now() + "_2",
+        command: "cd ordnername",
+        description: "Wechselt in den Ordner 'ordnername'",
+        category: "Navigation",
+        favorite: true
+      },
+      {
+        id: Date.now() + "_3",
+        command: "cd ..",
+        description: "Geht einen Ordner nach oben",
+        category: "Navigation",
+        favorite: false
+      },
+      {
+        id: Date.now() + "_4",
+        command: "cd /",
+        description: "Wechselt ins Root-Verzeichnis",
+        category: "Navigation",
+        favorite: false
+      },
+      {
+        id: Date.now() + "_5",
+        command: "cd ~",
+        description: "Wechselt ins Home-Verzeichnis",
+        category: "Navigation",
+        favorite: false
+      },
+      {
+        id: Date.now() + "_6",
+        command: "pwd",
+        description: "Zeigt den aktuellen Pfad an",
+        category: "System",
+        favorite: false
+      },
+      {
+        id: Date.now() + "_7",
+        command: "python3 -m venv env",
+        description: "Erstellt eine virtuelle Python-Umgebung",
+        category: "Entwicklung",
+        favorite: false
+      },
+      {
+        id: Date.now() + "_8",
+        command: "source env/bin/activate",
+        description: "Aktiviert die virtuelle Umgebung",
+        category: "Entwicklung",
+        favorite: false
+      },
+      {
+        id: Date.now() + "_9",
+        command: "tmux new -s sessionname",
+        description: "Erstellt eine neue tmux Session",
+        category: "Terminal",
+        favorite: false
+      },
+      {
+        id: Date.now() + "_10",
+        command: "tmux attach -t sessionname",
+        description: "Tritt der vorhandenen tmux Session bei",
+        category: "Terminal",
+        favorite: false
+      }
+    ];
+
+    let commands = [];
+    let showFavoritesOnly = false;
+    let currentCategoryFilter = "";
+
+    // Lokale Speicherung
+    const saveCommands = () => localStorage.setItem("commands", JSON.stringify(commands));
+    const loadCommands = () => {
+      const stored = localStorage.getItem("commands");
+      if (stored) {
+        commands = JSON.parse(stored);
+      } else {
+        commands = defaultCommands;
+        saveCommands();
+      }
+    };
+
+    // Aktualisiere die Kategorie-Filter Optionen
+    const updateCategoryFilterOptions = () => {
+      const select = document.getElementById("categoryFilter");
+      // Extrahiere alle vorhandenen Kategorien
+      const categories = [...new Set(commands.map(cmd => cmd.category).filter(cat => cat))];
+      // Setze die Optionen: Zunächst "Alle Kategorien"
+      select.innerHTML = `<option value="">Alle Kategorien</option>`;
+      categories.forEach(cat => {
+        const option = document.createElement("option");
+        option.value = cat;
+        option.textContent = cat;
+        select.appendChild(option);
+      });
+    };
+
+    // Toast-Funktion
+    const showToast = (message) => {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2500);
+    };
+
+    // Copy-Feedback
+    const showCopySuccess = () => {
+      const successDiv = document.getElementById("copySuccess");
+      successDiv.classList.add("show");
+      setTimeout(() => successDiv.classList.remove("show"), 2000);
+    };
+
+    // Erstelle Befehlskarte mit Kategorie, Inline-Editing und Buttons
+    const createCommandCard = (cmdObj) => {
+      const card = document.createElement("article");
+      card.className = "command-card";
+      card.setAttribute("data-id", cmdObj.id);
+      card.setAttribute("tabindex", "0");
+      card.draggable = true;
+
+      // Drag & Drop
+      card.addEventListener("dragstart", (e) => {
+        card.classList.add("dragging");
+        e.dataTransfer.setData("text/plain", cmdObj.id);
+      });
+      card.addEventListener("dragend", () => card.classList.remove("dragging"));
+
+      // Inhalt der Karte
+      const contentDiv = document.createElement("div");
+      contentDiv.className = "command-content";
+
+      // Eingabe: Befehl
+      const inputCommand = document.createElement("input");
+      inputCommand.type = "text";
+      inputCommand.value = cmdObj.command;
+      inputCommand.placeholder = "Befehl eingeben";
+      inputCommand.setAttribute("aria-label", "Befehl");
+      inputCommand.addEventListener("input", () => {
+        cmdObj.command = inputCommand.value;
+        saveCommands();
+      });
+
+      // Eingabe: Beschreibung
+      const inputDesc = document.createElement("textarea");
+      inputDesc.value = cmdObj.description;
+      inputDesc.placeholder = "Beschreibung eingeben";
+      inputDesc.rows = 2;
+      inputDesc.setAttribute("aria-label", "Beschreibung");
+      inputDesc.addEventListener("input", () => {
+        cmdObj.description = inputDesc.value;
+        saveCommands();
+      });
+
+      // Eingabe: Kategorie
+      const inputCategory = document.createElement("input");
+      inputCategory.type = "text";
+      inputCategory.value = cmdObj.category || "";
+      inputCategory.placeholder = "Kategorie z.B. Navigation, System, etc.";
+      inputCategory.className = "category-field";
+      inputCategory.setAttribute("aria-label", "Kategorie");
+      inputCategory.addEventListener("input", () => {
+        cmdObj.category = inputCategory.value;
+        saveCommands();
+        updateCategoryFilterOptions();
+      });
+
+      // Füge die Felder hinzu
+      contentDiv.append(inputCommand, inputDesc, inputCategory);
+
+      // Button-Bereich
+      const buttonsDiv = document.createElement("div");
+      buttonsDiv.className = "buttons";
+
+      // Kopier-Button
+      const copyBtn = document.createElement("button");
+      copyBtn.title = "Befehl kopieren";
+      copyBtn.setAttribute("aria-label", "Befehl kopieren");
+      copyBtn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+      </svg>`;
+      copyBtn.addEventListener("click", () => {
+        const text = inputCommand.value;
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(text)
+            .then(() => {
+              showToast("Befehl kopiert!");
+              showCopySuccess();
+            })
+            .catch(() => showToast("Fehler beim Kopieren."));
+        } else {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          try {
+            document.execCommand("copy");
+            showToast("Befehl kopiert!");
+            showCopySuccess();
+          } catch (err) {
+            showToast("Fehler beim Kopieren.");
+          }
+          document.body.removeChild(ta);
+        }
+      });
+
+      // Favoriten-Button
+      const favBtn = document.createElement("button");
+      favBtn.title = "Als Favorit markieren";
+      favBtn.setAttribute("aria-label", "Favorit umschalten");
+      favBtn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+      </svg>`;
+      favBtn.style.fill = cmdObj.favorite ? "#ffa500" : "#007bff";
+      favBtn.addEventListener("click", () => {
+        cmdObj.favorite = !cmdObj.favorite;
+        favBtn.style.fill = cmdObj.favorite ? "#ffa500" : "#007bff";
+        saveCommands();
+        favBtn.animate([{ transform: "scale(1)"}, { transform: "scale(1.2)"}, { transform: "scale(1)" }], { duration: 300 });
+      });
+
+      // Lösch-Button
+      const deleteBtn = document.createElement("button");
+      deleteBtn.title = "Befehl löschen";
+      deleteBtn.setAttribute("aria-label", "Befehl löschen");
+      deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M19 13H5V11H19V13Z"/>
+      </svg>`;
+      deleteBtn.addEventListener("click", () => {
+        if (confirm("Diesen Befehl wirklich löschen?")) {
+          commands = commands.filter(c => c.id !== cmdObj.id);
+          saveCommands();
+          renderCommands();
+          showToast("Befehl gelöscht.");
+        }
+      });
+
+      // Zusammenbauen
+      buttonsDiv.append(copyBtn, favBtn, deleteBtn);
+      card.append(contentDiv, buttonsDiv);
+      return card;
+    };
+
+    // Rendern inkl. Filter: Suchtext, Kategorie und Favoriten; Favoriten werden oben angezeigt
+    const renderCommands = () => {
+      const listDiv = document.getElementById("commandList");
+      listDiv.innerHTML = "";
+      const filterText = document.getElementById("searchInput").value.toLowerCase();
+      currentCategoryFilter = document.getElementById("categoryFilter").value;
+      const filteredCommands = commands.filter(cmd => {
+        const matchesSearch = cmd.command.toLowerCase().includes(filterText) ||
+                              cmd.description.toLowerCase().includes(filterText) ||
+                              (cmd.category && cmd.category.toLowerCase().includes(filterText));
+        const matchesCategory = currentCategoryFilter ? (cmd.category === currentCategoryFilter) : true;
+        return showFavoritesOnly ? (matchesSearch && cmd.favorite && matchesCategory) : (matchesSearch && matchesCategory);
+      });
+      filteredCommands.sort((a, b) => b.favorite - a.favorite);
+      filteredCommands.forEach(cmd => listDiv.appendChild(createCommandCard(cmd)));
+      updateFloatingCopyPosition();
+    };
+
+    // Drag & Drop – Reihenfolge aktualisieren
+    const commandListDiv = document.getElementById("commandList");
+    commandListDiv.addEventListener("dragover", e => {
+      e.preventDefault();
+      const draggingCard = document.querySelector(".dragging");
+      const afterElement = getDragAfterElement(commandListDiv, e.clientY);
+      if (afterElement == null) {
+        commandListDiv.appendChild(draggingCard);
+      } else {
+        commandListDiv.insertBefore(draggingCard, afterElement);
+      }
+    });
+    const getDragAfterElement = (container, y) => {
+      const draggableElements = [...container.querySelectorAll(".command-card:not(.dragging)")];
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        }
+        return closest;
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    };
+    const updateOrder = () => {
+      const newOrder = [];
+      document.querySelectorAll(".command-card").forEach(card => {
+        const id = card.getAttribute("data-id");
+        const cmd = commands.find(c => c.id === id);
+        if (cmd) newOrder.push(cmd);
+      });
+      commands = newOrder;
+      saveCommands();
+    };
+    const observer = new MutationObserver(updateOrder);
+    observer.observe(commandListDiv, { childList: true });
+
+    // Neuen Befehl hinzufügen (mit leerer Kategorie)
+    const addNewCommand = () => {
+      const newCmd = {
+        id: Date.now() + "_" + Math.floor(Math.random() * 1000),
+        command: "neuer_befehl",
+        description: "Beschreibung",
+        category: "",
+        favorite: false
+      };
+      commands.push(newCmd);
+      saveCommands();
+      renderCommands();
+      updateCategoryFilterOptions();
+      showToast("Neuer Befehl hinzugefügt!");
+    };
+
+    // Export / Import
+    const exportCommands = () => {
+      const dataStr = JSON.stringify(commands, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "commands_export.json";
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Befehle exportiert!");
+    };
+    const importCommands = (file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            commands = imported;
+            saveCommands();
+            renderCommands();
+            updateCategoryFilterOptions();
+            showToast("Befehle importiert!");
+          } else {
+            showToast("Ungültiges Format!");
+          }
+        } catch (error) {
+          showToast("Fehler beim Importieren!");
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    // Reset-Funktion
+    const resetCommands = () => {
+      if (confirm("Möchtest du wirklich auf die Standardbefehle zurücksetzen? Alle Änderungen gehen verloren!")) {
+        commands = defaultCommands;
+        saveCommands();
+        renderCommands();
+        updateCategoryFilterOptions();
+        showToast("Liste zurückgesetzt!");
+      }
+    };
+
+    // Dark Mode
+    const toggleDarkMode = () => {
+      document.body.classList.toggle("dark-mode");
+    };
+
+    // Favoriten-Filter umschalten
+    const toggleFavFilter = () => {
+      showFavoritesOnly = !showFavoritesOnly;
+      const favBtn = document.getElementById("favFilterBtn");
+      favBtn.classList.toggle("active", showFavoritesOnly);
+      favBtn.classList.toggle("inactive", !showFavoritesOnly);
+      renderCommands();
+    };
+
+    // Floating Copy Icon – Positionierung und Kopiervorgang
+    let scrollTick = false;
+    const updateFloatingCopyPosition = () => {
+      const cards = document.querySelectorAll(".command-card");
+      let activeCard = null;
+      let minDistance = Infinity;
+      cards.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        if (rect.top >= 0 && rect.top < minDistance) {
+          minDistance = rect.top;
+          activeCard = card;
+        }
+      });
+      const floatingCopy = document.getElementById("floatingCopy");
+      if (activeCard) {
+        const rect = activeCard.getBoundingClientRect();
+        floatingCopy.style.top = (rect.top + rect.height / 2 - 15) + "px";
+        floatingCopy.setAttribute("data-active", activeCard.getAttribute("data-id"));
+        floatingCopy.classList.add("show");
+      } else {
+        floatingCopy.classList.remove("show");
+      }
+    };
+    document.getElementById("floatingCopy").addEventListener("click", () => {
+      const activeId = document.getElementById("floatingCopy").getAttribute("data-active");
+      if (activeId) {
+        const activeCard = document.querySelector(`.command-card[data-id="${activeId}"]`);
+        if (activeCard) {
+          const input = activeCard.querySelector(".command-content input[type='text']");
+          const text = input.value;
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(text)
+              .then(() => {
+                showToast("Befehl kopiert!");
+                showCopySuccess();
+              })
+              .catch(() => showToast("Fehler beim Kopieren."));
+          } else {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+              document.execCommand("copy");
+              showToast("Befehl kopiert!");
+              showCopySuccess();
+            } catch (err) {
+              showToast("Fehler beim Kopieren.");
+            }
+            document.body.removeChild(ta);
+          }
+        }
+      }
+    });
+    const onScroll = () => {
+      if (!scrollTick) {
+        window.requestAnimationFrame(() => {
+          updateFloatingCopyPosition();
+          scrollTick = false;
+        });
+        scrollTick = true;
+      }
+    };
+    window.addEventListener("scroll", onScroll);
+
+    // Event-Listener
+    document.getElementById("searchInput").addEventListener("input", renderCommands);
+    document.getElementById("categoryFilter").addEventListener("change", renderCommands);
+    document.getElementById("addCommandBtn").addEventListener("click", addNewCommand);
+    document.getElementById("exportBtn").addEventListener("click", exportCommands);
+    document.getElementById("resetBtn").addEventListener("click", resetCommands);
+    document.getElementById("darkModeBtn").addEventListener("click", toggleDarkMode);
+    document.getElementById("favFilterBtn").addEventListener("click", toggleFavFilter);
+    document.getElementById("importBtn").addEventListener("click", () => {
+      document.getElementById("fileInput").click();
+    });
+    document.getElementById("fileInput").addEventListener("change", (e) => {
+      if (e.target.files.length > 0) {
+        importCommands(e.target.files[0]);
+      }
+    });
+
+    // Initialisierung beim Laden
+    loadCommands();
+    renderCommands();
+    updateCategoryFilterOptions();
+  </script>
+</body>
+</html>
