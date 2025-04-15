@@ -108,7 +108,8 @@
       text-align: center;
       margin-bottom: 20px;
       font-size: 0.8em;
-      color: #ccc;
+      color: #eee;
+      border-bottom:1px solid #007BFF;
     }
     /* Zuletzt gesuchte Begriffe */
     #recentSearches {
@@ -130,6 +131,12 @@
       border-radius:5px;
       background:#f1f1f1;
       border:1px solid #fefefe;
+    }
+    body.dark-mode .list-section {
+      margin-bottom: 30px;
+      border-radius:5px;
+      background:#0e0e0e;
+      border:1px solid #000;
     }
     .section-title {
       font-weight: bold;
@@ -366,11 +373,11 @@
     </select>
   </div>
   
-  <!-- Anzeige der Befehlszahlen -->
-  <div id="commandCounts"></div>
-  
   <!-- Zuletzt gesuchte Begriffe -->
   <div id="recentSearches"></div>
+
+  <!-- Anzeige der Befehlszahlen -->
+  <div id="commandCounts"></div>
   
   <!-- Custom Befehle -->
   <div id="customSection" class="list-section" data-visible="true">
