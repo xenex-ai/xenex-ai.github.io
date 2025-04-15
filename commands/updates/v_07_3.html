@@ -805,30 +805,6 @@
       reader.readAsText(file);
     };
 
-  const updateCustomSectionHeader = () => {
-  const headerElem = document.getElementById('customHeader');
-  headerElem.innerHTML = "";
-
-  const importedFile = localStorage.getItem("importedFile");
-  
-  const titleTextSpan = document.createElement('span');
-  titleTextSpan.textContent = "Importierte / Custom Befehle";
-  headerElem.appendChild(titleTextSpan);
-
-  if (importedFile) {
-    const info = JSON.parse(importedFile);
-    const fileInfoSpan = document.createElement('span');
-    fileInfoSpan.textContent = ` (Datei: ${info.name}, ${info.sizeKB} KB)`;
-    fileInfoSpan.classList.add("imported-filename"); // Optionales Styling
-    headerElem.appendChild(fileInfoSpan);
-  } else {
-    const noFileSpan = document.createElement('span');
-    noFileSpan.textContent = " (Keine importierten Befehle)";
-    headerElem.appendChild(noFileSpan);
-  }
-  };
-
-    
     // Reset: Custom Befehle leeren und Import-Information entfernen, Header aktualisieren.
     const resetCommands = () => {
       if (confirm("Möchtest Du wirklich die importierten Befehle löschen? Alle Änderungen gehen verloren!")) {
