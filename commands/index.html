@@ -60,8 +60,8 @@
       align-items: center;
       gap: 5px;
       padding: 8px 12px;
-      border: 2px solid #007BFF;
-      border-radius: 25px;
+      border: 4px solid #007B00;
+      border-radius: 0px;
       background: #007BFF;
       color: #FFF;
       font-size: 0.9em;
@@ -70,8 +70,8 @@
     }
     .toolbar button:hover {
       background: #007BFF;
-      color: #fff;
-      transform: translateY(-2px);
+      color: #0e0e0e;
+      transform: translateY(-1px);
     }
     .toolbar input[type="file"] {
       display: none;
@@ -86,7 +86,7 @@
       width: 100%;
       padding: 12px;
       font-size: 1em;
-      background: transparent;
+      background: #f1f1f1;
       border: none;
       border-bottom: 1px solid #ddd;
       outline: none;
@@ -148,12 +148,13 @@
     /* Befehlskarten */
     .command-card {
       background: #fff;
-      border-radius: 10px;
+      border-radius: 2px;
       padding: 15px 20px;
+      border: 1px solid #f1f1f1;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       cursor: move;
     }
@@ -163,6 +164,7 @@
     body.dark-mode .command-card {
       background: #2b2b2b;
       box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      border: 1px solid transparent;
     }
     .command-card:hover {
       transform: translateY(-2px);
@@ -218,7 +220,8 @@
     /* Extra CSS-Klasse für importierten Dateinamen */
     .imported-filename {
       font-style: italic;
-      color: #007BFF;
+      color: #0e0e0e;
+      font-size:12px;
     }
     /* Aktionsbuttons */
     .buttons {
@@ -246,28 +249,34 @@
       fill: #007BFF;
     }
     /* Add-Button */
-    #addCommandBtn {
-      display: fixed;
-      bottom: 4px;
-      width:98%;
+    .addCommandBtn {
+      position:inerhit;
+      align-items: center;
+      padding: 4px 4px;
+      font-size: 1em;
+      width:12px;
+      height:12px;
+      }
+    .addCommandBtn:hover {
+      color: #fff;
+      transform: translateY(-2px);
+    }
+    .new_add{
+      position:fixed;
+      bottom: 0px;
+      width:100%;
       left:0px;
       align-items: center;
       justify-content: center;
       gap: 8px;
       margin: 0 auto;
-      padding: 12px 20px;
+      padding: 6px 4px;
       font-size: 1.1em;
-      border: 1% solid #007BFF;
-      border-radius: none;
+      border: none;
       color: #FFF;
       background: #007BFF;
       cursor: pointer;
       transition: background 0.3s ease, color 0.3s ease, transform 0.2s;
-    }
-    #addCommandBtn:hover {
-      background: #007BFF;
-      color: #fff;
-      transform: translateY(-2px);
     }
     /* Toast */
     .toast {
@@ -291,7 +300,8 @@
 </head>
 <body>
   <header>
-    <h1>Ultimate Linux-Befehle Editor</h1>
+    <h1>Xenex LBE (Ultimate)</h1><br />
+    Linux-Befehle Editor
     <p>Bearbeite, kopiere, sortiere und speichere deine Linux-Befehle – ideal für WSL, Termux und mehr.</p>
   </header>
   
@@ -363,8 +373,8 @@
   </div>
   
   <!-- Add-Button -->
-  <button id="addCommandBtn" title="Neuen Befehl hinzufügen">
-    <svg viewBox="0 0 24 24">
+  <button id="addCommandBtn" title="Neuen Befehl hinzufügen" class="new_add">
+    <svg viewBox="0 0 24 24" class="addCommandBtn">
       <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
     </svg>
     Neuer Befehl
@@ -451,15 +461,20 @@
       let titleText = "";
       if (importedFile) {
         const info = JSON.parse(importedFile);
-        titleText = `Importierte / Custom Befehle (Datei: ${info.name}, ${info.sizeKB} KB)`;
+        titleText = `Importierte / Custom Befehle`;
+        titleTextB = `${info.name} (${info.sizeKB} KB)`;
       } else {
-        titleText = "Importierte / Custom Befehle (Keine importierten Befehle)";
+        titleText = "Importierte / Custom Befehle";
+        titleTextB = `(Keine importierten Befehle)`;
       }
-      const titleSpan = document.createElement('span');
+      const titleSpan = document.createElement('div');
       titleSpan.textContent = titleText;
+      const titleDet = document.createElement('span');
+      titleDet.textContent = titleTextB;
       // Zusätzliche CSS-Klasse für den Dateinamenbereich
-      titleSpan.classList.add("imported-filename");
+      titleDet.classList.add("imported-filename");
       headerElem.appendChild(titleSpan);
+      headerElem.appendChild(titleDet)
       
       headerElem.appendChild(document.createTextNode(" "));
       const toggleSpan = document.createElement('span');
@@ -797,7 +812,7 @@
       };
       reader.readAsText(file);
     };
-    
+
     // Reset: Custom Befehle leeren und Import-Information entfernen, Header aktualisieren.
     const resetCommands = () => {
       if (confirm("Möchtest Du wirklich die importierten Befehle löschen? Alle Änderungen gehen verloren!")) {
