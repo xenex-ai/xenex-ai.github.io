@@ -66,10 +66,10 @@ MUTE_DURATION_MINUTES = 10  # Dauer (in Minuten) für eine automatische Stummsch
 # *********************************************************
 
 # ------------------ Bot-Konfiguration ------------------ #
-BOT_TOKEN = "7761649059:AAEQtfHDd1FXeE5wH3rPIyuXzBXnqB4eP94"
+BOT_TOKEN = ""
 CHANNEL_ID = "@xentst"
-GROUP_ID = "-1001734852517"
-ADMIN_USERS = ["w3kmdo", "Den_XNX"]  # Nur diese Nutzer dürfen Admin-Befehle nutzen
+GROUP_ID = ""
+ADMIN_USERS = ["xxx", "xxy"]  # Nur diese Nutzer dürfen Admin-Befehle nutzen
 
 # --------------------- JSON-Dateien -------------------- #
 POINTS_FILE = "tst_point.json"  # Normale Punkteliste
