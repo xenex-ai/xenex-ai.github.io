@@ -358,8 +358,9 @@
   <!-- Custom Befehle -->
   <div id="customSection" class="list-section" data-visible="true">
     <!-- Header der importierten Befehle inkl. Dateiinformationen -->
+    <div class="section-title"> Importierte / Custom Befehle </div>
     <div class="section-title" id="customHeader">
-      Importierte / Custom Befehle (Keine importierten Befehle) <span class="toggle-section">[Ausblenden]</span>
+      (Keine importierten Befehle) <span class="toggle-section">[Ausblenden]</span>
     </div>
     <div id="commandList"></div>
   </div>
@@ -459,9 +460,9 @@
       let titleText = "";
       if (importedFile) {
         const info = JSON.parse(importedFile);
-        titleText = `Importierte / Custom Befehle <br /><span class=''>${info.name} (${info.sizeKB} KB)</span>`;
+        titleText = `${info.name} (${info.sizeKB} KB)`;
       } else {
-        titleText = "Importierte / Custom Befehle (Keine importierten Befehle)";
+        titleText = "(Keine importierten Befehle)";
       }
       const titleSpan = document.createElement('span');
       titleSpan.textContent = titleText;
