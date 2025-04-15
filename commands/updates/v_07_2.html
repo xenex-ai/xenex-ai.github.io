@@ -219,7 +219,7 @@
     .imported-filename {
       font-style: italic;
       color: #0e0e0e;
-      font-size: 12px;
+      font-size:12px;
     }
     /* Aktionsbuttons */
     .buttons {
@@ -234,7 +234,7 @@
       border: none;
       cursor: pointer;
       padding: 8px;
-      border-radius: 2px;
+      border-radius: 50%;
       transition: background 0.3s ease, transform 0.2s;
     }
     .buttons button:hover {
@@ -275,7 +275,6 @@
       background: #007BFF;
       cursor: pointer;
       transition: background 0.3s ease, color 0.3s ease, transform 0.2s;
-
     }
     /* Toast */
     .toast {
@@ -358,9 +357,8 @@
   <!-- Custom Befehle -->
   <div id="customSection" class="list-section" data-visible="true">
     <!-- Header der importierten Befehle inkl. Dateiinformationen -->
-    <div class="section-title"> Importierte / Custom Befehle </div>
     <div class="section-title" id="customHeader">
-      (Keine importierten Befehle) <span class="toggle-section">[Ausblenden]</span>
+      Importierte / Custom Befehle (Keine importierten Befehle) <span class="toggle-section">[Ausblenden]</span>
     </div>
     <div id="commandList"></div>
   </div>
@@ -460,9 +458,9 @@
       let titleText = "";
       if (importedFile) {
         const info = JSON.parse(importedFile);
-        titleText = `${info.name} (${info.sizeKB} KB)`;
+        titleText = `Importierte / Custom Befehle (Datei: ${info.name}, ${info.sizeKB} KB)`;
       } else {
-        titleText = "(Keine importierten Befehle)";
+        titleText = "Importierte / Custom Befehle (Keine importierten Befehle)";
       }
       const titleSpan = document.createElement('span');
       titleSpan.textContent = titleText;
