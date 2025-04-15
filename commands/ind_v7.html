@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ultimate Linux-Befehle Editor</title>
-  <!-- Google Fonts für ein besseres Schriftbild -->
+  <title>Xenex LBE (Ultimate)</title>
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    /* Basis-Reset und Standard-Stile */
+    /* Basis-Reset */
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
@@ -63,7 +63,7 @@
       border: 2px solid #007BFF;
       border-radius: 25px;
       background: transparent;
-      color: #007BFF;
+      color: #ff8080;
       font-size: 0.9em;
       cursor: pointer;
       transition: background 0.3s, color 0.3s, transform 0.2s;
@@ -76,7 +76,7 @@
     .toolbar input[type="file"] {
       display: none;
     }
-    /* Suchfeld */
+    /* Suchfeld und Auswahl */
     #searchContainer {
       text-align: center;
       margin: 20px auto;
@@ -86,33 +86,62 @@
       width: 100%;
       padding: 12px;
       font-size: 1em;
-      border: 1px solid #ddd;
-      border-radius: 25px;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #ddd;
       outline: none;
       transition: border 0.3s;
     }
     #searchInput:focus {
-      border-color: #007BFF;
+      border-bottom: 1px solid #007BFF;
     }
-    /* Befehlsliste */
-    #commandList {
+    #searchScope {
+      margin-top: 10px;
+      padding: 6px;
+      font-size: 1em;
+    }
+    /* Zuletzt gesuchte Begriffe */
+    #recentSearches {
+      margin: 10px auto 20px;
+      max-width: 500px;
+      text-align: center;
+    }
+    #recentSearches span {
+      background: #e0e0e0;
+      color: #333;
+      padding: 5px 10px;
+      border-radius: 15px;
+      margin: 0 5px;
+      cursor: pointer;
+    }
+    /* Listensektionen */
+    .list-section {
+      margin-bottom: 30px;
+    }
+    .section-title {
+      font-weight: bold;
+      margin: 20px 0 10px;
+      text-align: center;
+      font-size: 1.2em;
+      color: #007BFF;
+    }
+    #commandList, #defaultList {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      margin-bottom: 20px;
       min-height: 200px;
     }
+    /* Befehlskarten */
     .command-card {
       background: #fff;
       border-radius: 10px;
       padding: 15px 20px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
+      gap: 10px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       cursor: move;
-      position: relative;
     }
     .command-card.dragging {
       opacity: 0.5;
@@ -125,27 +154,29 @@
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
+    .command-index {
+      font-size: 0.9em;
+      color: #777;
+    }
     .command-content {
-      flex: 1;
-      min-width: 250px;
-      margin-right: 15px;
+      background: transparent;
     }
     .command-content input[type="text"],
     .command-content textarea {
       width: 100%;
-      font-family: Consolas, 'Courier New', monospace;
-      font-size: 1em;
       padding: 8px 10px;
       margin-bottom: 8px;
-      border: 1px solid #ddd;
+      border: none;
       border-radius: 5px;
       transition: border 0.3s, background 0.3s;
-      background: #fafafa;
+      background: rgba(0, 0, 0, 0.08);
+      font-weight: bold;
+      font-size: 1.1em;
+      font-family: Consolas, monospace;
     }
     body.dark-mode .command-content input[type="text"],
     body.dark-mode .command-content textarea {
       background: #3a3a3a;
-      border-color: #555;
       color: #eee;
     }
     .command-content input[type="text"]:focus,
@@ -158,12 +189,13 @@
       background: #4a4a4a;
       border-color: #66aaff;
     }
+    /* Aktionsbuttons */
     .buttons {
       display: flex;
-      flex-direction: column;
-      gap: 8px;
-      align-items: center;
-      flex-shrink: 0;
+      flex-direction: row;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
     .buttons button {
       background: none;
@@ -203,7 +235,7 @@
       color: #fff;
       transform: translateY(-2px);
     }
-    /* Toast-Benachrichtigungen */
+    /* Toast */
     .toast {
       position: fixed;
       bottom: 20px;
@@ -221,41 +253,6 @@
     .toast.show {
       opacity: 1;
     }
-    /* Floating Copy Icon */
-    .floating-copy {
-      position: fixed;
-      right: 20px;
-      top: 50%;
-      background: #007BFF;
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      z-index: 1001;
-      transition: opacity 0.3s, transform 0.3s;
-      opacity: 0;
-    }
-    .floating-copy.show {
-      opacity: 1;
-    }
-    /* Copy Success Animation */
-    .copy-success {
-      position: fixed;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-30px);
-      background: #28a745;
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 4px;
-      opacity: 0;
-      z-index: 1002;
-      transition: opacity 0.5s, transform 0.5s;
-    }
-    .copy-success.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
   </style>
 </head>
 <body>
@@ -264,7 +261,7 @@
     <p>Bearbeite, kopiere, sortiere und speichere deine Linux-Befehle – ideal für WSL, Termux und mehr.</p>
   </header>
   
-  <!-- Toolbar mit zusätzlichen Funktionen -->
+  <!-- Toolbar -->
   <div class="toolbar">
     <button id="exportBtn" title="Befehle exportieren">
       <svg viewBox="0 0 24 24">
@@ -299,14 +296,33 @@
     </button>
   </div>
   
+  <!-- Suchfeld und Auswahl -->
   <div id="searchContainer">
     <input type="text" id="searchInput" placeholder="Befehl oder Beschreibung suchen...">
+    <br>
+    <select id="searchScope">
+      <option value="both">Beide durchsuchen</option>
+      <option value="default">Nur Standardbefehle</option>
+      <option value="custom">Nur importierte Befehle</option>
+    </select>
   </div>
   
-  <div id="commandList">
-    <!-- Dynamische Befehlskarten werden hier eingefügt -->
+  <!-- Zuletzt gesuchte Begriffe -->
+  <div id="recentSearches"></div>
+  
+  <!-- Custom Befehle -->
+  <div class="list-section">
+    <div class="section-title">Importierte / Custom Befehle</div>
+    <div id="commandList"></div>
   </div>
   
+  <!-- Standardbefehle -->
+  <div class="list-section">
+    <div class="section-title">Standardbefehle</div>
+    <div id="defaultList"></div>
+  </div>
+  
+  <!-- Add-Button -->
   <button id="addCommandBtn" title="Neuen Befehl hinzufügen">
     <svg viewBox="0 0 24 24">
       <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
@@ -314,24 +330,21 @@
     Neuer Befehl
   </button>
   
-  <!-- Toast-Benachrichtigung -->
+  <!-- Toast -->
   <div id="toast" class="toast"></div>
-  
-  <!-- Floating Copy Icon (wird dynamisch positioniert) -->
-  <div id="floatingCopy" class="floating-copy">Copy</div>
-  
-  <!-- Copy Success Animation (wird oben fixiert eingeblendet) -->
-  <div id="copySuccess" class="copy-success">✔ Copied!</div>
   
   <script>
     /********************
-     * ULTIMATE MASTER SCRIPT – v4.0
-     * Verbesserte Funktionen: Inline-Bearbeitung, Kopieren, Löschen, Favoritieren,
-     * Drag & Drop, dynamische Filter (Suche & Favoriten), Export/Import, Reset, Dark Mode,
-     * Toast-Benachrichtigungen, Floating Copy Icon & animierte Copy-Success-Feedback.
+     * ULTIMATE MASTER SCRIPT – komplett neu
+     * 
+     * Beim Laden wird geprüft, ob custom Befehle (localStorage "customCommands") vorhanden sind.
+     * Ist das Suchfeld leer, werden alle Befehle (je nach gewähltem Suchbereich) angezeigt.
+     * Nur beim Reset werden custom Befehle auf die Standardbefehle zurückgesetzt.
+     * Weitere Funktionen: Export, Import (nur custom), Dark Mode, Favoritenfilter, Drag & Drop,
+     * zuletzt gesuchte Begriffe und nummerierte Ausgabe.
      ********************/
     
-    // Standardbefehle inkl. "favorite"-Status (mit eindeutigen IDs)
+    // Fix: Standardbefehle – unverändert
     const defaultCommands = [
       { id: Date.now() + 1, command: "ls", description: "Zeigt den Inhalt des aktuellen Ordners an", favorite: false },
       { id: Date.now() + 2, command: "cd ordnername", description: "Wechselt in den Ordner 'ordnername'", favorite: false },
@@ -345,22 +358,42 @@
       { id: Date.now() + 10, command: "tmux attach -t sessionname", description: "Tritt der vorhandenen tmux Session bei", favorite: false }
     ];
     
-    let commands = [];
+    // Custom Befehle (localStorage "customCommands")
+    let customCommands = [];
     let showFavoritesOnly = false;
+    let recentSearches = [];
     
-    // Speichern / Laden
-    const saveCommands = () => localStorage.setItem('commands', JSON.stringify(commands));
-    const loadCommands = () => {
-      const stored = localStorage.getItem('commands');
-      if (stored) {
-        commands = JSON.parse(stored);
-      } else {
-        commands = defaultCommands;
-        saveCommands();
+    // Custom Befehle speichern/laden
+    const saveCustomCommands = () => localStorage.setItem('customCommands', JSON.stringify(customCommands));
+    const loadCustomCommands = () => {
+      try {
+        const stored = JSON.parse(localStorage.getItem('customCommands'));
+        if (Array.isArray(stored) && stored.length > 0) {
+          customCommands = stored;
+        } else {
+          customCommands = [...defaultCommands];
+          saveCustomCommands();
+        }
+      } catch {
+        customCommands = [...defaultCommands];
+        saveCustomCommands();
       }
     };
     
-    // Toast-Benachrichtigung (kleiner Hinweis unten)
+    // Zuletzt gesuchte Begriffe speichern/laden
+    const saveRecentSearches = () => localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
+    const loadRecentSearches = () => {
+      try {
+        const stored = JSON.parse(localStorage.getItem('recentSearches'));
+        if (Array.isArray(stored)) {
+          recentSearches = stored;
+        }
+      } catch {
+        recentSearches = [];
+      }
+    };
+    
+    // Toast
     const showToast = (message) => {
       const toast = document.getElementById('toast');
       toast.textContent = message;
@@ -368,72 +401,61 @@
       setTimeout(() => toast.classList.remove('show'), 2500);
     };
     
-    // Copy Success Feedback (fixiert am oberen Bildschirmrand)
-    const showCopySuccess = () => {
-      const successDiv = document.getElementById('copySuccess');
-      successDiv.classList.add('show');
-      setTimeout(() => successDiv.classList.remove('show'), 2000);
-    };
-    
-    // Erstelle einzelne Befehlskarte
-    const createCommandCard = (cmdObj) => {
+    // Befehlskarte erstellen (mit Nummerierung)
+    const createCommandCard = (cmdObj, index) => {
       const card = document.createElement('div');
       card.className = 'command-card';
       card.setAttribute('data-id', cmdObj.id);
       card.draggable = true;
       
-      // Drag & Drop Events
       card.addEventListener('dragstart', (e) => {
         card.classList.add('dragging');
         e.dataTransfer.setData('text/plain', cmdObj.id);
       });
       card.addEventListener('dragend', () => card.classList.remove('dragging'));
       
-      // Bearbeitungsbereich
+      // Nummerierung
+      const indexElem = document.createElement('div');
+      indexElem.className = 'command-index';
+      indexElem.textContent = `#${index}`;
+      
       const contentDiv = document.createElement('div');
       contentDiv.className = 'command-content';
       
-      // Eingabefeld für Befehl
       const inputCommand = document.createElement('input');
       inputCommand.type = 'text';
       inputCommand.value = cmdObj.command;
       inputCommand.placeholder = 'Befehl eingeben';
       inputCommand.addEventListener('input', () => {
         cmdObj.command = inputCommand.value;
-        saveCommands();
+        saveCustomCommands();
       });
       
-      // Textarea für Beschreibung
       const inputDesc = document.createElement('textarea');
       inputDesc.value = cmdObj.description;
       inputDesc.placeholder = 'Beschreibung eingeben';
       inputDesc.rows = 2;
       inputDesc.addEventListener('input', () => {
         cmdObj.description = inputDesc.value;
-        saveCommands();
+        saveCustomCommands();
       });
       
       contentDiv.appendChild(inputCommand);
       contentDiv.appendChild(inputDesc);
       
-      // Button-Bereich
       const buttonsDiv = document.createElement('div');
       buttonsDiv.className = 'buttons';
       
-      // Kopier-Button (im Kartenkopf)
       const copyBtn = document.createElement('button');
       copyBtn.title = 'Befehl kopieren';
       copyBtn.innerHTML = `<svg viewBox="0 0 24 24">
-        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-      </svg>`;
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>`;
       copyBtn.addEventListener('click', () => {
         const text = inputCommand.value;
         if (navigator.clipboard) {
           navigator.clipboard.writeText(text)
-            .then(() => {
-              showToast('Befehl kopiert!');
-              showCopySuccess();
-            })
+            .then(() => showToast('Befehl kopiert!'))
             .catch(() => showToast('Fehler beim Kopieren.'));
         } else {
           const ta = document.createElement("textarea");
@@ -443,7 +465,6 @@
           try {
             document.execCommand('copy');
             showToast('Befehl kopiert!');
-            showCopySuccess();
           } catch (err) {
             showToast('Fehler beim Kopieren.');
           }
@@ -451,30 +472,28 @@
         }
       });
       
-      // Favoriten-Button
       const favBtn = document.createElement('button');
       favBtn.title = 'Als Favorit markieren';
       favBtn.innerHTML = `<svg viewBox="0 0 24 24">
-        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-      </svg>`;
+          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+        </svg>`;
       favBtn.style.fill = cmdObj.favorite ? "#ffa500" : "#007BFF";
       favBtn.addEventListener('click', () => {
         cmdObj.favorite = !cmdObj.favorite;
         favBtn.style.fill = cmdObj.favorite ? "#ffa500" : "#007BFF";
-        saveCommands();
+        saveCustomCommands();
       });
       
-      // Löschen-Button
       const deleteBtn = document.createElement('button');
       deleteBtn.title = 'Befehl löschen';
       deleteBtn.innerHTML = `<svg viewBox="0 0 24 24">
-        <path d="M19 13H5V11H19V13Z"/>
-      </svg>`;
+          <path d="M19 13H5V11H19V13Z"/>
+        </svg>`;
       deleteBtn.addEventListener('click', () => {
         if (confirm('Diesen Befehl wirklich löschen?')) {
-          commands = commands.filter(c => c.id !== cmdObj.id);
-          saveCommands();
-          renderCommands();
+          customCommands = customCommands.filter(c => c.id !== cmdObj.id);
+          saveCustomCommands();
+          renderAll();
           showToast('Befehl gelöscht.');
         }
       });
@@ -483,36 +502,122 @@
       buttonsDiv.appendChild(favBtn);
       buttonsDiv.appendChild(deleteBtn);
       
+      card.appendChild(indexElem);
       card.appendChild(contentDiv);
       card.appendChild(buttonsDiv);
       
       return card;
     };
     
-    // Render-Funktion inkl. Filter (Suchbegriff und Favoriten) und Sortierung
-    const renderCommands = () => {
+    // Für Custom Befehle (importiert) – Filterung anhand Suchbegriff.
+    // Wenn searchQuery leer ist, wird das komplette Array angezeigt.
+    const renderCustomCommands = (searchQuery = "") => {
       const listDiv = document.getElementById('commandList');
-      listDiv.innerHTML = '';
-      const filterText = document.getElementById('searchInput').value.toLowerCase();
-      
-      const filteredCommands = commands.filter(cmd => {
-        const matchesSearch = cmd.command.toLowerCase().includes(filterText) || 
-                              cmd.description.toLowerCase().includes(filterText);
-        if (showFavoritesOnly && !cmd.favorite) return false;
-        return matchesSearch;
-      });
-      
-      filteredCommands.sort((a, b) => b.favorite - a.favorite);
-      
-      filteredCommands.forEach(cmd => {
-        const card = createCommandCard(cmd);
-        listDiv.appendChild(card);
-      });
-      // Nach dem Rendern auch die Position des Floating Copy Icons aktualisieren
-      updateFloatingCopyPosition();
+      listDiv.innerHTML = "";
+      let filtered = [...customCommands];
+      if (searchQuery !== "") {
+        filtered = filtered.filter(cmd =>
+          cmd.command.toLowerCase().includes(searchQuery) ||
+          cmd.description.toLowerCase().includes(searchQuery)
+        );
+      }
+      if (showFavoritesOnly) {
+        filtered = filtered.filter(cmd => cmd.favorite);
+      }
+      // Anzeige aller, falls filtered leer
+      if (filtered.length === 0 && searchQuery === "") {
+        filtered = [...customCommands];
+      }
+      if(filtered.length > 0) {
+        filtered.forEach((cmd, index) => {
+          listDiv.appendChild(createCommandCard(cmd, index + 1));
+        });
+      } else {
+        listDiv.innerHTML = '<p style="text-align:center;color:#999;">Keine passenden importierten Befehle gefunden.</p>';
+      }
     };
     
-    // Drag & Drop – Neuanordnen und Array aktualisieren
+    // Für Standardbefehle – gleiches Prinzip
+    const renderDefaultCommands = (searchQuery = "") => {
+      const defaultDiv = document.getElementById('defaultList');
+      defaultDiv.innerHTML = "";
+      let filtered = [...defaultCommands];
+      if (searchQuery !== "") {
+        filtered = filtered.filter(cmd =>
+          cmd.command.toLowerCase().includes(searchQuery) ||
+          cmd.description.toLowerCase().includes(searchQuery)
+        );
+      }
+      if(filtered.length > 0) {
+        filtered.forEach((cmd, index) => {
+          defaultDiv.appendChild(createCommandCard(cmd, index + 1));
+        });
+      } else {
+        defaultDiv.innerHTML = '<p style="text-align:center;color:#999;">Keine passenden Standardbefehle gefunden.</p>';
+      }
+    };
+    
+    // Suchfunktion: Je nach Auswahl in "searchScope"
+    const renderSearchResults = () => {
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+      const scope = document.getElementById('searchScope').value;
+      
+      // Suchbegriff speichern, falls nicht leer
+      if (searchQuery !== "" && !recentSearches.includes(searchQuery)) {
+        recentSearches.unshift(searchQuery);
+        if (recentSearches.length > 5) recentSearches.pop();
+        saveRecentSearches();
+        renderRecentSearches();
+      }
+      
+      // Falls Suchfeld leer – alle anzeigen!
+      if (searchQuery === "") {
+        renderAll();
+        return;
+      }
+      
+      if (scope === "default") {
+        renderDefaultCommands(searchQuery);
+      } else if (scope === "custom") {
+        renderCustomCommands(searchQuery);
+      } else {
+        renderCustomCommands(searchQuery);
+        renderDefaultCommands(searchQuery);
+      }
+    };
+    
+    // Zeige alle Befehle (je nach Auswahl)
+    const renderAll = () => {
+      const scope = document.getElementById('searchScope').value;
+      if (scope === "default") {
+        renderDefaultCommands();
+      } else if (scope === "custom") {
+        renderCustomCommands();
+      } else {
+        renderCustomCommands();
+        renderDefaultCommands();
+      }
+    };
+    
+    // Anzeige der zuletzt gesuchten Begriffe
+    const renderRecentSearches = () => {
+      const recentDiv = document.getElementById('recentSearches');
+      recentDiv.innerHTML = "";
+      if (recentSearches.length > 0) {
+        recentDiv.innerHTML = "<strong>Zuletzt gesucht:</strong> ";
+        recentSearches.forEach(term => {
+          const span = document.createElement('span');
+          span.textContent = term;
+          span.addEventListener('click', () => {
+            document.getElementById('searchInput').value = term;
+            renderSearchResults();
+          });
+          recentDiv.appendChild(span);
+        });
+      }
+    };
+    
+    // Drag & Drop für Custom Befehle
     const commandListDiv = document.getElementById('commandList');
     commandListDiv.addEventListener('dragover', (e) => {
       e.preventDefault();
@@ -535,31 +640,35 @@
         return closest;
       }, { offset: Number.NEGATIVE_INFINITY }).element;
     };
+    // Aktualisierung der Reihenfolge nur, wenn nicht gerade ein Suchfilter aktiv ist
     const updateOrder = () => {
+      if (document.getElementById('searchInput').value.trim() !== "") {
+        return;
+      }
       const newOrder = [];
-      document.querySelectorAll('.command-card').forEach(card => {
+      document.querySelectorAll('#commandList .command-card').forEach(card => {
         const id = Number(card.getAttribute('data-id'));
-        const cmd = commands.find(c => c.id === id);
+        const cmd = customCommands.find(c => c.id === id);
         if (cmd) newOrder.push(cmd);
       });
-      commands = newOrder;
-      saveCommands();
+      customCommands = newOrder;
+      saveCustomCommands();
     };
     const observer = new MutationObserver(updateOrder);
     observer.observe(commandListDiv, { childList: true });
     
-    // Neue Befehle hinzufügen
+    // Neue Custom Befehle hinzufügen
     const addNewCommand = () => {
       const newCmd = { id: Date.now(), command: "neuer_befehl", description: "Beschreibung", favorite: false };
-      commands.push(newCmd);
-      saveCommands();
-      renderCommands();
+      customCommands.push(newCmd);
+      saveCustomCommands();
+      renderAll();
       showToast('Neuer Befehl hinzugefügt!');
     };
     
-    // Export / Import
+    // Export / Import (nur Custom)
     const exportCommands = () => {
-      const dataStr = JSON.stringify(commands, null, 2);
+      const dataStr = JSON.stringify(customCommands, null, 2);
       const blob = new Blob([dataStr], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -575,9 +684,9 @@
         try {
           const imported = JSON.parse(e.target.result);
           if (Array.isArray(imported)) {
-            commands = imported;
-            saveCommands();
-            renderCommands();
+            customCommands = imported;
+            saveCustomCommands();
+            renderAll();
             showToast('Befehle importiert!');
           } else {
             showToast("Ungültiges Format!");
@@ -589,91 +698,40 @@
       reader.readAsText(file);
     };
     
-    // Reset Funktion
+    // Reset: Custom Befehle auf Standardbefehle setzen
     const resetCommands = () => {
       if (confirm("Möchtest Du wirklich auf die Standardbefehle zurücksetzen? Alle Änderungen gehen verloren!")) {
-        commands = defaultCommands;
-        saveCommands();
-        renderCommands();
+        customCommands = [...defaultCommands];
+        saveCustomCommands();
+        renderAll();
         showToast('Liste zurückgesetzt!');
       }
     };
     
-    // Dark Mode umschalten
+    // Dark Mode
     const toggleDarkMode = () => {
       document.body.classList.toggle('dark-mode');
     };
     
-    // Favoriten-Filter umschalten
+    // Favoritenfilter
     const toggleFavFilter = () => {
       showFavoritesOnly = !showFavoritesOnly;
       const favBtn = document.getElementById('favFilterBtn');
       favBtn.classList.toggle('active', showFavoritesOnly);
       favBtn.classList.toggle('inactive', !showFavoritesOnly);
-      renderCommands();
+      renderAll();
     };
     
-    // Floating Copy Icon Positionierung und Funktion
-    const updateFloatingCopyPosition = () => {
-      const cards = document.querySelectorAll('.command-card');
-      let activeCard = null;
-      let minDistance = Infinity;
-      cards.forEach(card => {
-        const rect = card.getBoundingClientRect();
-        if (rect.top >= 0 && rect.top < minDistance) {
-          minDistance = rect.top;
-          activeCard = card;
-        }
-      });
-      const floatingCopy = document.getElementById('floatingCopy');
-      if (activeCard) {
-        const rect = activeCard.getBoundingClientRect();
-        floatingCopy.style.top = (rect.top + rect.height / 2) + "px";
-        floatingCopy.setAttribute("data-active", activeCard.getAttribute("data-id"));
-        floatingCopy.classList.add("show");
+    // Ereignisbinder
+    document.getElementById('searchInput').addEventListener('input', () => {
+      const query = document.getElementById('searchInput').value.trim();
+      if (query === "") {
+        renderAll();
       } else {
-        floatingCopy.classList.remove("show");
-      }
-    };
-    
-    // Beim Klick auf das Floating Copy Icon den zugehörigen Befehl kopieren
-    document.getElementById('floatingCopy').addEventListener('click', () => {
-      const activeId = document.getElementById('floatingCopy').getAttribute("data-active");
-      if (activeId) {
-        const activeCard = document.querySelector(`.command-card[data-id="${activeId}"]`);
-        if (activeCard) {
-          const input = activeCard.querySelector('.command-content input[type="text"]');
-          const text = input.value;
-          if (navigator.clipboard) {
-            navigator.clipboard.writeText(text)
-              .then(() => {
-                showToast('Befehl kopiert!');
-                showCopySuccess();
-              })
-              .catch(() => showToast('Fehler beim Kopieren.'));
-          } else {
-            const ta = document.createElement("textarea");
-            ta.value = text;
-            document.body.appendChild(ta);
-            ta.select();
-            try {
-              document.execCommand('copy');
-              showToast('Befehl kopiert!');
-              showCopySuccess();
-            } catch (err) {
-              showToast('Fehler beim Kopieren.');
-            }
-            document.body.removeChild(ta);
-          }
-        }
+        renderSearchResults();
       }
     });
-    
-    // Scroll-Event für Floating Copy Icon
-    window.addEventListener('scroll', updateFloatingCopyPosition);
-    
-    // Zusätzliche Events
-    document.getElementById('searchInput').addEventListener('input', renderCommands);
+    document.getElementById('searchScope').addEventListener('change', renderSearchResults);
     document.getElementById('addCommandBtn').addEventListener('click', addNewCommand);
     document.getElementById('exportBtn').addEventListener('click', exportCommands);
     document.getElementById('resetBtn').addEventListener('click', resetCommands);
@@ -685,12 +743,17 @@
     document.getElementById('fileInput').addEventListener('change', (e) => {
       if (e.target.files.length > 0) {
         importCommands(e.target.files[0]);
+        e.target.value = "";
       }
     });
     
     // Initialisierung
-    loadCommands();
-    renderCommands();
+    window.addEventListener('DOMContentLoaded', () => {
+      loadCustomCommands();
+      loadRecentSearches();
+      renderAll();
+      renderRecentSearches();
+    });
   </script>
 </body>
 </html>
