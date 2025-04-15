@@ -458,15 +458,19 @@
       let titleText = "";
       if (importedFile) {
         const info = JSON.parse(importedFile);
-        titleText = `Importierte / Custom Befehle (Datei: ${info.name}, ${info.sizeKB} KB)`;
+        titleText = `Importierte / Custom Befehle`;
+        titleTextB = `Datei: ${info.name} (${info.sizeKB} KB)`;
       } else {
         titleText = "Importierte / Custom Befehle (Keine importierten Befehle)";
+        titleTextB = ``;
       }
-      const titleSpan = document.createElement('span');
+      const titleSpan = document.createElement('div');
       titleSpan.textContent = titleText;
+      const titleDet = document.createElement('span');
+      titleDet.textContent = titleTextB;
       // Zusätzliche CSS-Klasse für den Dateinamenbereich
-      titleSpan.classList.add("imported-filename");
-      headerElem.appendChild(titleSpan);
+      titleDet.classList.add("imported-filename");
+      headerElem.appendChild(titleDet);
       
       headerElem.appendChild(document.createTextNode(" "));
       const toggleSpan = document.createElement('span');
