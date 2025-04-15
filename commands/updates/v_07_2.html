@@ -459,7 +459,7 @@
       let titleText = "";
       if (importedFile) {
         const info = JSON.parse(importedFile);
-        titleText = `Importierte / Custom Befehle (Datei: ${info.name}, ${info.sizeKB} KB)`;
+        titleText = `Importierte / Custom Befehle <br /><span class=''>${info.name} (${info.sizeKB} KB)</span>`;
       } else {
         titleText = "Importierte / Custom Befehle (Keine importierten Befehle)";
       }
