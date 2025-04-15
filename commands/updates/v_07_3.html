@@ -470,7 +470,8 @@
       titleDet.textContent = titleTextB;
       // Zusätzliche CSS-Klasse für den Dateinamenbereich
       titleDet.classList.add("imported-filename");
-      headerElem.appendChild(titleDet);
+      headerElem.appendChild(titleSpan);
+      headerElem.appendChild(titleDet)
       
       headerElem.appendChild(document.createTextNode(" "));
       const toggleSpan = document.createElement('span');
