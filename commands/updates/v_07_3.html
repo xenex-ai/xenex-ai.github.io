@@ -459,10 +459,10 @@
       if (importedFile) {
         const info = JSON.parse(importedFile);
         titleText = `Importierte / Custom Befehle`;
-        titleTextB = `Datei: ${info.name} (${info.sizeKB} KB)`;
+        titleTextB = `${info.name} (${info.sizeKB} KB)`;
       } else {
-        titleText = "Importierte / Custom Befehle (Keine importierten Befehle)";
-        titleTextB = ``;
+        titleText = "Importierte / Custom Befehle";
+        titleTextB = `(Keine importierten Befehle)`;
       }
       const titleSpan = document.createElement('div');
       titleSpan.textContent = titleText;
