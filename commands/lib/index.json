@@ -1,5 +1,6 @@
 [
   "linuxLogin_linux.json",
   "virtualEnv_linux.json",
-  "solana_linux.json"
+  "solana_linux.json",
+  "sol-devnet_linux.json"
 ]
