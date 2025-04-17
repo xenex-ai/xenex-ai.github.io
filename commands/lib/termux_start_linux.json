@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1744887131408,
+    "command": "proot-distro list",
+    "description": "Linux auflisten",
+    "favorite": false
+  },
+  {
+    "id": 1744887152276,
+    "command": "proot-distro login ubuntu",
+    "description": "Linux logg-in",
+    "favorite": false
+  }
+]
