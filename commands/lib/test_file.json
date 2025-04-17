@@ -1,1 +1,14 @@
-only a test
+[
+  {
+    "id": 1744887131408,
+    "command": "tst1",
+    "description": "only a test",
+    "favorite": false
+  },
+  {
+    "id": 1744887152276,
+    "command": "tst2",
+    "description": "only a test",
+    "favorite": false
+  }
+]
