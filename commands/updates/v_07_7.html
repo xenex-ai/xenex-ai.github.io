@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Xenex LBE (Ultimate)</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* Basis-Reset */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark-mode {
+      background: #1e1e1e;
+      color: #ddd;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header h1 {
+      font-size: 2.8em;
+      margin-bottom: 10px;
+      color: #007BFF;
+      transition: color 0.3s;
+    }
+    body.dark-mode header h1 {
+      color: #66aaff;
+    }
+    header p {
+      font-size: 1.15em;
+      color: #555;
+      transition: color 0.3s;
+    }
+    body.dark-mode header p {
+      color: #aaa;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      border: 1px solid #f1f1f1;
+      background: #007BFF;
+      border-radius: 5px;
+    }
+    .toolbar button {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 12px;
+      border: 1px solid #007BFF;
+      background: #007BFF;
+      color: #fefefe;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s, transform 0.2s;
+    }
+    .toolbar button:hover {
+      background: #0056b3;
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    .toolbar input[type="file"] {
+      display: none;
+    }
+
+    /* Search field and selection */
+    #searchContainer {
+      text-align: center;
+      margin: 20px auto;
+      max-width: 500px;
+    }
+    #searchInput {
+      width: 100%;
+      padding: 12px;
+      font-size: 1em;
+      background: #f1f1f1;
+      border: none;
+      border-bottom: 1px solid #ddd;
+      outline: none;
+      transition: border 0.3s;
+    }
+    #searchInput:focus {
+      border-bottom: 1px solid #007BFF;
+    }
+    #searchScope {
+      margin-top: 10px;
+      padding: 6px 10px;
+      font-size: 1em;
+      color: #333;
+      background: #f1f1f1;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      outline: none;
+    }
+
+    /* Display of command counts */
+    #commandCounts {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 0.8em;
+      color: #333;
+      border-bottom: 1px solid #007BFF;
+      padding-bottom: 8px;
+    }
+
+    /* List sections */
+    .list-section {
+      margin-bottom: 30px;
+      border-radius: 5px;
+      background: #f1f1f1;
+      border: 1px solid #fefefe;
+    }
+    body.dark-mode .list-section {
+      background: #0e0e0e;
+      border-color: #000;
+    }
+    .section-title {
+      font-weight: bold;
+      margin: 20px 0 10px;
+      text-align: center;
+      font-size: 1.2em;
+      color: #007BFF;
+      cursor: pointer;
+      user-select: none;
+    }
+    .section-title .toggle-section {
+      font-size: 0.9em;
+      color: #555;
+      margin-left: 10px;
+    }
+
+    /* Command cards */
+    .command-card {
+      background: #fff;
+      border-radius: 2px;
+      padding: 15px 20px;
+      border: 1px solid #f1f1f1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: move;
+    }
+    .command-card.favorite {
+      border: 2px solid #ffa500;
+    }
+    .command-card.dragging {
+      opacity: 0.5;
+    }
+    body.dark-mode .command-card {
+      background: #2b2b2b;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      border: 1px solid transparent;
+    }
+    .command-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .command-index {
+      font-size: 0.9em;
+      color: #777;
+    }
+    .command-content {
+      background: transparent;
+    }
+    .command-input, .command-info {
+      width: 100%;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      border: none;
+      border-radius: 2px;
+      transition: border 0.3s, background 0.3s;
+      font-family: Consolas, monospace;
+    }
+    .command-input {
+      font-weight: bold;
+      font-size: 1em;
+      background: rgba(0, 0, 0, 0);
+    }
+    .command-info {
+      font-size: 0.76em;
+      background: rgba(0, 0, 0, 0.01);
+      resize: vertical;
+    }
+    body.dark-mode .command-input {
+      background: #3a3a3a;
+      color: #eee;
+    }
+    body.dark-mode .command-info {
+      background: #333;
+      color: #ccc;
+    }
+    .command-input:focus, .command-info:focus {
+      border-color: #007BFF;
+      background: #e9f5ff;
+      outline: none;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .buttons button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: background 0.3s ease, transform 0.2s;
+    }
+    .buttons button:hover {
+      background: rgba(0, 123, 255, 0.1);
+      transform: scale(1.1);
+    }
+    .buttons svg {
+      width: 24px;
+      height: 24px;
+      fill: #007BFF;
+    }
+
+    /* Add-Button */
+    .new_add {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 12px;
+      font-size: 1.1em;
+      border: none;
+      color: #FFF;
+      background: #007BFF;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+    .new_add:hover {
+      background: #0056b3;
+      transform: translateY(-2px);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 5px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      z-index: 1000;
+    }
+    .toast.show {
+      opacity: 1;
+    }
+
+    /* Bibliothek‑Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 6px;
+      width: 100%;
+      max-width: 400px;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .modal-content h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 1.5em;
+    }
+    .close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 1.4em;
+      cursor: pointer;
+      color: #999;
+    }
+    #librarySearch {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1em;
+    }
+    #libraryList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #libraryList li {
+      padding: 8px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #libraryList li:hover {
+      background: #f0f0f0;
+    }
+    #libraryList .name-main {
+      font-weight: bold;
+    }
+    #libraryList .name-sub {
+      font-size: 0.9em;
+      color: #555;
+      margin-left: 4px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Xenex LBE</h1> <span>[Linux Command Editor v.0.7.4]</span>
+    <p>Edit, copy, sort, and save your Linux commands – ideal für WSL, Termux und mehr.</p>
+  </header>
+  
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button id="exportBtn" title="Export commands">
+      <!-- SVG icon -->
+      Export
+    </button>
+    <button id="importBtn" title="Import commands">
+      Import
+      <input type="file" id="fileInput" accept=".json">
+    </button>
+    <button id="resetBtn" title="Reset to standard commands">Reset</button>
+    <button id="libraryBtn" title="Open library">Bibliothek</button>
+    <button id="darkModeBtn" title="Toggle Dark Mode">🌓</button>
+    <button id="favFilterBtn" class="inactive" title="Show only favorites">⭐</button>
+  </div>
+  
+  <!-- Search field and selection -->
+  <div id="searchContainer">
+    <input type="text" id="searchInput" placeholder="Search command or description...">
+    <select id="searchScope">
+      <option value="both">Search both</option>
+      <option value="default">Only standard commands</option>
+      <option value="custom">Only imported commands</option>
+    </select>
+  </div>
+  
+  <!-- Recent searches -->
+  <div id="recentSearches"></div>
+
+  <!-- Command counts -->
+  <div id="commandCounts"></div>
+  
+  <!-- Custom Commands -->
+  <div id="customSection" class="list-section" data-visible="true">
+    <div class="section-title" id="customHeader"></div>
+    <div id="commandList"></div>
+  </div>
+  
+  <!-- Standard Commands -->
+  <div id="defaultSection" class="list-section" data-visible="true">
+    <div class="section-title">Standard Commands <span class="toggle-section">[Hide]</span></div>
+    <div id="defaultList"></div>
+  </div>
+  
+  <!-- Add New Command Button -->
+  <button id="addCommandBtn" class="new_add" title="Add new command">➕ New Command</button>
+
+  <!-- Bibliothek‑Modal -->
+  <div id="libraryModal" class="modal">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="libraryTitle">
+      <span id="closeLibrary" class="close" title="Close">&times;</span>
+      <h2 id="libraryTitle">Bibliothek</h2>
+      <input type="text" id="librarySearch" placeholder="Filter Bibliothek...">
+      <ul id="libraryList"></ul>
+    </div>
+  </div>
+  
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // --- Initialization and state ---
+    const defaultCommands = [
+      { id: 1, command: "ls", description: "Displays the content of the current folder", favorite: false },
+      // ... weitere Standardbefehle ...
+    ];
+    let customCommands = [];
+    let showFavoritesOnly = false;
+    let recentSearches = [];
+
+    // --- Utility Functions ---
+    const saveCustomCommands = () => localStorage.setItem('customCommands', JSON.stringify(customCommands));
+    const loadCustomCommands = () => { /* ... */ };
+    const saveRecentSearches = () => localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
+    const loadRecentSearches = () => { /* ... */ };
+    const showToast = (msg) => { /* ... */ };
+
+    // --- Render Functions ---
+    const renderCustomCommands = (filter = "") => { /* ... */ };
+    const renderDefaultCommands = (filter = "") => { /* ... */ };
+    const renderAll = () => { /* ... */ };
+    const renderSearchResults = () => { /* ... */ };
+    const renderRecentSearches = () => { /* ... */ };
+
+    // --- Command Actions ---
+    const addNewCommand = () => { /* ... */ };
+    const exportCommands = () => { /* ... */ };
+    const importCommands = (file) => { /* ... */ };
+    const resetCommands = () => { /* ... */ };
+    const toggleDarkMode = () => { /* ... */ };
+    const toggleFavFilter = () => { /* ... */ };
+
+    // --- Drag & Drop ---
+    const commandListDiv = document.getElementById('commandList');
+    commandListDiv.addEventListener('dragover', (e) => { /* ... */ });
+
+    // --- Library Modal ---
+    const libraryBtn = document.getElementById('libraryBtn');
+    const libraryModal = document.getElementById('libraryModal');
+    const closeLib = document.getElementById('closeLibrary');
+    const libraryList = document.getElementById('libraryList');
+    const librarySearch = document.getElementById('librarySearch');
+
+    const loadLibrary = async () => {
+      libraryList.innerHTML = '<li>Loading...</li>';
+      try {
+        const res = await fetch('../lib/');
+        const html = await res.text();
+        const files = [...html.matchAll(/href="(.*?\.json)"/g)].map(m => m[1]);
+        if (files.length === 0) {
+          libraryList.innerHTML = '<li>No JSON files found.</li>';
+          return;
+        }
+        libraryList.innerHTML = '';
+        files.sort().forEach(file => {
+          const [main,sub] = file.replace('.json','').split('_');
+          const li = document.createElement('li');
+          li.innerHTML = `<span class="name-main">${main}</span><span class="name-sub">${sub||''}</span>`;
+          li.addEventListener('click', () => {
+            fetch(`./lib/${file}`)
+              .then(r=>r.json())
+              .then(data=>{
+                if (Array.isArray(data)) {
+                  customCommands = data;
+                  saveCustomCommands();
+                  renderAll();
+                  updateHeader();
+                  showToast('Bibliothek geladen!');
+                } else showToast('Ungültiges Format');
+                libraryModal.style.display='none';
+              })
+              .catch(()=>showToast('Fehler beim Laden'));        
+          });
+          libraryList.appendChild(li);
+        });
+      } catch (e) {
+        libraryList.innerHTML = `<li>Error: ${e.message}</li>`;
+      }
+    };
+
+    libraryBtn.addEventListener('click', () => {
+      libraryModal.style.display = 'flex';
+      librarySearch.value = '';
+      loadLibrary();
+    });
+    closeLib.addEventListener('click', () => libraryModal.style.display = 'none');
+    libraryModal.addEventListener('click', (e) => {
+      if (e.target === libraryModal) libraryModal.style.display = 'none';
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') libraryModal.style.display = 'none';
+    });
+    librarySearch.addEventListener('input', () => {
+      const term = librarySearch.value.toLowerCase();
+      document.querySelectorAll('#libraryList li').forEach(li => {
+        li.style.display = li.textContent.toLowerCase().includes(term) ? 'flex' : 'none';
+      });
+    });
+
+    // --- Initial Load ---
+    if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+    loadCustomCommands();
+    loadRecentSearches();
+    renderAll();
+    renderRecentSearches();
+    updateHeader();
+  });
+  </script>
+</body>
+</html>
