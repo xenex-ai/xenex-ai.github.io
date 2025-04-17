@@ -1043,47 +1043,13 @@ select {
       renderRecentSearches();
     });
 
-    // Bibliothek öffnen
-document.getElementById('libraryBtn').addEventListener('click', async () => {
-  const modal = document.getElementById('libraryModal');
-  const list  = document.getElementById('libraryList');
-  list.innerHTML = '<li>Lade Inhalte…</li>';
-
-  modal.style.display = 'flex';
   
-  try {
-    // Hole Datei-Liste aus dem Verzeichnis (setzt serverseitiges Listing voraus!)
-    const response = await fetch('./lib/');
-    const text = await response.text();
-
-    // Extrahiere .json-Dateien (Voraussetzung: <a href="..."> in Directory-Listing)
-    const matches = [...text.matchAll(/href=\"(.*?\\.json)\"/g)];
-    const jsonFiles = matches.map(m => m[1]).filter(name => name.endsWith('.json'));
-
-    list.innerHTML = ''; // Liste leeren
-
-    if (jsonFiles.length === 0) {
-      list.innerHTML = '<li>Keine JSON-Dateien gefunden.</li>';
-      return;
-    }
-
-    // Für jede Datei: Listeneintrag erzeugen
-    jsonFiles.sort().forEach(file => {
-      const li = document.createElement('li');
-
-      const [main, sub] = file.replace('.json', '').split('_');
-      li.innerHTML = `<span class="name-main">${main || file}</span><span class="name-sub">${sub ? ' ' + sub : ''}</span>`;
-
-      li.addEventListener('click', () => loadFromLibrary('./lib/' + file));
-      list.appendChild(li);
-    });
-
-  } catch (e) {
-    list.innerHTML = `<li>Fehler beim Laden: ${e.message}</li>`;
-  }
-
-  
+// Bibliothek öffnen über index.json (ohne serverseitiges Directory-Listing)
+document.getElementById('libraryBtn').addEventListener('click', () => {
+  document.getElementById('libraryModal').style.display = 'flex';
+  loadLibraryList();
 });
+
 
 // Modal schließen
 document.getElementById('closeLibrary').addEventListener('click', () => {
