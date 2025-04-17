@@ -1,5 +1,4 @@
 [
-  "basic_commands.json",
-  "advanced_tools.json",
-  "network_utilities.json"
+  "termux_start_linux.json",
+  "test_file.json"
 ]
