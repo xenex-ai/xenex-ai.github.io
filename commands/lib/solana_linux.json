@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1744888100000,
+    "command": "proot-distro login ubuntu",
+    "description": "Startet Ubuntu in Termux",
+    "favorite": true
+  },
+  {
+    "id": 1744888101000,
+    "command": "apt update && apt upgrade -y",
+    "description": "Aktualisiert Paketlisten und installiert Updates",
+    "favorite": false
+  },
+  {
+    "id": 1744888102000,
+    "command": "apt install curl wget unzip git -y",
+    "description": "Installiert grundlegende Tools für die CLI-Nutzung",
+    "favorite": false
+  },
+  {
+    "id": 1744888103000,
+    "command": "sh -c \"$(curl -sSfL https://release.solana.com/stable/install)\"",
+    "description": "Installiert die Solana CLI",
+    "favorite": true
+  },
+  {
+    "id": 1744888104000,
+    "command": "echo 'export PATH=\"$HOME/.local/share/solana/install/active_release/bin:$PATH\"' >> ~/.bashrc && source ~/.bashrc",
+    "description": "Fügt Solana zum Systempfad hinzu",
+    "favorite": false
+  },
+  {
+    "id": 1744888105000,
+    "command": "solana --version",
+    "description": "Prüft, ob Solana CLI korrekt installiert wurde",
+    "favorite": false
+  },
+  {
+    "id": 1744888106000,
+    "command": "solana-keygen new --outfile ~/my-solana-wallet.json",
+    "description": "Erstellt eine neue Solana-Wallet und speichert sie als JSON",
+    "favorite": true
+  },
+  {
+    "id": 1744888107000,
+    "command": "solana config set --keypair ~/my-solana-wallet.json",
+    "description": "Setzt die neue Wallet als Standard für Solana CLI",
+    "favorite": false
+  },
+  {
+    "id": 1744888108000,
+    "command": "solana address",
+    "description": "Zeigt die öffentliche Adresse der Wallet an",
+    "favorite": false
+  }
+]
