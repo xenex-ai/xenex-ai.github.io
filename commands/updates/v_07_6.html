@@ -444,15 +444,6 @@ select {
       Favorites
     </button>
   </div>
-
-  <!-- Bibliothek‑Modal -->
-<div id="libraryModal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <span id="closeLibrary" class="close">&times;</span>
-    <h2>Bibliothek</h2>
-    <ul id="libraryList"></ul>
-  </div>
-</div>
   
   <!-- Search field and selection -->
   <div id="searchContainer">
@@ -494,6 +485,15 @@ select {
     </svg>
     New Command
   </button>
+
+  <!-- Bibliothek‑Modal -->
+<div id="libraryModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span id="closeLibrary" class="close">&times;</span>
+    <h2>Bibliothek</h2>
+    <ul id="libraryList"></ul>
+  </div>
+ </div>
   
   <!-- Toast -->
   <div id="toast" class="toast"></div>
@@ -1047,6 +1047,8 @@ document.getElementById('libraryBtn').addEventListener('click', async () => {
   const list  = document.getElementById('libraryList');
   list.innerHTML = '<li>Lade Inhalte…</li>';
 
+  modal.style.display = 'flex';
+  
   try {
     // Hole Datei-Liste aus dem Verzeichnis (setzt serverseitiges Listing voraus!)
     const response = await fetch('../lib/');
@@ -1078,7 +1080,7 @@ document.getElementById('libraryBtn').addEventListener('click', async () => {
     list.innerHTML = `<li>Fehler beim Laden: ${e.message}</li>`;
   }
 
-  modal.style.display = 'flex';
+  
 });
 
 // Modal schließen
