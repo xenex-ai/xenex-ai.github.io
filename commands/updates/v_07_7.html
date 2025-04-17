@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -47,6 +47,13 @@
       color: #aaa;
     }
 
+    /* Nur #searchScope stylen, kein globales select */
+    #searchScope {
+      margin-top: 10px;
+      padding: 6px;
+      font-size: 1em;
+    }
+
     /* Toolbar */
     .toolbar {
       display: flex;
@@ -55,9 +62,9 @@
       gap: 10px;
       flex-wrap: wrap;
       margin-bottom: 20px;
-      border: 1px solid #f1f1f1;
+      border:1px solid #f1f1f1;
       background: #007BFF;
-      border-radius: 5px;
+      border-radius:5px;
     }
     .toolbar button {
       display: flex;
@@ -72,8 +79,8 @@
       transition: background 0.3s, color 0.3s, transform 0.2s;
     }
     .toolbar button:hover {
-      background: #0056b3;
-      color: #fff;
+      background: #007BFF;
+      color: #0e0e0e;
       transform: translateY(-1px);
     }
     .toolbar input[type="file"] {
@@ -99,16 +106,6 @@
     #searchInput:focus {
       border-bottom: 1px solid #007BFF;
     }
-    #searchScope {
-      margin-top: 10px;
-      padding: 6px 10px;
-      font-size: 1em;
-      color: #333;
-      background: #f1f1f1;
-      border: 1px solid #ddd;
-      border-radius: 3px;
-      outline: none;
-    }
 
     /* Display of command counts */
     #commandCounts {
@@ -116,20 +113,34 @@
       margin-bottom: 20px;
       font-size: 0.8em;
       color: #333;
-      border-bottom: 1px solid #007BFF;
-      padding-bottom: 8px;
+      border-bottom:1px solid #007BFF;
+    }
+
+    /* Recently searched terms */
+    #recentSearches {
+      margin: 10px auto 20px;
+      max-width: 500px;
+      text-align: center;
+    }
+    #recentSearches span {
+      background: #e0e0e0;
+      color: #333;
+      padding: 5px 10px;
+      border-radius: 15px;
+      margin: 0 5px;
+      cursor: pointer;
     }
 
     /* List sections */
     .list-section {
       margin-bottom: 30px;
-      border-radius: 5px;
-      background: #f1f1f1;
-      border: 1px solid #fefefe;
+      border-radius:5px;
+      background:#f1f1f1;
+      border:1px solid #fefefe;
     }
     body.dark-mode .list-section {
-      background: #0e0e0e;
-      border-color: #000;
+      background:#0e0e0e;
+      border:1px solid #000;
     }
     .section-title {
       font-weight: bold;
@@ -145,6 +156,12 @@
       color: #555;
       margin-left: 10px;
     }
+    #commandList, #defaultList {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 200px;
+    }
 
     /* Command cards */
     .command-card {
@@ -155,7 +172,6 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       cursor: move;
     }
@@ -167,7 +183,6 @@
     }
     body.dark-mode .command-card {
       background: #2b2b2b;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
       border: 1px solid transparent;
     }
     .command-card:hover {
@@ -181,6 +196,8 @@
     .command-content {
       background: transparent;
     }
+
+    /* Input fields */
     .command-input, .command-info {
       width: 100%;
       padding: 8px 10px;
@@ -192,13 +209,10 @@
     }
     .command-input {
       font-weight: bold;
-      font-size: 1em;
-      background: rgba(0, 0, 0, 0);
     }
     .command-info {
+      background: rgba(0,0,0,0.01);
       font-size: 0.76em;
-      background: rgba(0, 0, 0, 0.01);
-      resize: vertical;
     }
     body.dark-mode .command-input {
       background: #3a3a3a;
@@ -210,10 +224,17 @@
     }
     .command-input:focus, .command-info:focus {
       border-color: #007BFF;
-      background: #e9f5ff;
-      outline: none;
+      background: #f0f8ff;
     }
 
+    /* Imported filename */
+    .imported-filename {
+      font-style: italic;
+      color: #0e0e0e;
+      font-size:12px;
+    }
+
+    /* Action buttons */
     .buttons {
       display: flex;
       justify-content: center;
@@ -229,33 +250,27 @@
       transition: background 0.3s ease, transform 0.2s;
     }
     .buttons button:hover {
-      background: rgba(0, 123, 255, 0.1);
+      background: rgba(0,123,255,0.1);
       transform: scale(1.1);
     }
-    .buttons svg {
+    .buttons button svg {
       width: 24px;
       height: 24px;
       fill: #007BFF;
     }
 
-    /* Add-Button */
+    /* New command button */
     .new_add {
       position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 6px 12px;
-      font-size: 1.1em;
-      border: none;
-      color: #FFF;
+      bottom: 0;
+      width: 100%;
+      left: 0;
+      text-align: center;
       background: #007BFF;
+      color: #FFF;
+      padding: 10px;
+      font-size: 1.1em;
       cursor: pointer;
-      border-radius: 4px;
-      transition: background 0.3s ease, transform 0.2s ease;
-    }
-    .new_add:hover {
-      background: #0056b3;
-      transform: translateY(-2px);
     }
 
     /* Toast */
@@ -264,7 +279,7 @@
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0,0,0,0.8);
       color: #fff;
       padding: 10px 20px;
       border-radius: 5px;
@@ -277,63 +292,53 @@
       opacity: 1;
     }
 
+    /* Dark mode toggle */
+    #darkModeBtn {
+      position: fixed;
+      right: 4px;
+      top: 4px;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      color: #f1f1f1;
+      text-align: center;
+    }
+
     /* Bibliothek‑Modal */
     .modal {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.5);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 2000;
-      padding: 20px;
     }
     .modal-content {
       background: #fff;
       padding: 20px;
       border-radius: 6px;
-      width: 100%;
-      max-width: 400px;
+      width: 300px;
       max-height: 80vh;
       overflow-y: auto;
-      position: relative;
     }
     .modal-content h2 {
       margin-top: 0;
-      margin-bottom: 10px;
-      font-size: 1.5em;
     }
     .close {
-      position: absolute;
-      top: 10px;
-      right: 10px;
+      float: right;
       font-size: 1.4em;
       cursor: pointer;
-      color: #999;
-    }
-    #librarySearch {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 1em;
     }
     #libraryList {
       list-style: none;
       padding: 0;
-      margin: 0;
+      margin: 10px 0 0;
     }
     #libraryList li {
       padding: 8px;
       cursor: pointer;
       border-bottom: 1px solid #eee;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
     }
     #libraryList li:hover {
       background: #f0f0f0;
@@ -343,185 +348,481 @@
     }
     #libraryList .name-sub {
       font-size: 0.9em;
-      color: #555;
       margin-left: 4px;
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Xenex LBE</h1> <span>[Linux Command Editor v.0.7.4]</span>
-    <p>Edit, copy, sort, and save your Linux commands – ideal für WSL, Termux und mehr.</p>
+    <h1>Xenex LBE</h1> [Linux Command Editor v.0.7.4]
+    <p>Edit, copy, sort, and save your Linux commands – ideal for WSL, Termux, and more.</p>
   </header>
-  
-  <!-- Toolbar -->
+
   <div class="toolbar">
     <button id="exportBtn" title="Export commands">
-      <!-- SVG icon -->
+      <svg viewBox="0 0 24 24"><path d="M5,20h14c1.1,0,2-0.9,2-2V10h-2v8H5V10H3v8C3,19.1,3.9,20,5,20z M19,4h-4V2H9v2H5l7,7L19,4z"/></svg>
       Export
     </button>
     <button id="importBtn" title="Import commands">
+      <svg viewBox="0 0 24 24"><path d="M19,13v6H5v-6H3v6c0,1.1,0.9,2,2,2h14c1.1,0,2-.9,2-2v-6H19z M11,2L6.5,6.5L8,8l3-3l3,3l1.5-1.5L13,2H11z"/></svg>
       Import
       <input type="file" id="fileInput" accept=".json">
     </button>
-    <button id="resetBtn" title="Reset to standard commands">Reset</button>
-    <button id="libraryBtn" title="Open library">Bibliothek</button>
-    <button id="darkModeBtn" title="Toggle Dark Mode">🌓</button>
-    <button id="favFilterBtn" class="inactive" title="Show only favorites">⭐</button>
+    <button id="resetBtn" title="Reset to standard commands">
+      <svg viewBox="0 0 24 24"><path d="M12 5V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.63-.66 3.11-1.73 4.19l1.42 1.42C19.07 15.73 20 13.96 20 12c0-4.42-3.58-8-8-8zm-6.36.64L4.22 7.06C2.85 8.37 2 10.11 2 12c0 4.42 3.58 8 8 8v4l4-4-4-4v3c-3.31 0-6-2.69-6-6 0-1.24.39-2.39 1.04-3.36z"/></svg>
+      Reset
+    </button>
+    <button id="libraryBtn" title="Open library">
+      <svg viewBox="0 0 24 24"><path d="M3 4h18v2H3V4zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>
+      Bibliothek
+    </button>
+    <button id="darkModeBtn" title="Toggle Dark Mode">
+      <svg viewBox="0 0 24 24"><path d="M9.37 5.51A7 7 0 0 0 12 19a7 7 0 0 0 5.49-2.63A9 9 0 1 1 9.37 5.51z"/></svg>
+    </button>
+    <button id="favFilterBtn" title="Show only favorites" class="inactive">
+      <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+      Favorites
+    </button>
   </div>
-  
-  <!-- Search field and selection -->
+
   <div id="searchContainer">
     <input type="text" id="searchInput" placeholder="Search command or description...">
+    <br>
     <select id="searchScope">
       <option value="both">Search both</option>
       <option value="default">Only standard commands</option>
       <option value="custom">Only imported commands</option>
     </select>
   </div>
-  
-  <!-- Recent searches -->
-  <div id="recentSearches"></div>
 
-  <!-- Command counts -->
+  <div id="recentSearches"></div>
   <div id="commandCounts"></div>
-  
-  <!-- Custom Commands -->
+
   <div id="customSection" class="list-section" data-visible="true">
-    <div class="section-title" id="customHeader"></div>
+    <div class="section-title" id="customHeader">
+      Imported / Custom Commands <span class="toggle-section">[Hide]</span>
+    </div>
     <div id="commandList"></div>
   </div>
-  
-  <!-- Standard Commands -->
+
   <div id="defaultSection" class="list-section" data-visible="true">
     <div class="section-title">Standard Commands <span class="toggle-section">[Hide]</span></div>
     <div id="defaultList"></div>
   </div>
-  
-  <!-- Add New Command Button -->
-  <button id="addCommandBtn" class="new_add" title="Add new command">➕ New Command</button>
 
-  <!-- Bibliothek‑Modal -->
+  <button id="addCommandBtn" title="Add new command" class="new_add">
+    <svg viewBox="0 0 24 24" class="addCommandBtn"><path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"/></svg>
+    New Command
+  </button>
+
   <div id="libraryModal" class="modal">
-    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="libraryTitle">
-      <span id="closeLibrary" class="close" title="Close">&times;</span>
-      <h2 id="libraryTitle">Bibliothek</h2>
-      <input type="text" id="librarySearch" placeholder="Filter Bibliothek...">
+    <div class="modal-content">
+      <span id="closeLibrary" class="close">&times;</span>
+      <h2>Bibliothek</h2>
       <ul id="libraryList"></ul>
     </div>
   </div>
-  
-  <!-- Toast -->
+
   <div id="toast" class="toast"></div>
 
   <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // --- Initialization and state ---
+    /********************
+     * ULTIMATE MASTER SCRIPT – komplett neu
+     ********************/
     const defaultCommands = [
-      { id: 1, command: "ls", description: "Displays the content of the current folder", favorite: false },
-      // ... weitere Standardbefehle ...
+      { id: Date.now() + 1, command: "ls", description: "Displays the content of the current folder", favorite: false },
+      { id: Date.now() + 2, command: "cd foldername", description: "Changes directory into 'foldername'", favorite: false },
+      { id: Date.now() + 3, command: "cd ..", description: "Goes one folder up", favorite: false },
+      { id: Date.now() + 4, command: "cd /", description: "Switches to the root directory", favorite: false },
+      { id: Date.now() + 5, command: "cd ~", description: "Switches to the home directory", favorite: false },
+      { id: Date.now() + 6, command: "pwd", description: "Displays the current path", favorite: false },
+      { id: Date.now() + 7, command: "python3 -m venv env", description: "Creates a Python virtual environment", favorite: false },
+      { id: Date.now() + 8, command: "source env/bin/activate", description: "Activates the virtual environment", favorite: false },
+      { id: Date.now() + 9, command: "tmux new -s sessionname", description: "Creates a new tmux session", favorite: false },
+      { id: Date.now() + 10, command: "tmux attach -t sessionname", description: "Attaches to an existing tmux session", favorite: false }
     ];
     let customCommands = [];
     let showFavoritesOnly = false;
     let recentSearches = [];
 
-    // --- Utility Functions ---
     const saveCustomCommands = () => localStorage.setItem('customCommands', JSON.stringify(customCommands));
-    const loadCustomCommands = () => { /* ... */ };
-    const saveRecentSearches = () => localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
-    const loadRecentSearches = () => { /* ... */ };
-    const showToast = (msg) => { /* ... */ };
-
-    // --- Render Functions ---
-    const renderCustomCommands = (filter = "") => { /* ... */ };
-    const renderDefaultCommands = (filter = "") => { /* ... */ };
-    const renderAll = () => { /* ... */ };
-    const renderSearchResults = () => { /* ... */ };
-    const renderRecentSearches = () => { /* ... */ };
-
-    // --- Command Actions ---
-    const addNewCommand = () => { /* ... */ };
-    const exportCommands = () => { /* ... */ };
-    const importCommands = (file) => { /* ... */ };
-    const resetCommands = () => { /* ... */ };
-    const toggleDarkMode = () => { /* ... */ };
-    const toggleFavFilter = () => { /* ... */ };
-
-    // --- Drag & Drop ---
-    const commandListDiv = document.getElementById('commandList');
-    commandListDiv.addEventListener('dragover', (e) => { /* ... */ });
-
-    // --- Library Modal ---
-    const libraryBtn = document.getElementById('libraryBtn');
-    const libraryModal = document.getElementById('libraryModal');
-    const closeLib = document.getElementById('closeLibrary');
-    const libraryList = document.getElementById('libraryList');
-    const librarySearch = document.getElementById('librarySearch');
-
-    const loadLibrary = async () => {
-      libraryList.innerHTML = '<li>Loading...</li>';
+    const loadCustomCommands = () => {
       try {
-        const res = await fetch('../lib/');
-        const html = await res.text();
-        const files = [...html.matchAll(/href="(.*?\.json)"/g)].map(m => m[1]);
-        if (files.length === 0) {
-          libraryList.innerHTML = '<li>No JSON files found.</li>';
-          return;
-        }
-        libraryList.innerHTML = '';
-        files.sort().forEach(file => {
-          const [main,sub] = file.replace('.json','').split('_');
-          const li = document.createElement('li');
-          li.innerHTML = `<span class="name-main">${main}</span><span class="name-sub">${sub||''}</span>`;
-          li.addEventListener('click', () => {
-            fetch(`./lib/${file}`)
-              .then(r=>r.json())
-              .then(data=>{
-                if (Array.isArray(data)) {
-                  customCommands = data;
-                  saveCustomCommands();
-                  renderAll();
-                  updateHeader();
-                  showToast('Bibliothek geladen!');
-                } else showToast('Ungültiges Format');
-                libraryModal.style.display='none';
-              })
-              .catch(()=>showToast('Fehler beim Laden'));        
-          });
-          libraryList.appendChild(li);
-        });
-      } catch (e) {
-        libraryList.innerHTML = `<li>Error: ${e.message}</li>`;
+        const stored = JSON.parse(localStorage.getItem('customCommands'));
+        if (Array.isArray(stored)) customCommands = stored;
+        else saveCustomCommands();
+      } catch {
+        saveCustomCommands();
       }
     };
+    const saveRecentSearches = () => localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
+    const loadRecentSearches = () => {
+      try {
+        const stored = JSON.parse(localStorage.getItem('recentSearches'));
+        if (Array.isArray(stored)) recentSearches = stored;
+      } catch { }
+    };
+    const showToast = message => {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    };
 
-    libraryBtn.addEventListener('click', () => {
-      libraryModal.style.display = 'flex';
-      librarySearch.value = '';
-      loadLibrary();
-    });
-    closeLib.addEventListener('click', () => libraryModal.style.display = 'none');
-    libraryModal.addEventListener('click', (e) => {
-      if (e.target === libraryModal) libraryModal.style.display = 'none';
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') libraryModal.style.display = 'none';
-    });
-    librarySearch.addEventListener('input', () => {
-      const term = librarySearch.value.toLowerCase();
-      document.querySelectorAll('#libraryList li').forEach(li => {
-        li.style.display = li.textContent.toLowerCase().includes(term) ? 'flex' : 'none';
+    const updateCustomSectionHeader = () => {
+      const headerElem = document.getElementById('customHeader');
+      headerElem.innerHTML = '';
+      const importedFile = localStorage.getItem("importedFile");
+      let titleText = "Imported / Custom Commands", titleDetText = "(No imported commands)";
+      if (importedFile) {
+        const info = JSON.parse(importedFile);
+        titleDetText = `${info.name} (${info.sizeKB} KB)`;
+      }
+      const spanA = document.createElement('div');
+      spanA.textContent = titleText;
+      const spanB = document.createElement('span');
+      spanB.textContent = titleDetText;
+      spanB.classList.add('imported-filename');
+      headerElem.append(spanA, spanB, document.createTextNode(' '));
+      const toggle = document.createElement('span');
+      toggle.classList.add('toggle-section');
+      toggle.textContent = '[Hide]';
+      toggle.addEventListener('click', e => {
+        const section = e.target.closest('.list-section');
+        const list = section.querySelector('div[id$="List"]');
+        if (list.style.display === 'none') {
+          list.style.display = 'flex';
+          e.target.textContent = '[Hide]';
+          section.setAttribute('data-visible', 'true');
+        } else {
+          list.style.display = 'none';
+          e.target.textContent = '[Show]';
+          section.setAttribute('data-visible', 'false');
+        }
       });
+      headerElem.appendChild(toggle);
+    };
+
+    const updateCommandCounts = () => {
+      const div = document.getElementById('commandCounts');
+      const std = defaultCommands.length, imp = customCommands.length;
+      div.innerHTML = `Total: ${std+imp} | Standard: ${std} | Imported: ${imp}`;
+    };
+
+    const createCommandCard = (cmd, idx) => {
+      const card = document.createElement('div');
+      card.className = 'command-card';
+      if (cmd.favorite) card.classList.add('favorite');
+      card.setAttribute('data-id', cmd.id);
+      card.draggable = true;
+      card.addEventListener('dragstart', e => {
+        card.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', cmd.id);
+      });
+      card.addEventListener('dragend', () => card.classList.remove('dragging'));
+
+      const idxDiv = document.createElement('div');
+      idxDiv.className = 'command-index';
+      idxDiv.textContent = `#${idx}`;
+      const content = document.createElement('div');
+      content.className = 'command-content';
+
+      const inpCmd = document.createElement('input');
+      inpCmd.type = 'text';
+      inpCmd.value = cmd.command;
+      inpCmd.className = 'command-input';
+      inpCmd.addEventListener('input', () => { cmd.command = inpCmd.value; saveCustomCommands(); });
+
+      const inpDesc = document.createElement('textarea');
+      inpDesc.value = cmd.description;
+      inpDesc.rows = 2;
+      inpDesc.className = 'command-info';
+      inpDesc.addEventListener('input', () => { cmd.description = inpDesc.value; saveCustomCommands(); });
+
+      content.append(inpCmd, inpDesc);
+
+      const btns = document.createElement('div');
+      btns.className = 'buttons';
+
+      const copyBtn = document.createElement('button');
+      copyBtn.title = 'Copy command';
+      copyBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`;
+      copyBtn.addEventListener('click', () => {
+        const txt = inpCmd.value;
+        if (navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>showToast('Command copied!')).catch(()=>showToast('Error copying.'));
+        else {
+          const ta = document.createElement('textarea');
+          ta.value = txt; document.body.append(ta); ta.select();
+          try { document.execCommand('copy'); showToast('Command copied!'); }
+          catch { showToast('Error copying.'); }
+          ta.remove();
+        }
+      });
+
+      const favBtn = document.createElement('button');
+      favBtn.title = cmd.favorite ? 'Unmark favorite' : 'Mark as favorite';
+      favBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
+      favBtn.style.fill = cmd.favorite ? '#ffa500' : '#007BFF';
+      favBtn.addEventListener('click', () => {
+        cmd.favorite = !cmd.favorite;
+        favBtn.style.fill = cmd.favorite ? '#ffa500' : '#007BFF';
+        favBtn.title = cmd.favorite ? 'Unmark favorite' : 'Mark as favorite';
+        card.classList.toggle('favorite', cmd.favorite);
+        saveCustomCommands();
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.title = 'Delete command';
+      delBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M19 13H5V11H19V13Z"/></svg>`;
+      delBtn.addEventListener('click', () => {
+        if (confirm('Do you really want to delete this command?')) {
+          customCommands = customCommands.filter(c=>c.id!==cmd.id);
+          saveCustomCommands();
+          renderAll();
+          showToast('Command deleted.');
+        }
+      });
+
+      btns.append(copyBtn, favBtn, delBtn);
+      card.append(idxDiv, content, btns);
+      return card;
+    };
+
+    const renderCustomCommands = (q="") => {
+      const list = document.getElementById('commandList');
+      list.innerHTML = '';
+      let arr = [...customCommands];
+      if (q) arr = arr.filter(c => c.command.toLowerCase().includes(q) || c.description.toLowerCase().includes(q));
+      if (showFavoritesOnly) arr = arr.filter(c=>c.favorite);
+      arr.sort((a,b)=> (b.favorite===a.favorite?0:(b.favorite?1:-1)));
+      if (!arr.length) { list.innerHTML = '<p style="text-align:center;color:#999;">No imported commands available.</p>'; return; }
+      arr.forEach((c,i)=> list.append(createCommandCard(c,i+1)));
+    };
+
+    const renderDefaultCommands = (q="") => {
+      const list = document.getElementById('defaultList');
+      list.innerHTML = '';
+      let arr = [...defaultCommands];
+      if (q) arr = arr.filter(c => c.command.toLowerCase().includes(q) || c.description.toLowerCase().includes(q));
+      arr.sort((a,b)=> (b.favorite===a.favorite?0:(b.favorite?1:-1)));
+      if (!arr.length) { list.innerHTML = '<p style="text-align:center;color:#999;">No matching standard commands found.</p>'; return; }
+      arr.forEach((c,i)=> list.append(createCommandCard(c,i+1)));
+    };
+
+    const renderSearchResults = () => {
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      const scope = document.getElementById('searchScope').value;
+      if (q && !recentSearches.includes(q)) {
+        recentSearches.unshift(q);
+        if (recentSearches.length>5) recentSearches.pop();
+        saveRecentSearches();
+        renderRecentSearches();
+      }
+      if (!q) return renderAll();
+      if (scope==='default') renderDefaultCommands(q);
+      else if (scope==='custom') renderCustomCommands(q);
+      else { renderCustomCommands(q); renderDefaultCommands(q); }
+    };
+
+    const renderAll = () => {
+      const scope = document.getElementById('searchScope').value;
+      if (scope==='default') { renderDefaultCommands(); renderCustomCommands(); }
+      else if (scope==='custom') { renderCustomCommands(); renderDefaultCommands(); }
+      else { renderCustomCommands(); renderDefaultCommands(); }
+      const cs = document.getElementById('customSection'), ds = document.getElementById('defaultSection');
+      if (scope==='default') { cs.style.display='none'; ds.style.display='block'; }
+      else if (scope==='custom') { ds.style.display='none'; cs.style.display='block'; }
+      else {
+        cs.style.display = cs.getAttribute('data-visible')==='false'?'none':'block';
+        ds.style.display = ds.getAttribute('data-visible')==='false'?'none':'block';
+      }
+      updateCommandCounts();
+    };
+
+    const renderRecentSearches = () => {
+      const div = document.getElementById('recentSearches');
+      div.innerHTML = '';
+      if (!recentSearches.length) return;
+      div.innerHTML = '<strong>Recent searches:</strong> ';
+      recentSearches.forEach(term => {
+        const sp = document.createElement('span');
+        sp.textContent = term;
+        sp.addEventListener('click', () => {
+          document.getElementById('searchInput').value = term;
+          renderSearchResults();
+        });
+        div.append(sp);
+      });
+    };
+
+    const getDragAfterElement = (container,y) => {
+      const elems = [...container.querySelectorAll('.command-card:not(.dragging)')];
+      return elems.reduce((closest,child)=>{
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height/2;
+        if (offset<0 && offset>closest.offset) return {offset,element:child};
+        return closest;
+      },{offset:Number.NEGATIVE_INFINITY}).element;
+    };
+
+    document.getElementById('commandList').addEventListener('dragover', e => {
+      e.preventDefault();
+      const drag = document.querySelector('.dragging');
+      const after = getDragAfterElement(e.currentTarget,e.clientY);
+      if (!after) e.currentTarget.append(drag);
+      else e.currentTarget.insertBefore(drag,after);
     });
 
-    // --- Initial Load ---
-    if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
-    loadCustomCommands();
-    loadRecentSearches();
-    renderAll();
-    renderRecentSearches();
-    updateHeader();
-  });
+    const updateOrder = () => {
+      if (document.getElementById('searchInput').value.trim()) return;
+      const newArr = [];
+      document.querySelectorAll('#commandList .command-card').forEach(card=>{
+        const id = +card.getAttribute('data-id');
+        const cmd = customCommands.find(c=>c.id===id);
+        if (cmd) newArr.push(cmd);
+      });
+      customCommands = newArr;
+      saveCustomCommands();
+    };
+    new MutationObserver(updateOrder).observe(document.getElementById('commandList'),{ childList:true });
+
+    const addNewCommand = () => {
+      customCommands.push({ id:Date.now(), command:'new_command', description:'Description', favorite:false });
+      saveCustomCommands();
+      renderAll();
+      showToast('New command added!');
+    };
+
+    const exportCommands = () => {
+      let fn = prompt('Name data for Export (no .json):','commands_export');
+      if (!fn) return showToast('Export abroved.');
+      if (!fn.toLowerCase().endsWith('.json')) fn += '.json';
+      const data = JSON.stringify(customCommands,null,2);
+      const blob = new Blob([data],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = fn; a.click();
+      URL.revokeObjectURL(url);
+      showToast(`Commands exported as ${fn}!`);
+    };
+
+    const importCommands = file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const imp = JSON.parse(e.target.result);
+          if (Array.isArray(imp)) {
+            customCommands = imp;
+            saveCustomCommands();
+            renderAll();
+            const kb = (file.size/1024).toFixed(2);
+            localStorage.setItem('importedFile', JSON.stringify({name:file.name,sizeKB:kb}));
+            updateCustomSectionHeader();
+            showToast(`Commands imported! (File: ${file.name}, ${kb} KB)`);
+          } else showToast('Invalid format!');
+        } catch { showToast('Error importing!'); }
+      };
+      reader.readAsText(file);
+    };
+
+    const resetCommands = () => {
+      if (!confirm('Do you really want to delete the imported commands? All changes will be lost!')) return;
+      customCommands = [];
+      saveCustomCommands();
+      localStorage.removeItem('importedFile');
+      updateCustomSectionHeader();
+      renderAll();
+      showToast('Imported commands deleted!');
+    };
+
+    const toggleDarkMode = () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode',document.body.classList.contains('dark-mode'));
+    };
+
+    const toggleFavFilter = () => {
+      showFavoritesOnly = !showFavoritesOnly;
+      const btn = document.getElementById('favFilterBtn');
+      btn.classList.toggle('active',showFavoritesOnly);
+      btn.classList.toggle('inactive',!showFavoritesOnly);
+      btn.title = showFavoritesOnly?'Show all commands':'Show only favorites';
+      renderAll();
+    };
+
+    const initSectionToggles = () => {
+      document.querySelectorAll('.toggle-section').forEach(span => {
+        span.addEventListener('click', e => {
+          const sec = e.target.closest('.list-section');
+          const list = sec.querySelector('div[id$="List"]');
+          if (list.style.display==='none') {
+            list.style.display='flex'; e.target.textContent='[Hide]'; sec.setAttribute('data-visible','true');
+          } else {
+            list.style.display='none'; e.target.textContent='[Show]'; sec.setAttribute('data-visible','false');
+          }
+        });
+      });
+    };
+
+    document.getElementById('searchInput').addEventListener('input', () => {
+      document.getElementById('searchInput').value.trim() ? renderSearchResults() : renderAll();
+    });
+    document.getElementById('searchScope').addEventListener('change', renderAll);
+    document.getElementById('addCommandBtn').addEventListener('click', addNewCommand);
+    document.getElementById('exportBtn').addEventListener('click', exportCommands);
+    document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('fileInput').click());
+    document.getElementById('fileInput').addEventListener('change', e=>{ if(e.target.files.length) importCommands(e.target.files[0]); e.target.value=''; });
+    document.getElementById('resetBtn').addEventListener('click', resetCommands);
+    document.getElementById('darkModeBtn').addEventListener('click', toggleDarkMode);
+    document.getElementById('favFilterBtn').addEventListener('click', toggleFavFilter);
+    window.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('darkMode')==='true') document.body.classList.add('dark-mode');
+      loadCustomCommands();
+      loadRecentSearches();
+      initSectionToggles();
+      updateCustomSectionHeader();
+      renderAll();
+      renderRecentSearches();
+    });
+
+    document.getElementById('libraryBtn').addEventListener('click', async () => {
+      const modal = document.getElementById('libraryModal');
+      const list = document.getElementById('libraryList');
+      list.innerHTML = '<li>Lade Inhalte…</li>';
+      modal.style.display = 'flex';
+      try {
+        const res = await fetch('../lib/');
+        const txt = await res.text();
+        const matches = [...txt.matchAll(/href=\"(.*?\\.json)\"/g)];
+        const files = matches.map(m=>m[1]).filter(f=>f.endsWith('.json')).sort();
+        list.innerHTML = '';
+        if (!files.length) list.innerHTML = '<li>Keine JSON-Dateien gefunden.</li>';
+        else files.forEach(file=>{
+          const li = document.createElement('li');
+          const [main,sub] = file.replace('.json','').split('_');
+          li.innerHTML = `<span class="name-main">${main||file}</span><span class="name-sub">${sub? ' '+sub:''}</span>`;
+          li.addEventListener('click', ()=>loadFromLibrary('./lib/'+file));
+          list.append(li);
+        });
+      } catch(e) {
+        list.innerHTML = `<li>Fehler beim Laden: ${e.message}</li>`;
+      }
+    });
+    document.getElementById('closeLibrary').addEventListener('click', ()=>document.getElementById('libraryModal').style.display='none');
+
+    function loadFromLibrary(path) {
+      fetch(path).then(r=>r.json()).then(data=>{
+        if (!Array.isArray(data)) return showToast('Ungültiges JSON-Format.');
+        customCommands = data;
+        saveCustomCommands();
+        renderAll();
+        updateCustomSectionHeader();
+        document.getElementById('libraryModal').style.display = 'none';
+        showToast('Bibliothek geladen!');
+      }).catch(err=>{
+        showToast('Fehler beim Laden der Datei.');
+        console.error(err);
+      });
+    }
   </script>
 </body>
 </html>
