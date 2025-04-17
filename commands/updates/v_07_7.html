@@ -1075,7 +1075,7 @@ async function loadLibraryList() {
         <span class="name-main">${main}</span>
         <span class="name-sub">${sub? ' '+sub : ''}</span>
       `;
-      li.addEventListener('click', () => loadFromLibrary(`./lib/${file}`));
+      li.addEventListener('click', () => loadFromLibrary(`../lib/${file}`));
       list.appendChild(li);
     });
 
