@@ -1090,27 +1090,33 @@ document.getElementById('closeLibrary').addEventListener('click', () => {
   document.getElementById('libraryModal').style.display = 'none';
 });
 
-// Laden und anzeigen (wie Import)
-function loadFromLibrary(path) {
-  fetch(path)
-    .then(res => res.json())
-    .then(data => {
-      if (!Array.isArray(data)) {
-        showToast('Ungültiges JSON-Format.');
-        return;
-      }
-      customCommands = data;
-      saveCustomCommands();
-      renderAll();
-      updateCustomSectionHeader();
-      document.getElementById('libraryModal').style.display = 'none';
-      showToast('Bibliothek geladen!');
-    })
-    .catch(err => {
-      showToast('Fehler beim Laden der Datei.');
-      console.error(err);
+// Laden und anzeigen (wie Import) - Bibliotheken werden in ~./lib/Index.json dokumentiert!
+async function loadLibraryList() {
+  const list = document.getElementById('libraryList');
+  list.innerHTML = '<li>Lade Liste…</li>';
+
+  try {
+    const resp = await fetch('../lib/index.json');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const files = await resp.json(); // Array mit Dateinamen
+    list.innerHTML = '';             // Liste leeren
+
+    files.sort().forEach(file => {
+      const li = document.createElement('li');
+      const [main, sub] = file.replace('.json','').split('_');
+      li.innerHTML = `
+        <span class="name-main">${main}</span>
+        <span class="name-sub">${sub? ' '+sub : ''}</span>
+      `;
+      li.addEventListener('click', () => loadFromLibrary(`./lib/${file}`));
+      list.appendChild(li);
     });
+
+  } catch (e) {
+    list.innerHTML = `<li>Fehler beim Laden: ${e.message}</li>`;
+  }
 }
+
   </script>
 </body>
   </html>
