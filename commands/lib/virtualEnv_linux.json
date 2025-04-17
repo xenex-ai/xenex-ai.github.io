@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1744888000000,
+    "command": "python3 -m venv env",
+    "description": "Erstellt eine neue virtuelle Python‑Umgebung namens „env“",
+    "favorite": false
+  },
+  {
+    "id": 1744888001000,
+    "command": "source env/bin/activate",
+    "description": "Aktiviert die virtuelle Umgebung „env“",
+    "favorite": false
+  }
+]
