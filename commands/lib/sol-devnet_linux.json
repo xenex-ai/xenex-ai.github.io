@@ -1,0 +1,9 @@
+[
+{
+  "id": 1744888109000,
+  "command": "solana config set --url https://api.devnet.solana.com",
+  "description": "Wechselt ins Solana Devnet (Testumgebung)",
+  "favorite": true
+}
+
+]
