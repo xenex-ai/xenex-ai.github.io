@@ -1084,6 +1084,33 @@ async function loadLibraryList() {
   }
 }
 
+async function loadFromLibrary(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const imported = await res.json();
+    if (!Array.isArray(imported)) {
+      showToast('Ungültiges Format in der Bibliothek!');
+      return;
+    }
+    // 1) Befehle übernehmen
+    customCommands = imported;
+    saveCustomCommands();
+    renderAll();
+    // 2) Header updaten (optional, wenn Datei‑Info angezeigt werden soll)
+    const sizeKB = (new Blob([JSON.stringify(imported)]).size / 1024).toFixed(2);
+    localStorage.setItem(
+      "importedFile",
+      JSON.stringify({ name: url.split('/').pop(), sizeKB })
+    );
+    updateCustomSectionHeader();
+    showToast('Befehle aus der Bibliothek geladen!');
+  } catch (err) {
+    showToast(`Fehler beim Laden: ${err.message}`);
+  }
+}
+
+
   </script>
 </body>
   </html>
