@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Xenex LBE (Ultimate)</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* Basis-Reset */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark-mode {
+      background: #1e1e1e;
+      color: #ddd;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header h1 {
+      font-size: 2.8em;
+      margin-bottom: 10px;
+      color: #007BFF;
+      transition: color 0.3s;
+    }
+    body.dark-mode header h1 {
+      color: #66aaff;
+    }
+    header p {
+      font-size: 1.15em;
+      color: #555;
+      transition: color 0.3s;
+    }
+    body.dark-mode header p {
+      color: #aaa;
+    }
+      color: #FFF;
+  line-height: 40px;
+  box-sizing: border-box;
+  background: #0096ff;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+select {
+  display: block;
+  padding: 0 10px;
+  width: 100%;
+  height: 100%;
+  font-size: 14px;
+  color: #FFF;
+  line-height: 40px;
+  box-sizing: border-box;
+  background: #007BFF;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      border:1px solid #f1f1f1;
+      background: #007BFF;
+      border-radius:5px;
+    }
+    .toolbar button {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 12px;
+      border: 1px solid #007BFF;
+      border-radius: 0px;
+      background: #007BFF;
+      color: #fefefe;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s, transform 0.2s;
+    }
+    .toolbar button:hover {
+      background: #007BFF;
+      color: #0e0e0e;
+      transform: translateY(-1px);
+    }
+    .toolbar input[type="file"] {
+      display: none;
+    }
+    /* Search field and selection */
+    #searchContainer {
+      text-align: center;
+      margin: 20px auto;
+      max-width: 500px;
+    }
+    #searchInput {
+      width: 100%;
+      padding: 12px;
+      font-size: 1em;
+      background: #f1f1f1;
+      border: none;
+      border-bottom: 1px solid #ddd;
+      outline: none;
+      transition: border 0.3s;
+    }
+    #searchInput:focus {
+      border-bottom: 1px solid #007BFF;
+    }
+    #searchScope {
+      margin-top: 10px;
+      padding: 6px;
+      font-size: 1em;
+    }
+    /* Display of command counts */
+    #commandCounts {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 0.8em;
+      color: #333;
+      border-bottom:1px solid #007BFF;
+    }
+    /* Recently searched terms */
+    #recentSearches {
+      margin: 10px auto 20px;
+      max-width: 500px;
+      text-align: center;
+    }
+    #recentSearches span {
+      background: #e0e0e0;
+      color: #333;
+      padding: 5px 10px;
+      border-radius: 15px;
+      margin: 0 5px;
+      cursor: pointer;
+    }
+    /* List sections */
+    .list-section {
+      margin-bottom: 30px;
+      border-radius:5px;
+      background:#f1f1f1;
+      border:1px solid #fefefe;
+    }
+    body.dark-mode .list-section {
+      margin-bottom: 30px;
+      border-radius:5px;
+      background:#0e0e0e;
+      border:1px solid #000;
+    }
+    .section-title {
+      font-weight: bold;
+      margin: 20px 0 10px;
+      text-align: center;
+      font-size: 1.2em;
+      color: #007BFF;
+      cursor: pointer;
+      user-select: none;
+    }
+    .section-title .toggle-section {
+      font-size: 0.9em;
+      color: #555;
+      margin-left: 10px;
+    }
+    #commandList, #defaultList {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 200px;
+    }
+    /* Command cards */
+    .command-card {
+      background: #fff;
+      border-radius: 2px;
+      padding: 15px 20px;
+      border: 1px solid #f1f1f1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: move;
+    }
+    /* Added favorite style */
+    .command-card.favorite {
+      border: 2px solid #ffa500;
+    }
+    .command-card.dragging {
+      opacity: 0.5;
+    }
+    body.dark-mode .command-card {
+      background: #2b2b2b;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      border: 1px solid transparent;
+    }
+    .command-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .command-index {
+      font-size: 0.9em;
+      color: #777;
+    }
+    .command-content {
+      background: transparent;
+    }
+    /* Separate CSS classes for command input and info */
+    .command-input {
+      width: 100%;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      border: none;
+      border-radius: 2px;
+      transition: border 0.3s, background 0.3s;
+      background: rgba(0, 0, 0, 0);
+      font-weight: bold;
+      font-size: 1em;
+      font-family: Consolas, monospace;
+    }
+    .command-info {
+      width: 100%;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      border: none;
+      border-radius: 2px;
+      transition: border 0.3s, background 0.3s;
+      background: rgba(0, 0, 0, 0.01);
+      font-size: 0.76em;
+      font-family: Consolas, monospace;
+    }
+    body.dark-mode .command-input {
+      background: #3a3a3a;
+      color: #eee;
+    }
+    body.dark-mode .command-info {
+      background: #333;
+      color: #ccc;
+    }
+    .command-input:focus {
+      border-color: #007BFF;
+      background: #f0f8ff;
+    }
+    .command-info:focus {
+      border-color: #007BFF;
+      background: #f0f8ff;
+    }
+    /* Extra CSS class for imported file name */
+    .imported-filename {
+      font-style: italic;
+      color: #0e0e0e;
+      font-size:12px;
+    }
+    /* Action buttons */
+    .buttons {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .buttons button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: background 0.3s ease, transform 0.2s;
+    }
+    .buttons button:hover {
+      background: rgba(0, 123, 255, 0.1);
+      transform: scale(1.1);
+    }
+    .buttons button svg {
+      width: 24px;
+      height: 24px;
+      fill: #007BFF;
+    }
+    /* Add-Button */
+    .addCommandBtn {
+      position:inerhit;
+      align-items: center;
+      padding: 4px 4px;
+      font-size: 1em;
+      width:12px;
+      height:12px;
+      }
+    .addCommandBtn:hover {
+      color: #fff;
+      transform: translateY(-2px);
+    }
+    .new_add{
+      position:fixed;
+      bottom: 0px;
+      width:100%;
+      left:0px;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 0 auto;
+      padding: 6px 4px;
+      font-size: 1.1em;
+      border: none;
+      color: #FFF;
+      background: #007BFF;
+      cursor: pointer;
+      transition: background 0.3s ease, color 0.3s ease, transform 0.2s;
+    }
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 5px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      z-index: 1000;
+    }
+    .toast.show {
+      opacity: 1;
+    }
+    #darkModeBtn {
+      position:fixed;
+      right:4px; top:4px;
+      border-radius:50%;
+      width:26px;
+      height:26px;
+      color:#f1f1f1;
+      text-align:center;
+    }
+    /* Bibliothek‑Modal */
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 6px;
+  width: 300px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.modal-content h2 {
+  margin-top: 0;
+}
+.close {
+  float: right;
+  font-size: 1.4em;
+  cursor: pointer;
+}
+#libraryList {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+}
+#libraryList li {
+  padding: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+#libraryList li:hover {
+  background: #f0f0f0;
+}
+#libraryList .name-main {
+  font-weight: bold;
+}
+#libraryList .name-sub {
+  font-size: 0.9em;
+  margin-left: 4px;
+}
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Xenex LBE</h1> [Linux Command Editor v.0.7.4] 
+    <p>Edit, copy, sort, and save your Linux commands – ideal for WSL, Termux, and more.</p>
+  </header>
+  
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button id="exportBtn" title="Export commands">
+      <svg viewBox="0 0 24 24">
+        <path d="M5,20h14c1.1,0,2-0.9,2-2V10h-2v8H5V10H3v8C3,19.1,3.9,20,5,20z M19,4h-4V2H9v2H5l7,7L19,4z"/>
+      </svg>
+      Export
+    </button>
+    <button id="importBtn" title="Import commands">
+      <svg viewBox="0 0 24 24">
+        <path d="M19,13v6H5v-6H3v6c0,1.1,0.9,2,2,2h14c1.1,0,2-.9,2-2v-6H19z M11,2L6.5,6.5L8,8l3-3l3,3l1.5-1.5L13,2H11z"/>
+      </svg>
+      Import
+      <input type="file" id="fileInput" accept=".json">
+    </button>
+    <button id="resetBtn" title="Reset to standard commands">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 5V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.63-.66 3.11-1.73 4.19l1.42 1.42C19.07 15.73 20 13.96 20 12c0-4.42-3.58-8-8-8zm-6.36.64L4.22 7.06C2.85 8.37 2 10.11 2 12c0 4.42 3.58 8 8 8v4l4-4-4-4v3c-3.31 0-6-2.69-6-6 0-1.24.39-2.39 1.04-3.36z"/>
+      </svg>
+      Reset
+    </button>
+    
+    <!-- Neuer Bibliothek-Button -->
+   <button id="libraryBtn" title="Open library">
+     <svg viewBox="0 0 24 24"><path d="M3 4h18v2H3V4zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>
+    Bibliothek
+   </button>
+    
+    <button id="darkModeBtn" title="Toggle Dark Mode">
+      <svg viewBox="0 0 24 24">
+        <path d="M9.37 5.51A7 7 0 0 0 12 19a7 7 0 0 0 5.49-2.63A9 9 0 1 1 9.37 5.51z"/>
+      </svg>
+      
+    </button>
+    <button id="favFilterBtn" title="Show only favorites" class="inactive">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+      </svg>
+      Favorites
+    </button>
+  </div>
+
+  <!-- Bibliothek‑Modal -->
+<div id="libraryModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span id="closeLibrary" class="close">&times;</span>
+    <h2>Bibliothek</h2>
+    <ul id="libraryList"></ul>
+  </div>
+</div>
+  
+  <!-- Search field and selection -->
+  <div id="searchContainer">
+    <input type="text" id="searchInput" placeholder="Search command or description...">
+    <br>
+    <select id="searchScope">
+      <option value="both">Search both</option>
+      <option value="default">Only standard commands</option>
+      <option value="custom">Only imported commands</option>
+    </select>
+  </div>
+  
+  <!-- Recent searches -->
+  <div id="recentSearches"></div>
+
+  <!-- Command counts -->
+  <div id="commandCounts"></div>
+  
+  <!-- Custom Commands -->
+  <div id="customSection" class="list-section" data-visible="true">
+    <!-- Header of imported commands incl. file information -->
+    <div class="section-title" id="customHeader">
+      <!-- codenote: Keep code note in original language -->
+      Imported / Custom Commands <span class="toggle-section">[Hide]</span>
+    </div>
+    <div id="commandList"></div>
+  </div>
+  
+  <!-- Standard Commands -->
+  <div id="defaultSection" class="list-section" data-visible="true">
+    <div class="section-title">Standard Commands <span class="toggle-section">[Hide]</span></div>
+    <div id="defaultList"></div>
+  </div>
+  
+  <!-- Add-Button -->
+  <button id="addCommandBtn" title="Add new command" class="new_add">
+    <svg viewBox="0 0 24 24" class="addCommandBtn">
+      <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+    </svg>
+    New Command
+  </button>
+  
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+  
+  <script>
+    /********************
+     * ULTIMATE MASTER SCRIPT – komplett neu
+     *
+     * Beim Laden wird geprüft, ob custom Befehle (localStorage "customCommands")
+     * und importierte Dateiinformationen (localStorage "importedFile") vorhanden sind.
+     * Ist das Suchfeld leer, werden alle Befehle (je nach gewähltem Suchbereich) angezeigt.
+     * Beim Reset werden custom Befehle geleert und der Import-Status entfernt.
+     * Weitere Funktionen: Export, Import (nur custom), Dark Mode (mit Speicherung der Einstellung),
+     * Favoritenfilter, Drag & Drop, zuletzt gesuchte Begriffe, nummerierte Ausgabe und
+     * manuelle Ein-/Ausblendung der einzelnen Listenbereiche.
+     ********************/
+    
+    // Standard commands remain unchanged
+    const defaultCommands = [
+      { id: Date.now() + 1, command: "ls", description: "Displays the content of the current folder", favorite: false },
+      { id: Date.now() + 2, command: "cd foldername", description: "Changes directory into 'foldername'", favorite: false },
+      { id: Date.now() + 3, command: "cd ..", description: "Goes one folder up", favorite: false },
+      { id: Date.now() + 4, command: "cd /", description: "Switches to the root directory", favorite: false },
+      { id: Date.now() + 5, command: "cd ~", description: "Switches to the home directory", favorite: false },
+      { id: Date.now() + 6, command: "pwd", description: "Displays the current path", favorite: false },
+      { id: Date.now() + 7, command: "python3 -m venv env", description: "Creates a Python virtual environment", favorite: false },
+      { id: Date.now() + 8, command: "source env/bin/activate", description: "Activates the virtual environment", favorite: false },
+      { id: Date.now() + 9, command: "tmux new -s sessionname", description: "Creates a new tmux session", favorite: false },
+      { id: Date.now() + 10, command: "tmux attach -t sessionname", description: "Attaches to an existing tmux session", favorite: false }
+    ];
+    
+    // Custom (imported) commands – if no file is imported, the list is empty
+    let customCommands = [];
+    let showFavoritesOnly = false;
+    let recentSearches = [];
+    
+    // Save/load custom commands
+    const saveCustomCommands = () => localStorage.setItem('customCommands', JSON.stringify(customCommands));
+    const loadCustomCommands = () => {
+      try {
+        const stored = JSON.parse(localStorage.getItem('customCommands'));
+        if (Array.isArray(stored)) {
+          customCommands = stored;
+        } else {
+          customCommands = [];
+          saveCustomCommands();
+        }
+      } catch {
+        customCommands = [];
+        saveCustomCommands();
+      }
+    };
+    
+    // Save/load recent searches
+    const saveRecentSearches = () => localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
+    const loadRecentSearches = () => {
+      try {
+        const stored = JSON.parse(localStorage.getItem('recentSearches'));
+        if (Array.isArray(stored)) {
+          recentSearches = stored;
+        }
+      } catch {
+        recentSearches = [];
+      }
+    };
+    
+    // Toast
+    const showToast = (message) => {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    };
+    
+    // Update the header of imported commands with file information and toggle
+    const updateCustomSectionHeader = () => {
+      const headerElem = document.getElementById('customHeader');
+      headerElem.innerHTML = "";
+      const importedFile = localStorage.getItem("importedFile");
+      let titleText = "";
+      let titleTextB = "";
+      if (importedFile) {
+        const info = JSON.parse(importedFile);
+        titleText = `Imported / Custom Commands`;
+        titleTextB = `${info.name} (${info.sizeKB} KB)`;
+      } else {
+        titleText = "Imported / Custom Commands";
+        titleTextB = `(No imported commands)`;
+      }
+      const titleSpan = document.createElement('div');
+      titleSpan.textContent = titleText;
+      const titleDet = document.createElement('span');
+      titleDet.textContent = titleTextB;
+      // codenote: Zusätzliche CSS-Klasse für den Dateinamenbereich beibehalten.
+      titleDet.classList.add("imported-filename");
+      headerElem.appendChild(titleSpan);
+      headerElem.appendChild(titleDet)
+      
+      headerElem.appendChild(document.createTextNode(" "));
+      const toggleSpan = document.createElement('span');
+      toggleSpan.classList.add("toggle-section");
+      toggleSpan.textContent = "[Hide]";
+      toggleSpan.addEventListener('click', (e) => {
+        const section = e.target.closest('.list-section');
+        const listDiv = section.querySelector('div[id$="List"]');
+        if (listDiv.style.display === "none") {
+          listDiv.style.display = "flex";
+          e.target.textContent = "[Hide]";
+          section.setAttribute("data-visible", "true");
+        } else {
+          listDiv.style.display = "none";
+          e.target.textContent = "[Show]";
+          section.setAttribute("data-visible", "false");
+        }
+      });
+      headerElem.appendChild(toggleSpan);
+    };
+    
+    // Update the display of command counts
+    const updateCommandCounts = () => {
+      const countDiv = document.getElementById("commandCounts");
+      const standardCount = defaultCommands.length;
+      const importedCount = customCommands.length;
+      const totalCount = standardCount + importedCount;
+      countDiv.innerHTML = `Total: ${totalCount} | Standard: ${standardCount} | Imported: ${importedCount}`;
+    };
+    
+    // Create command card (with numbering)
+    const createCommandCard = (cmdObj, index) => {
+      const card = document.createElement('div');
+      card.className = 'command-card';
+      if(cmdObj.favorite) card.classList.add('favorite');
+      card.setAttribute('data-id', cmdObj.id);
+      card.draggable = true;
+      
+      card.addEventListener('dragstart', (e) => {
+        card.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', cmdObj.id);
+      });
+      card.addEventListener('dragend', () => card.classList.remove('dragging'));
+      
+      const indexElem = document.createElement('div');
+      indexElem.className = 'command-index';
+      indexElem.textContent = `#${index}`;
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'command-content';
+      
+      const inputCommand = document.createElement('input');
+      inputCommand.type = 'text';
+      inputCommand.value = cmdObj.command;
+      inputCommand.placeholder = 'Enter command';
+      inputCommand.classList.add('command-input');
+      inputCommand.addEventListener('input', () => {
+        cmdObj.command = inputCommand.value;
+        saveCustomCommands();
+      });
+      
+      const inputDesc = document.createElement('textarea');
+      inputDesc.value = cmdObj.description;
+      inputDesc.placeholder = 'Enter description';
+      inputDesc.rows = 2;
+      inputDesc.classList.add('command-info');
+      inputDesc.addEventListener('input', () => {
+        cmdObj.description = inputDesc.value;
+        saveCustomCommands();
+      });
+      
+      contentDiv.appendChild(inputCommand);
+      contentDiv.appendChild(inputDesc);
+      
+      const buttonsDiv = document.createElement('div');
+      buttonsDiv.className = 'buttons';
+      
+      const copyBtn = document.createElement('button');
+      copyBtn.title = 'Copy command';
+      copyBtn.innerHTML = `<svg viewBox="0 0 24 24">
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>`;
+      copyBtn.addEventListener('click', () => {
+        const text = inputCommand.value;
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(text)
+            .then(() => showToast('Command copied!'))
+            .catch(() => showToast('Error copying.'));
+        } else {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          try {
+            document.execCommand('copy');
+            showToast('Command copied!');
+          } catch (err) {
+            showToast('Error copying.');
+          }
+          document.body.removeChild(ta);
+        }
+      });
+      
+      const favBtn = document.createElement('button');
+      favBtn.title = cmdObj.favorite ? 'Unmark favorite' : 'Mark as favorite';
+      favBtn.innerHTML = `<svg viewBox="0 0 24 24">
+          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+        </svg>`;
+      favBtn.style.fill = cmdObj.favorite ? "#ffa500" : "#007BFF";
+      favBtn.addEventListener('click', () => {
+        cmdObj.favorite = !cmdObj.favorite;
+        favBtn.style.fill = cmdObj.favorite ? "#ffa500" : "#007BFF";
+        favBtn.title = cmdObj.favorite ? 'Unmark favorite' : 'Mark as favorite';
+        if(cmdObj.favorite) {
+          card.classList.add('favorite');
+        } else {
+          card.classList.remove('favorite');
+        }
+        saveCustomCommands();
+      });
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.title = 'Delete command';
+      deleteBtn.innerHTML = `<svg viewBox="0 0 24 24">
+          <path d="M19 13H5V11H19V13Z"/>
+        </svg>`;
+      deleteBtn.addEventListener('click', () => {
+        if (confirm('Do you really want to delete this command?')) {
+          customCommands = customCommands.filter(c => c.id !== cmdObj.id);
+          saveCustomCommands();
+          renderAll();
+          showToast('Command deleted.');
+        }
+      });
+      
+      buttonsDiv.appendChild(copyBtn);
+      buttonsDiv.appendChild(favBtn);
+      buttonsDiv.appendChild(deleteBtn);
+      
+      card.appendChild(indexElem);
+      card.appendChild(contentDiv);
+      card.appendChild(buttonsDiv);
+      
+      return card;
+    };
+    
+    // For custom commands (imported) – filter using search term.
+    const renderCustomCommands = (searchQuery = "") => {
+      const listDiv = document.getElementById('commandList');
+      listDiv.innerHTML = "";
+      let filtered = [...customCommands];
+      if (searchQuery !== "") {
+        filtered = filtered.filter(cmd =>
+          cmd.command.toLowerCase().includes(searchQuery) ||
+          cmd.description.toLowerCase().includes(searchQuery)
+        );
+      }
+      if (showFavoritesOnly) {
+        filtered = filtered.filter(cmd => cmd.favorite);
+      }
+      // Sort so favorites always appear on top
+      filtered.sort((a, b) => (b.favorite === a.favorite) ? 0 : (b.favorite ? 1 : -1));
+      if (filtered.length === 0) {
+        listDiv.innerHTML = '<p style="text-align:center;color:#999;">No imported commands available.</p>';
+        return;
+      }
+      filtered.forEach((cmd, index) => {
+        listDiv.appendChild(createCommandCard(cmd, index + 1));
+      });
+    };
+    
+    // For standard commands – same principle
+    const renderDefaultCommands = (searchQuery = "") => {
+      const defaultDiv = document.getElementById('defaultList');
+      defaultDiv.innerHTML = "";
+      let filtered = [...defaultCommands];
+      if (searchQuery !== "") {
+        filtered = filtered.filter(cmd =>
+          cmd.command.toLowerCase().includes(searchQuery) ||
+          cmd.description.toLowerCase().includes(searchQuery)
+        );
+      }
+      // Sort so favorites come first in standard commands as well
+      filtered.sort((a, b) => (b.favorite === a.favorite) ? 0 : (b.favorite ? 1 : -1));
+      if(filtered.length > 0) {
+        filtered.forEach((cmd, index) => {
+          defaultDiv.appendChild(createCommandCard(cmd, index + 1));
+        });
+      } else {
+        defaultDiv.innerHTML = '<p style="text-align:center;color:#999;">No matching standard commands found.</p>';
+      }
+    };
+    
+    // Search function: Depending on the choice in "searchScope"
+    const renderSearchResults = () => {
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+      const scope = document.getElementById('searchScope').value;
+      if (searchQuery !== "" && !recentSearches.includes(searchQuery)) {
+        recentSearches.unshift(searchQuery);
+        if (recentSearches.length > 5) recentSearches.pop();
+        saveRecentSearches();
+        renderRecentSearches();
+      }
+      if (searchQuery === "") {
+        renderAll();
+        return;
+      }
+      if (scope === "default") {
+        renderDefaultCommands(searchQuery);
+      } else if (scope === "custom") {
+        renderCustomCommands(searchQuery);
+      } else {
+        renderCustomCommands(searchQuery);
+        renderDefaultCommands(searchQuery);
+      }
+    };
+    
+    // Show all commands (depending on selection and manual toggle)
+    const renderAll = () => {
+      const scope = document.getElementById('searchScope').value;
+      if (scope === "default") {
+        renderDefaultCommands();
+        renderCustomCommands();
+      } else if (scope === "custom") {
+        renderCustomCommands();
+        renderDefaultCommands();
+      } else {
+        renderCustomCommands();
+        renderDefaultCommands();
+      }
+      const customSection = document.getElementById('customSection');
+      const defaultSection = document.getElementById('defaultSection');
+      if (scope === "default") {
+        customSection.style.display = "none";
+        defaultSection.style.display = "block";
+      } else if (scope === "custom") {
+        defaultSection.style.display = "none";
+        customSection.style.display = "block";
+      } else {
+        customSection.style.display = customSection.getAttribute("data-visible") === "false" ? "none" : "block";
+        defaultSection.style.display = defaultSection.getAttribute("data-visible") === "false" ? "none" : "block";
+      }
+      updateCommandCounts();
+    };
+    
+    // Display recent search terms
+    const renderRecentSearches = () => {
+      const recentDiv = document.getElementById('recentSearches');
+      recentDiv.innerHTML = "";
+      if (recentSearches.length > 0) {
+        recentDiv.innerHTML = "<strong>Recent searches:</strong> ";
+        recentSearches.forEach(term => {
+          const span = document.createElement('span');
+          span.textContent = term;
+          span.addEventListener('click', () => {
+            document.getElementById('searchInput').value = term;
+            renderSearchResults();
+          });
+          recentDiv.appendChild(span);
+        });
+      }
+    };
+    
+    // Drag & Drop for custom commands
+    const commandListDiv = document.getElementById('commandList');
+    commandListDiv.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      const draggingCard = document.querySelector('.dragging');
+      const afterElement = getDragAfterElement(commandListDiv, e.clientY);
+      if (afterElement == null) {
+        commandListDiv.appendChild(draggingCard);
+      } else {
+        commandListDiv.insertBefore(draggingCard, afterElement);
+      }
+    });
+    const getDragAfterElement = (container, y) => {
+      const draggableElements = [...container.querySelectorAll('.command-card:not(.dragging)')];
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        }
+        return closest;
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    };
+    
+    // Update the order when no search filter is active
+    const updateOrder = () => {
+      if (document.getElementById('searchInput').value.trim() !== "") return;
+      const newOrder = [];
+      document.querySelectorAll('#commandList .command-card').forEach(card => {
+        const id = Number(card.getAttribute('data-id'));
+        const cmd = customCommands.find(c => c.id === id);
+        if (cmd) newOrder.push(cmd);
+      });
+      customCommands = newOrder;
+      saveCustomCommands();
+    };
+    const observer = new MutationObserver(updateOrder);
+    observer.observe(commandListDiv, { childList: true });
+    
+    // Add new custom commands
+    const addNewCommand = () => {
+      const newCmd = { id: Date.now(), command: "new_command", description: "Description", favorite: false };
+      customCommands.push(newCmd);
+      saveCustomCommands();
+      renderAll();
+      showToast('New command added!');
+    };
+    
+    // Export / Import (custom only)
+    const exportCommands = () => {
+  // 1) Prompt für Dateinamen (ohne .json)
+  let filename = prompt(
+    "Name data for Export (no .json):",
+    "commands_export"
+  );
+  if (!filename) {
+    showToast('Export abroved.');
+    return;
+  }
+  // 2) Endung sicherstellen
+  if (!filename.toLowerCase().endsWith('.json')) {
+    filename += '.json';
+  }
+
+  // 3) Rest wie gehabt, nur mit variablem Download-Namen
+  const dataStr = JSON.stringify(customCommands, null, 2);
+  const blob    = new Blob([dataStr], { type: "application/json" });
+  const url     = URL.createObjectURL(blob);
+  const a       = document.createElement('a');
+  a.href        = url;
+  a.download    = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`Commands exported as ${filename}!`);
+};
+
+    
+    // Import JSON and display the file name along with its size (in KB);
+    // store this information in localStorage and update the header.
+    const importCommands = (file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            customCommands = imported;
+            saveCustomCommands();
+            renderAll();
+            const sizeKB = (file.size / 1024).toFixed(2);
+            localStorage.setItem("importedFile", JSON.stringify({ name: file.name, sizeKB: sizeKB }));
+            updateCustomSectionHeader();
+            showToast(`Commands imported! (File: ${file.name}, ${sizeKB} KB)`);
+          } else {
+            showToast("Invalid format!");
+          }
+        } catch (error) {
+          showToast("Error importing!");
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    // Reset: Clear custom commands and remove import information, update header.
+    const resetCommands = () => {
+      if (confirm("Do you really want to delete the imported commands? All changes will be lost!")) {
+        customCommands = [];
+        saveCustomCommands();
+        localStorage.removeItem("importedFile");
+        updateCustomSectionHeader();
+        renderAll();
+        showToast('Imported commands deleted!');
+      }
+    };
+    
+    // Dark Mode with saved setting
+    const toggleDarkMode = () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    };
+    
+    // Favorites filter
+    const toggleFavFilter = () => {
+      showFavoritesOnly = !showFavoritesOnly;
+      const favBtn = document.getElementById('favFilterBtn');
+      favBtn.classList.toggle('active', showFavoritesOnly);
+      favBtn.classList.toggle('inactive', !showFavoritesOnly);
+      favBtn.title = showFavoritesOnly ? 'Show all commands' : 'Show only favorites';
+      renderAll();
+    };
+    
+    // Event listener for manual toggle of list sections
+    const initSectionToggles = () => {
+      document.querySelectorAll('.toggle-section').forEach(span => {
+        span.addEventListener('click', (e) => {
+          const section = e.target.closest('.list-section');
+          const listDiv = section.querySelector('div[id$="List"]');
+          if (listDiv.style.display === "none") {
+            listDiv.style.display = "flex";
+            e.target.textContent = "[Hide]";
+            section.setAttribute("data-visible", "true");
+          } else {
+            listDiv.style.display = "none";
+            e.target.textContent = "[Show]";
+            section.setAttribute("data-visible", "false");
+          }
+        });
+      });
+    };
+    
+    // Event bindings
+    document.getElementById('searchInput').addEventListener('input', () => {
+      const query = document.getElementById('searchInput').value.trim();
+      if (query === "") {
+        renderAll();
+      } else {
+        renderSearchResults();
+      }
+    });
+    document.getElementById('searchScope').addEventListener('change', renderAll);
+    document.getElementById('addCommandBtn').addEventListener('click', addNewCommand);
+    document.getElementById('exportBtn').addEventListener('click', exportCommands);
+    document.getElementById('resetBtn').addEventListener('click', resetCommands);
+    document.getElementById('darkModeBtn').addEventListener('click', toggleDarkMode);
+    document.getElementById('favFilterBtn').addEventListener('click', toggleFavFilter);
+    document.getElementById('importBtn').addEventListener('click', () => {
+      document.getElementById('fileInput').click();
+    });
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        importCommands(e.target.files[0]);
+        e.target.value = "";
+      }
+    });
+    
+    // Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('darkMode') === "true") {
+        document.body.classList.add('dark-mode');
+      }
+      loadCustomCommands();
+      loadRecentSearches();
+      initSectionToggles();
+      updateCustomSectionHeader();
+      renderAll();
+      renderRecentSearches();
+    });
+
+    // Bibliothek öffnen
+document.getElementById('libraryBtn').addEventListener('click', async () => {
+  const modal = document.getElementById('libraryModal');
+  const list  = document.getElementById('libraryList');
+  list.innerHTML = '<li>Lade Inhalte…</li>';
+
+  try {
+    // Hole Datei-Liste aus dem Verzeichnis (setzt serverseitiges Listing voraus!)
+    const response = await fetch('./lib/');
+    const text = await response.text();
+
+    // Extrahiere .json-Dateien (Voraussetzung: <a href="..."> in Directory-Listing)
+    const matches = [...text.matchAll(/href=\"(.*?\\.json)\"/g)];
+    const jsonFiles = matches.map(m => m[1]).filter(name => name.endsWith('.json'));
+
+    list.innerHTML = ''; // Liste leeren
+
+    if (jsonFiles.length === 0) {
+      list.innerHTML = '<li>Keine JSON-Dateien gefunden.</li>';
+      return;
+    }
+
+    // Für jede Datei: Listeneintrag erzeugen
+    jsonFiles.sort().forEach(file => {
+      const li = document.createElement('li');
+
+      const [main, sub] = file.replace('.json', '').split('_');
+      li.innerHTML = `<span class="name-main">${main || file}</span><span class="name-sub">${sub ? ' ' + sub : ''}</span>`;
+
+      li.addEventListener('click', () => loadFromLibrary('./lib/' + file));
+      list.appendChild(li);
+    });
+
+  } catch (e) {
+    list.innerHTML = `<li>Fehler beim Laden: ${e.message}</li>`;
+  }
+
+  modal.style.display = 'flex';
+});
+
+// Modal schließen
+document.getElementById('closeLibrary').addEventListener('click', () => {
+  document.getElementById('libraryModal').style.display = 'none';
+});
+
+// Laden und anzeigen (wie Import)
+function loadFromLibrary(path) {
+  fetch(path)
+    .then(res => res.json())
+    .then(data => {
+      if (!Array.isArray(data)) {
+        showToast('Ungültiges JSON-Format.');
+        return;
+      }
+      customCommands = data;
+      saveCustomCommands();
+      renderAll();
+      updateCustomSectionHeader();
+      document.getElementById('libraryModal').style.display = 'none';
+      showToast('Bibliothek geladen!');
+    })
+    .catch(err => {
+      showToast('Fehler beim Laden der Datei.');
+      console.error(err);
+    });
+}
+  </script>
+</body>
+  </html>
