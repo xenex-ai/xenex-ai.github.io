@@ -1053,7 +1053,7 @@ document.getElementById('libraryBtn').addEventListener('click', async () => {
   
   try {
     // Hole Datei-Liste aus dem Verzeichnis (setzt serverseitiges Listing voraus!)
-    const response = await fetch('https://xenex-ai.github.io/commands/lib/');
+    const response = await fetch('./lib/');
     const text = await response.text();
 
     // Extrahiere .json-Dateien (Voraussetzung: <a href="..."> in Directory-Listing)
