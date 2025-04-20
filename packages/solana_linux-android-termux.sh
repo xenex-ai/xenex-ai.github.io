@@ -63,7 +63,7 @@ grep -qxF 'export PATH=\"\$HOME/.local/share/solana/install/active_release/bin:\
 export PATH=\"\$HOME/.local/share/solana/install/active_release/bin:\$PATH\"
 
 echo '[10/10] Python‑venv & solana-py installieren...'
-mkdir -p ~/solana-dev && cd ~/solana-dev
+mkdir -p ~/solana-xenexAi && cd ~/solana-xenexAi
 python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
