@@ -1,8 +1,8 @@
 [
   {
     "id": 1744888102000,
-    "command": "apt install curl wget unzip git -y",
-    "description": "Installiert grundlegende Tools für die CLI-Nutzung",
+    "command": "curl -sSL https://raw.githubusercontent.com/xenex-ai/xenex-ai.github.io/main/packages/solana_linux-android-termux.sh | bash",
+    "description": "Installiert xenex-solana package",
     "favorite": false
   }
 ]
