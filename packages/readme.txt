@@ -1,5 +1,6 @@
 ===========================================
 Solana Termux Installer for Linux/Android
+package-name: ./solana_linux-android-termux.sh
 ===========================================
 
 This script sets up a full Solana development environment inside Termux on Android/Linux.
@@ -39,3 +40,11 @@ License:
 -------------------
 MIT License
 See: https://github.com/xenex-ai/xenex-ai.github.io/blob/main/LICENSE
+
+**************************************
+**************************************
+
+
+
+
+
