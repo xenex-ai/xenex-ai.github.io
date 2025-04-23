@@ -1,3 +1,8 @@
 Account: AE7iarBQo7wmHxicof5nMhtx5C5aF4cj7jhZYX7HX7A1
 Network: devnet
 URL: https://api.devnet.solana.com
+
+
+Address: A9LMEhZbpxTvk3skStAXYpe12Csa5ZrQFrRvzBjCAd9A
+Network: Mainnet-bets
+URL: https://api.mainnet-beta.solana.com
