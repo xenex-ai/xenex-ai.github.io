@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -46,6 +46,32 @@
     body.dark-mode header p {
       color: #aaa;
     }
+      color: #FFF;
+  line-height: 40px;
+  box-sizing: border-box;
+  background: #0096ff;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+select {
+  display: block;
+  padding: 0 10px;
+  width: 100%;
+  height: 100%;
+  font-size: 14px;
+  color: #FFF;
+  line-height: 40px;
+  box-sizing: border-box;
+  background: #007BFF;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
     /* Toolbar */
     .toolbar {
       display: flex;
@@ -54,16 +80,19 @@
       gap: 10px;
       flex-wrap: wrap;
       margin-bottom: 20px;
+      border:1px solid #f1f1f1;
+      background: #007BFF;
+      border-radius:5px;
     }
     .toolbar button {
       display: flex;
       align-items: center;
       gap: 5px;
       padding: 8px 12px;
-      border: 4px solid #007B00;
+      border: 1px solid #007BFF;
       border-radius: 0px;
       background: #007BFF;
-      color: #FFF;
+      color: #fefefe;
       font-size: 0.9em;
       cursor: pointer;
       transition: background 0.3s, color 0.3s, transform 0.2s;
@@ -76,7 +105,7 @@
     .toolbar input[type="file"] {
       display: none;
     }
-    /* Suchfeld und Auswahl */
+    /* Search field and selection */
     #searchContainer {
       text-align: center;
       margin: 20px auto;
@@ -100,14 +129,16 @@
       padding: 6px;
       font-size: 1em;
     }
-    /* Anzeige der Befehlszahlen */
+    /* Display of command counts */
     #commandCounts {
       text-align: center;
       margin-bottom: 20px;
-      font-size: 1.1em;
-      color: #007BFF;
+      font-size: 0.8em;
+      color: #333;
+      border-bottom:1px solid #007BFF;
     }
-    /* Zuletzt gesuchte Begriffe */
+  
+    /* Recently searched terms */
     #recentSearches {
       margin: 10px auto 20px;
       max-width: 500px;
@@ -121,9 +152,18 @@
       margin: 0 5px;
       cursor: pointer;
     }
-    /* Listensektionen */
+    /* List sections */
     .list-section {
       margin-bottom: 30px;
+      border-radius:5px;
+      background:#f1f1f1;
+      border:1px solid #fefefe;
+    }
+    body.dark-mode .list-section {
+      margin-bottom: 30px;
+      border-radius:5px;
+      background:#0e0e0e;
+      border:1px solid #000;
     }
     .section-title {
       font-weight: bold;
@@ -145,7 +185,7 @@
       gap: 12px;
       min-height: 200px;
     }
-    /* Befehlskarten */
+    /* Command cards */
     .command-card {
       background: #fff;
       border-radius: 2px;
@@ -157,6 +197,10 @@
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       cursor: move;
+    }
+    /* Added favorite style */
+    .command-card.favorite {
+      border: 2px solid #ffa500;
     }
     .command-card.dragging {
       opacity: 0.5;
@@ -177,17 +221,17 @@
     .command-content {
       background: transparent;
     }
-    /* Separate CSS-Klassen für Befehlseingabe und Infos */
+    /* Separate CSS classes for command input and info */
     .command-input {
       width: 100%;
       padding: 8px 10px;
       margin-bottom: 8px;
       border: none;
-      border-radius: 5px;
+      border-radius: 2px;
       transition: border 0.3s, background 0.3s;
-      background: rgba(0, 0, 0, 0.08);
+      background: rgba(0, 0, 0, 0);
       font-weight: bold;
-      font-size: 1.1em;
+      font-size: 1em;
       font-family: Consolas, monospace;
     }
     .command-info {
@@ -195,10 +239,10 @@
       padding: 8px 10px;
       margin-bottom: 8px;
       border: none;
-      border-radius: 5px;
+      border-radius: 2px;
       transition: border 0.3s, background 0.3s;
-      background: rgba(0, 0, 0, 0.05);
-      font-size: 1em;
+      background: rgba(0, 0, 0, 0.01);
+      font-size: 0.76em;
       font-family: Consolas, monospace;
     }
     body.dark-mode .command-input {
@@ -217,13 +261,13 @@
       border-color: #007BFF;
       background: #f0f8ff;
     }
-    /* Extra CSS-Klasse für importierten Dateinamen */
+    /* Extra CSS class for imported file name */
     .imported-filename {
       font-style: italic;
       color: #0e0e0e;
       font-size:12px;
     }
-    /* Aktionsbuttons */
+    /* Action buttons */
     .buttons {
       display: flex;
       flex-direction: row;
@@ -296,89 +340,163 @@
     .toast.show {
       opacity: 1;
     }
+    #darkModeBtn {
+      position:fixed;
+      right:4px; top:4px;
+      border-radius:50%;
+      width:26px;
+      height:26px;
+      color:#f1f1f1;
+      text-align:center;
+    }
+    /* Bibliothek‑Modal */
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  
+}
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 6px;
+  width: 300px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.modal-content h2 {
+  margin-top: 0;
+}
+.close {
+  float: right;
+  font-size: 1.4em;
+  cursor: pointer;
+}
+#libraryList {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+}
+#libraryList li {
+  padding: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+#libraryList li:hover {
+  background: #f0f0f0;
+}
+#libraryList .name-main {
+  font-weight: bold;
+}
+#libraryList .name-sub {
+  font-size: 0.9em;
+  margin-left: 4px;
+}
+
   </style>
 </head>
 <body>
   <header>
-    <h1>Xenex LBE (Ultimate)</h1><br />
-    Linux-Befehle Editor
-    <p>Bearbeite, kopiere, sortiere und speichere deine Linux-Befehle – ideal für WSL, Termux und mehr.</p>
+    <h1>Xenex LBE</h1> [Linux Command Editor v.0.7.4] 
+    <p>Edit, copy, sort, and save your Linux commands – ideal for WSL, Termux, and more.</p>
   </header>
   
   <!-- Toolbar -->
   <div class="toolbar">
-    <button id="exportBtn" title="Befehle exportieren">
+    <button id="exportBtn" title="Export commands">
       <svg viewBox="0 0 24 24">
         <path d="M5,20h14c1.1,0,2-0.9,2-2V10h-2v8H5V10H3v8C3,19.1,3.9,20,5,20z M19,4h-4V2H9v2H5l7,7L19,4z"/>
       </svg>
       Export
     </button>
-    <button id="importBtn" title="Befehle importieren">
+    <button id="importBtn" title="Import commands">
       <svg viewBox="0 0 24 24">
         <path d="M19,13v6H5v-6H3v6c0,1.1,0.9,2,2,2h14c1.1,0,2-.9,2-2v-6H19z M11,2L6.5,6.5L8,8l3-3l3,3l1.5-1.5L13,2H11z"/>
       </svg>
       Import
       <input type="file" id="fileInput" accept=".json">
     </button>
-    <button id="resetBtn" title="Auf Standardbefehle zurücksetzen">
+    <button id="resetBtn" title="Reset to standard commands">
       <svg viewBox="0 0 24 24">
         <path d="M12 5V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.63-.66 3.11-1.73 4.19l1.42 1.42C19.07 15.73 20 13.96 20 12c0-4.42-3.58-8-8-8zm-6.36.64L4.22 7.06C2.85 8.37 2 10.11 2 12c0 4.42 3.58 8 8 8v4l4-4-4-4v3c-3.31 0-6-2.69-6-6 0-1.24.39-2.39 1.04-3.36z"/>
       </svg>
       Reset
     </button>
-    <button id="darkModeBtn" title="Dark Mode umschalten">
+    
+    <!-- Neuer Bibliothek-Button -->
+   <button id="libraryBtn" title="Open library">
+     <svg viewBox="0 0 24 24"><path d="M3 4h18v2H3V4zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>
+    Bibliothek
+   </button>
+    
+    <button id="darkModeBtn" title="Toggle Dark Mode">
       <svg viewBox="0 0 24 24">
         <path d="M9.37 5.51A7 7 0 0 0 12 19a7 7 0 0 0 5.49-2.63A9 9 0 1 1 9.37 5.51z"/>
       </svg>
-      Dark Mode
+      
     </button>
-    <button id="favFilterBtn" title="Nur Favoriten anzeigen" class="inactive">
+    <button id="favFilterBtn" title="Show only favorites" class="inactive">
       <svg viewBox="0 0 24 24">
         <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
       </svg>
-      Favoriten
+      Favorites
     </button>
   </div>
   
-  <!-- Suchfeld und Auswahl -->
+  <!-- Search field and selection -->
   <div id="searchContainer">
-    <input type="text" id="searchInput" placeholder="Befehl oder Beschreibung suchen...">
+    <input type="text" id="searchInput" placeholder="Search command or description...">
     <br>
     <select id="searchScope">
-      <option value="both">Beide durchsuchen</option>
-      <option value="default">Nur Standardbefehle</option>
-      <option value="custom">Nur importierte Befehle</option>
+      <option value="both">Search both</option>
+      <option value="default">Only standard commands</option>
+      <option value="custom">Only imported commands</option>
     </select>
   </div>
   
-  <!-- Anzeige der Befehlszahlen -->
+  <!-- Recent searches -->
+  <div id="recentSearches"></div>
+
+  <!-- Command counts -->
   <div id="commandCounts"></div>
   
-  <!-- Zuletzt gesuchte Begriffe -->
-  <div id="recentSearches"></div>
-  
-  <!-- Custom Befehle -->
+  <!-- Custom Commands -->
   <div id="customSection" class="list-section" data-visible="true">
-    <!-- Header der importierten Befehle inkl. Dateiinformationen -->
+    <!-- Header of imported commands incl. file information -->
     <div class="section-title" id="customHeader">
-      Importierte / Custom Befehle (Keine importierten Befehle) <span class="toggle-section">[Ausblenden]</span>
+      <!-- codenote: Keep code note in original language -->
+      Imported / Custom Commands <span class="toggle-section">[Hide]</span>
     </div>
     <div id="commandList"></div>
   </div>
   
-  <!-- Standardbefehle -->
+  <!-- Standard Commands -->
   <div id="defaultSection" class="list-section" data-visible="true">
-    <div class="section-title">Standardbefehle <span class="toggle-section">[Ausblenden]</span></div>
+    <div class="section-title">Standard Commands <span class="toggle-section">[Hide]</span></div>
     <div id="defaultList"></div>
   </div>
   
   <!-- Add-Button -->
-  <button id="addCommandBtn" title="Neuen Befehl hinzufügen" class="new_add">
+  <button id="addCommandBtn" title="Add new command" class="new_add">
     <svg viewBox="0 0 24 24" class="addCommandBtn">
       <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
     </svg>
-    Neuer Befehl
+    New Command
   </button>
+
+  <!-- Bibliothek‑Modal -->
+<div id="libraryModal" class="modal">
+  <div class="modal-content">
+    <span id="closeLibrary" class="close">&times;</span>
+    <h2>Bibliothek</h2>
+    <ul id="libraryList"></ul>
+    <span style="font-size:11px;">add your command list to our library on <a href="https://github.com/xenex-ai/xenex-ai.github.io/tree/main/commands/lib">GitHub</a></span>
+  </div>
+ </div>
   
   <!-- Toast -->
   <div id="toast" class="toast"></div>
@@ -396,26 +514,26 @@
      * manuelle Ein-/Ausblendung der einzelnen Listenbereiche.
      ********************/
     
-    // Standardbefehle bleiben unverändert
+    // Standard commands remain unchanged
     const defaultCommands = [
-      { id: Date.now() + 1, command: "ls", description: "Zeigt den Inhalt des aktuellen Ordners an", favorite: false },
-      { id: Date.now() + 2, command: "cd ordnername", description: "Wechselt in den Ordner 'ordnername'", favorite: false },
-      { id: Date.now() + 3, command: "cd ..", description: "Geht einen Ordner nach oben", favorite: false },
-      { id: Date.now() + 4, command: "cd /", description: "Wechselt ins Root-Verzeichnis", favorite: false },
-      { id: Date.now() + 5, command: "cd ~", description: "Wechselt ins Home-Verzeichnis", favorite: false },
-      { id: Date.now() + 6, command: "pwd", description: "Zeigt den aktuellen Pfad an", favorite: false },
-      { id: Date.now() + 7, command: "python3 -m venv env", description: "Erstellt eine virtuelle Python-Umgebung", favorite: false },
-      { id: Date.now() + 8, command: "source env/bin/activate", description: "Aktiviert die virtuelle Umgebung", favorite: false },
-      { id: Date.now() + 9, command: "tmux new -s sessionname", description: "Erstellt eine neue tmux Session", favorite: false },
-      { id: Date.now() + 10, command: "tmux attach -t sessionname", description: "Tritt der vorhandenen tmux Session bei", favorite: false }
+      { id: Date.now() + 1, command: "ls", description: "Displays the content of the current folder", favorite: false },
+      { id: Date.now() + 2, command: "cd foldername", description: "Changes directory into 'foldername'", favorite: false },
+      { id: Date.now() + 3, command: "cd ..", description: "Goes one folder up", favorite: false },
+      { id: Date.now() + 4, command: "cd /", description: "Switches to the root directory", favorite: false },
+      { id: Date.now() + 5, command: "cd ~", description: "Switches to the home directory", favorite: false },
+      { id: Date.now() + 6, command: "pwd", description: "Displays the current path", favorite: false },
+      { id: Date.now() + 7, command: "python3 -m venv env", description: "Creates a Python virtual environment", favorite: false },
+      { id: Date.now() + 8, command: "source env/bin/activate", description: "Activates the virtual environment", favorite: false },
+      { id: Date.now() + 9, command: "tmux new -s sessionname", description: "Creates a new tmux session", favorite: false },
+      { id: Date.now() + 10, command: "tmux attach -t sessionname", description: "Attaches to an existing tmux session", favorite: false }
     ];
     
-    // Custom (importierte) Befehle – falls keine Datei importiert wurde, ist die Liste leer
+    // Custom (imported) commands – if no file is imported, the list is empty
     let customCommands = [];
     let showFavoritesOnly = false;
     let recentSearches = [];
     
-    // Custom Befehle speichern/laden
+    // Save/load custom commands
     const saveCustomCommands = () => localStorage.setItem('customCommands', JSON.stringify(customCommands));
     const loadCustomCommands = () => {
       try {
@@ -432,7 +550,7 @@
       }
     };
     
-    // Zuletzt gesuchte Begriffe speichern/laden
+    // Save/load recent searches
     const saveRecentSearches = () => localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
     const loadRecentSearches = () => {
       try {
@@ -453,25 +571,26 @@
       setTimeout(() => toast.classList.remove('show'), 2500);
     };
     
-    // Aktualisiere den Header der importierten Befehle inkl. Dateiinformationen und Toggle
+    // Update the header of imported commands with file information and toggle
     const updateCustomSectionHeader = () => {
       const headerElem = document.getElementById('customHeader');
       headerElem.innerHTML = "";
       const importedFile = localStorage.getItem("importedFile");
       let titleText = "";
+      let titleTextB = "";
       if (importedFile) {
         const info = JSON.parse(importedFile);
-        titleText = `Importierte / Custom Befehle`;
+        titleText = `Imported / Custom Commands`;
         titleTextB = `${info.name} (${info.sizeKB} KB)`;
       } else {
-        titleText = "Importierte / Custom Befehle";
-        titleTextB = `(Keine importierten Befehle)`;
+        titleText = "Imported / Custom Commands";
+        titleTextB = `(No imported commands)`;
       }
       const titleSpan = document.createElement('div');
       titleSpan.textContent = titleText;
       const titleDet = document.createElement('span');
       titleDet.textContent = titleTextB;
-      // Zusätzliche CSS-Klasse für den Dateinamenbereich
+      // codenote: Zusätzliche CSS-Klasse für den Dateinamenbereich beibehalten.
       titleDet.classList.add("imported-filename");
       headerElem.appendChild(titleSpan);
       headerElem.appendChild(titleDet)
@@ -479,36 +598,37 @@
       headerElem.appendChild(document.createTextNode(" "));
       const toggleSpan = document.createElement('span');
       toggleSpan.classList.add("toggle-section");
-      toggleSpan.textContent = "[Ausblenden]";
+      toggleSpan.textContent = "[Hide]";
       toggleSpan.addEventListener('click', (e) => {
         const section = e.target.closest('.list-section');
         const listDiv = section.querySelector('div[id$="List"]');
         if (listDiv.style.display === "none") {
           listDiv.style.display = "flex";
-          e.target.textContent = "[Ausblenden]";
+          e.target.textContent = "[Hide]";
           section.setAttribute("data-visible", "true");
         } else {
           listDiv.style.display = "none";
-          e.target.textContent = "[Anzeigen]";
+          e.target.textContent = "[Show]";
           section.setAttribute("data-visible", "false");
         }
       });
       headerElem.appendChild(toggleSpan);
     };
     
-    // Aktualisiere die Anzeige der Befehlszahlen
+    // Update the display of command counts
     const updateCommandCounts = () => {
       const countDiv = document.getElementById("commandCounts");
       const standardCount = defaultCommands.length;
       const importedCount = customCommands.length;
       const totalCount = standardCount + importedCount;
-      countDiv.innerHTML = `Gesamt: ${totalCount} | Standard: ${standardCount} | Importierte: ${importedCount}`;
+      countDiv.innerHTML = `Total: ${totalCount} | Standard: ${standardCount} | Imported: ${importedCount}`;
     };
     
-    // Befehlskarte erstellen (mit Nummerierung)
+    // Create command card (with numbering)
     const createCommandCard = (cmdObj, index) => {
       const card = document.createElement('div');
       card.className = 'command-card';
+      if(cmdObj.favorite) card.classList.add('favorite');
       card.setAttribute('data-id', cmdObj.id);
       card.draggable = true;
       
@@ -528,7 +648,7 @@
       const inputCommand = document.createElement('input');
       inputCommand.type = 'text';
       inputCommand.value = cmdObj.command;
-      inputCommand.placeholder = 'Befehl eingeben';
+      inputCommand.placeholder = 'Enter command';
       inputCommand.classList.add('command-input');
       inputCommand.addEventListener('input', () => {
         cmdObj.command = inputCommand.value;
@@ -537,7 +657,7 @@
       
       const inputDesc = document.createElement('textarea');
       inputDesc.value = cmdObj.description;
-      inputDesc.placeholder = 'Beschreibung eingeben';
+      inputDesc.placeholder = 'Enter description';
       inputDesc.rows = 2;
       inputDesc.classList.add('command-info');
       inputDesc.addEventListener('input', () => {
@@ -552,7 +672,7 @@
       buttonsDiv.className = 'buttons';
       
       const copyBtn = document.createElement('button');
-      copyBtn.title = 'Befehl kopieren';
+      copyBtn.title = 'Copy command';
       copyBtn.innerHTML = `<svg viewBox="0 0 24 24">
           <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
         </svg>`;
@@ -560,8 +680,8 @@
         const text = inputCommand.value;
         if (navigator.clipboard) {
           navigator.clipboard.writeText(text)
-            .then(() => showToast('Befehl kopiert!'))
-            .catch(() => showToast('Fehler beim Kopieren.'));
+            .then(() => showToast('Command copied!'))
+            .catch(() => showToast('Error copying.'));
         } else {
           const ta = document.createElement("textarea");
           ta.value = text;
@@ -569,16 +689,16 @@
           ta.select();
           try {
             document.execCommand('copy');
-            showToast('Befehl kopiert!');
+            showToast('Command copied!');
           } catch (err) {
-            showToast('Fehler beim Kopieren.');
+            showToast('Error copying.');
           }
           document.body.removeChild(ta);
         }
       });
       
       const favBtn = document.createElement('button');
-      favBtn.title = 'Als Favorit markieren';
+      favBtn.title = cmdObj.favorite ? 'Unmark favorite' : 'Mark as favorite';
       favBtn.innerHTML = `<svg viewBox="0 0 24 24">
           <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
         </svg>`;
@@ -586,20 +706,26 @@
       favBtn.addEventListener('click', () => {
         cmdObj.favorite = !cmdObj.favorite;
         favBtn.style.fill = cmdObj.favorite ? "#ffa500" : "#007BFF";
+        favBtn.title = cmdObj.favorite ? 'Unmark favorite' : 'Mark as favorite';
+        if(cmdObj.favorite) {
+          card.classList.add('favorite');
+        } else {
+          card.classList.remove('favorite');
+        }
         saveCustomCommands();
       });
       
       const deleteBtn = document.createElement('button');
-      deleteBtn.title = 'Befehl löschen';
+      deleteBtn.title = 'Delete command';
       deleteBtn.innerHTML = `<svg viewBox="0 0 24 24">
           <path d="M19 13H5V11H19V13Z"/>
         </svg>`;
       deleteBtn.addEventListener('click', () => {
-        if (confirm('Diesen Befehl wirklich löschen?')) {
+        if (confirm('Do you really want to delete this command?')) {
           customCommands = customCommands.filter(c => c.id !== cmdObj.id);
           saveCustomCommands();
           renderAll();
-          showToast('Befehl gelöscht.');
+          showToast('Command deleted.');
         }
       });
       
@@ -614,7 +740,7 @@
       return card;
     };
     
-    // Für Custom Befehle (importiert) – Filterung anhand Suchbegriff.
+    // For custom commands (imported) – filter using search term.
     const renderCustomCommands = (searchQuery = "") => {
       const listDiv = document.getElementById('commandList');
       listDiv.innerHTML = "";
@@ -628,8 +754,10 @@
       if (showFavoritesOnly) {
         filtered = filtered.filter(cmd => cmd.favorite);
       }
+      // Sort so favorites always appear on top
+      filtered.sort((a, b) => (b.favorite === a.favorite) ? 0 : (b.favorite ? 1 : -1));
       if (filtered.length === 0) {
-        listDiv.innerHTML = '<p style="text-align:center;color:#999;">Keine importierten Befehle vorhanden.</p>';
+        listDiv.innerHTML = '<p style="text-align:center;color:#999;">No imported commands available.</p>';
         return;
       }
       filtered.forEach((cmd, index) => {
@@ -637,7 +765,7 @@
       });
     };
     
-    // Für Standardbefehle – gleiches Prinzip
+    // For standard commands – same principle
     const renderDefaultCommands = (searchQuery = "") => {
       const defaultDiv = document.getElementById('defaultList');
       defaultDiv.innerHTML = "";
@@ -648,16 +776,18 @@
           cmd.description.toLowerCase().includes(searchQuery)
         );
       }
+      // Sort so favorites come first in standard commands as well
+      filtered.sort((a, b) => (b.favorite === a.favorite) ? 0 : (b.favorite ? 1 : -1));
       if(filtered.length > 0) {
         filtered.forEach((cmd, index) => {
           defaultDiv.appendChild(createCommandCard(cmd, index + 1));
         });
       } else {
-        defaultDiv.innerHTML = '<p style="text-align:center;color:#999;">Keine passenden Standardbefehle gefunden.</p>';
+        defaultDiv.innerHTML = '<p style="text-align:center;color:#999;">No matching standard commands found.</p>';
       }
     };
     
-    // Suchfunktion: Je nach Auswahl in "searchScope"
+    // Search function: Depending on the choice in "searchScope"
     const renderSearchResults = () => {
       const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
       const scope = document.getElementById('searchScope').value;
@@ -681,7 +811,7 @@
       }
     };
     
-    // Zeige alle Befehle (je nach Auswahl und manueller Einstellung)
+    // Show all commands (depending on selection and manual toggle)
     const renderAll = () => {
       const scope = document.getElementById('searchScope').value;
       if (scope === "default") {
@@ -709,12 +839,12 @@
       updateCommandCounts();
     };
     
-    // Anzeige der zuletzt gesuchten Begriffe
+    // Display recent search terms
     const renderRecentSearches = () => {
       const recentDiv = document.getElementById('recentSearches');
       recentDiv.innerHTML = "";
       if (recentSearches.length > 0) {
-        recentDiv.innerHTML = "<strong>Zuletzt gesucht:</strong> ";
+        recentDiv.innerHTML = "<strong>Recent searches:</strong> ";
         recentSearches.forEach(term => {
           const span = document.createElement('span');
           span.textContent = term;
@@ -727,7 +857,7 @@
       }
     };
     
-    // Drag & Drop für Custom Befehle
+    // Drag & Drop for custom commands
     const commandListDiv = document.getElementById('commandList');
     commandListDiv.addEventListener('dragover', (e) => {
       e.preventDefault();
@@ -751,7 +881,7 @@
       }, { offset: Number.NEGATIVE_INFINITY }).element;
     };
     
-    // Aktualisierung der Reihenfolge, wenn kein Suchfilter aktiv ist
+    // Update the order when no search filter is active
     const updateOrder = () => {
       if (document.getElementById('searchInput').value.trim() !== "") return;
       const newOrder = [];
@@ -766,30 +896,46 @@
     const observer = new MutationObserver(updateOrder);
     observer.observe(commandListDiv, { childList: true });
     
-    // Neue Custom Befehle hinzufügen
+    // Add new custom commands
     const addNewCommand = () => {
-      const newCmd = { id: Date.now(), command: "neuer_befehl", description: "Beschreibung", favorite: false };
+      const newCmd = { id: Date.now(), command: "new_command", description: "Description", favorite: false };
       customCommands.push(newCmd);
       saveCustomCommands();
       renderAll();
-      showToast('Neuer Befehl hinzugefügt!');
+      showToast('New command added!');
     };
     
-    // Export / Import (nur Custom)
+    // Export / Import (custom only)
     const exportCommands = () => {
-      const dataStr = JSON.stringify(customCommands, null, 2);
-      const blob = new Blob([dataStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = "commands_export.json";
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Befehle exportiert!');
-    };
+  // 1) Prompt für Dateinamen (ohne .json)
+  let filename = prompt(
+    "Name data for Export (no .json):",
+    "commands_export"
+  );
+  if (!filename) {
+    showToast('Export abroved.');
+    return;
+  }
+  // 2) Endung sicherstellen
+  if (!filename.toLowerCase().endsWith('.json')) {
+    filename += '.json';
+  }
+
+  // 3) Rest wie gehabt, nur mit variablem Download-Namen
+  const dataStr = JSON.stringify(customCommands, null, 2);
+  const blob    = new Blob([dataStr], { type: "application/json" });
+  const url     = URL.createObjectURL(blob);
+  const a       = document.createElement('a');
+  a.href        = url;
+  a.download    = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`Commands exported as ${filename}!`);
+};
+
     
-    // Importiert JSON und zeigt den Dateinamen samt Größe (in KB) an;
-    // speichert diese Informationen in localStorage und aktualisiert den Header.
+    // Import JSON and display the file name along with its size (in KB);
+    // store this information in localStorage and update the header.
     const importCommands = (file) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -802,45 +948,46 @@
             const sizeKB = (file.size / 1024).toFixed(2);
             localStorage.setItem("importedFile", JSON.stringify({ name: file.name, sizeKB: sizeKB }));
             updateCustomSectionHeader();
-            showToast(`Befehle importiert! (Datei: ${file.name}, ${sizeKB} KB)`);
+            showToast(`Commands imported! (File: ${file.name}, ${sizeKB} KB)`);
           } else {
-            showToast("Ungültiges Format!");
+            showToast("Invalid format!");
           }
         } catch (error) {
-          showToast("Fehler beim Importieren!");
+          showToast("Error importing!");
         }
       };
       reader.readAsText(file);
     };
 
-    // Reset: Custom Befehle leeren und Import-Information entfernen, Header aktualisieren.
+    // Reset: Clear custom commands and remove import information, update header.
     const resetCommands = () => {
-      if (confirm("Möchtest Du wirklich die importierten Befehle löschen? Alle Änderungen gehen verloren!")) {
+      if (confirm("Do you really want to delete the imported commands? All changes will be lost!")) {
         customCommands = [];
         saveCustomCommands();
         localStorage.removeItem("importedFile");
         updateCustomSectionHeader();
         renderAll();
-        showToast('Importierte Befehle gelöscht!');
+        showToast('Imported commands deleted!');
       }
     };
     
-    // Dark Mode mit Speicherung der Einstellung
+    // Dark Mode with saved setting
     const toggleDarkMode = () => {
       document.body.classList.toggle('dark-mode');
       localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
     };
     
-    // Favoritenfilter
+    // Favorites filter
     const toggleFavFilter = () => {
       showFavoritesOnly = !showFavoritesOnly;
       const favBtn = document.getElementById('favFilterBtn');
       favBtn.classList.toggle('active', showFavoritesOnly);
       favBtn.classList.toggle('inactive', !showFavoritesOnly);
+      favBtn.title = showFavoritesOnly ? 'Show all commands' : 'Show only favorites';
       renderAll();
     };
     
-    // Event-Listener für manuelles Toggle der Listenbereiche
+    // Event listener for manual toggle of list sections
     const initSectionToggles = () => {
       document.querySelectorAll('.toggle-section').forEach(span => {
         span.addEventListener('click', (e) => {
@@ -848,18 +995,18 @@
           const listDiv = section.querySelector('div[id$="List"]');
           if (listDiv.style.display === "none") {
             listDiv.style.display = "flex";
-            e.target.textContent = "[Ausblenden]";
+            e.target.textContent = "[Hide]";
             section.setAttribute("data-visible", "true");
           } else {
             listDiv.style.display = "none";
-            e.target.textContent = "[Anzeigen]";
+            e.target.textContent = "[Show]";
             section.setAttribute("data-visible", "false");
           }
         });
       });
     };
     
-    // Ereignisbinder
+    // Event bindings
     document.getElementById('searchInput').addEventListener('input', () => {
       const query = document.getElementById('searchInput').value.trim();
       if (query === "") {
@@ -884,7 +1031,7 @@
       }
     });
     
-    // Initialisierung
+    // Initialization
     window.addEventListener('DOMContentLoaded', () => {
       if (localStorage.getItem('darkMode') === "true") {
         document.body.classList.add('dark-mode');
@@ -896,6 +1043,74 @@
       renderAll();
       renderRecentSearches();
     });
+
+  
+// Bibliothek öffnen über index.json (ohne serverseitiges Directory-Listing)
+document.getElementById('libraryBtn').addEventListener('click', () => {
+  document.getElementById('libraryModal').style.display = 'flex';
+  loadLibraryList();
+});
+
+
+// Modal schließen
+document.getElementById('closeLibrary').addEventListener('click', () => {
+  document.getElementById('libraryModal').style.display = 'none';
+});
+
+// Laden und anzeigen (wie Import) - Bibliotheken werden in ~./lib/Index.json dokumentiert!
+async function loadLibraryList() {
+  const list = document.getElementById('libraryList');
+  list.innerHTML = '<li>Lade Liste…</li>';
+
+  try {
+    const resp = await fetch('../lib/index.json');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const files = await resp.json(); // Array mit Dateinamen
+    list.innerHTML = '';             // Liste leeren
+
+    files.sort().forEach(file => {
+      const li = document.createElement('li');
+      const [main, sub] = file.replace('.json','').split('_');
+      li.innerHTML = `
+        <span class="name-main">${main}</span>
+        <span class="name-sub">${sub? ' '+sub : ''}</span>
+      `;
+      li.addEventListener('click', () => loadFromLibrary(`../lib/${file}`));
+      list.appendChild(li);
+    });
+
+  } catch (e) {
+    list.innerHTML = `<li>Fehler beim Laden: ${e.message}</li>`;
+  }
+}
+
+async function loadFromLibrary(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const imported = await res.json();
+    if (!Array.isArray(imported)) {
+      showToast('Ungültiges Format in der Bibliothek!');
+      return;
+    }
+    // 1) Befehle übernehmen
+    customCommands = imported;
+    saveCustomCommands();
+    renderAll();
+    // 2) Header updaten (optional, wenn Datei‑Info angezeigt werden soll)
+    const sizeKB = (new Blob([JSON.stringify(imported)]).size / 1024).toFixed(2);
+    localStorage.setItem(
+      "importedFile",
+      JSON.stringify({ name: url.split('/').pop(), sizeKB })
+    );
+    updateCustomSectionHeader();
+    showToast('Befehle aus der Bibliothek geladen!');
+  } catch (err) {
+    showToast(`Fehler beim Laden: ${err.message}`);
+  }
+}
+
+
   </script>
 </body>
 </html>
