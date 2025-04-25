@@ -1063,7 +1063,7 @@ async function loadLibraryList() {
   list.innerHTML = '<li>Lade Liste…</li>';
 
   try {
-    const resp = await fetch('./lib/index.json');
+    const resp = await fetch('lib/index.json');
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const files = await resp.json(); // Array mit Dateinamen
     list.innerHTML = '';             // Liste leeren
@@ -1075,7 +1075,7 @@ async function loadLibraryList() {
         <span class="name-main">${main}</span>
         <span class="name-sub">${sub? ' '+sub : ''}</span>
       `;
-      li.addEventListener('click', () => loadFromLibrary(`./lib/${file}`));
+      li.addEventListener('click', () => loadFromLibrary(`lib/${file}`));
       list.appendChild(li);
     });
 
