@@ -1,1 +1,218 @@
-sss
+[
+  {
+    "id": 1744888000001,
+    "command": "solana --version",
+    "description": "Zeigt die installierte Solana-CLI-Version",
+    "favorite": false
+  },
+  {
+    "id": 1744888000002,
+    "command": "solana config get",
+    "description": "Gibt die aktuelle CLI-Konfiguration (RPC-URL, Keypair, Commitment) aus",
+    "favorite": false
+  },
+  {
+    "id": 1744888000003,
+    "command": "solana config set --url https://api.devnet.solana.com",
+    "description": "Wechselt das Netzwerk auf Devnet",
+    "favorite": false
+  },
+  {
+    "id": 1744888000004,
+    "command": "solana config set --url https://api.mainnet-beta.solana.com",
+    "description": "Wechselt das Netzwerk auf Mainnet-Beta",
+    "favorite": false
+  },
+  {
+    "id": 1744888000005,
+    "command": "solana address",
+    "description": "Zeigt die Adresse des aktuell konfigurierten Keypairs",
+    "favorite": false
+  },
+  {
+    "id": 1744888000006,
+    "command": "solana-keygen new --outfile ~/wallet.json",
+    "description": "Erstellt ein neues Keypair und speichert es in ~/wallet.json",
+    "favorite": false
+  },
+  {
+    "id": 1744888000007,
+    "command": "solana balance",
+    "description": "Zeigt das SOL-Guthaben des aktiven Keypairs",
+    "favorite": false
+  },
+  {
+    "id": 1744888000008,
+    "command": "solana airdrop 1",
+    "description": "Fordert 1 SOL (nur auf Devnet) an",
+    "favorite": false
+  },
+  {
+    "id": 1744888000009,
+    "command": "solana transfer <RECIPIENT_ADDRESS> 0.5",
+    "description": "Sendet 0.5 SOL an die angegebene Adresse",
+    "favorite": false
+  },
+  {
+    "id": 1744888000010,
+    "command": "solana stake-account <STAKE_ACCOUNT_ADDRESS>",
+    "description": "Zeigt Details zum angegebenen Stake-Account",
+    "favorite": false
+  },
+  {
+    "id": 1744888000011,
+    "command": "solana validators",
+    "description": "Listet aktuelle Validatoren im Netzwerk auf",
+    "favorite": false
+  },
+  {
+    "id": 1744888000012,
+    "command": "solana slot",
+    "description": "Zeigt die aktuelle Slot-Nummer",
+    "favorite": false
+  },
+  {
+    "id": 1744888000013,
+    "command": "solana ping",
+    "description": "Misst die Latenz zum RPC-Server",
+    "favorite": false
+  },
+  {
+    "id": 1744888000014,
+    "command": "solana logs <PROGRAM_ID>",
+    "description": "Zeigt die Logs für das angegebene Programm",
+    "favorite": false
+  },
+  {
+    "id": 1744888000015,
+    "command": "solana program deploy <PATH_TO_SO>",
+    "description": "Deployt ein Solana-Programm (BPF-Shared-Object)",
+    "favorite": false
+  },
+  {
+    "id": 1744888000016,
+    "command": "solana config set --keypair ~/wallet.json",
+    "description": "Setzt das Standard-Keypair (Wallet) und aktiviert es",
+    "favorite": false
+  },
+  {
+    "id": 1744888000017,
+    "command": "solana-keygen pubkey ~/wallet.json",
+    "description": "Zeigt den Public Key des Keypairs in ~/wallet.json",
+    "favorite": false
+  },
+  {
+    "id": 1744888000018,
+    "command": "solana-keygen recover 'prompt://?' --outfile ~/wallet.json",
+    "description": "Stellt ein Keypair aus einer Seed-Phrase wieder her und speichert es in ~/wallet.json",
+    "favorite": false
+  },
+  {
+    "id": 1744888000019,
+    "command": "solana-keygen grind --starts-with PREFIX --num-threads 4 --outfile ~/grind_wallet.json",
+    "description": "Generiert einen Public Key, der mit 'PREFIX' beginnt",
+    "favorite": false
+  },
+  {
+    "id": 1744888000020,
+    "command": "solana create-stake-account <STAKE_KEYPAIR> <AMOUNT>",
+    "description": "Erstellt und delegiert einen neuen Stake-Account mit dem angegebenen SOL-Betrag",
+    "favorite": false
+  },
+  {
+    "id": 1744888000021,
+    "command": "solana delegate-stake <STAKE_ACCOUNT_ADDRESS> <VALIDATOR_VOTE_ADDRESS>",
+    "description": "Delegiert Stake an einen Validator",
+    "favorite": false
+  },
+  {
+    "id": 1744888000022,
+    "command": "solana stake-deactivate <STAKE_ACCOUNT_ADDRESS>",
+    "description": "Deaktiviert Stake auf dem angegebenen Stake-Account",
+    "favorite": false
+  },
+  {
+    "id": 1744888000023,
+    "command": "solana epoch-info",
+    "description": "Zeigt Informationen zur aktuellen Epoche",
+    "favorite": false
+  },
+  {
+    "id": 1744888000024,
+    "command": "solana inflation",
+    "description": "Zeigt aktuelle Inflationsrate und Verteilung im Netzwerk",
+    "favorite": false
+  },
+  {
+    "id": 1744888000025,
+    "command": "solana rent-minimum-balance <DATA_LENGTH>",
+    "description": "Gibt die Mindest-Lamports für Rentenbefreiung einer Datenstruktur der Länge DATA_LENGTH aus",
+    "favorite": false
+  },
+  {
+    "id": 1744888000026,
+    "command": "solana fees",
+    "description": "Zeigt die aktuellen Transaktionsgebühren",
+    "favorite": false
+  },
+  {
+    "id": 1744888000027,
+    "command": "solana confirm <TX_SIGNATURE>",
+    "description": "Wartet auf Bestätigung einer Transaktion anhand ihrer Signatur",
+    "favorite": false
+  },
+  {
+    "id": 1744888000028,
+    "command": "solana forget <TX_SIGNATURE>",
+    "description": "Entfernt eine Transaktion aus dem lokalen Cache",
+    "favorite": false
+  },
+  {
+    "id": 1744888000029,
+    "command": "spl-token create-token",
+    "description": "Erstellt ein neues SPL-Token",
+    "favorite": false
+  },
+  {
+    "id": 1744888000030,
+    "command": "spl-token create-account <TOKEN_MINT_ADDRESS>",
+    "description": "Erstellt ein Token-Account für das angegebene SPL-Token",
+    "favorite": false
+  },
+  {
+    "id": 1744888000031,
+    "command": "spl-token balance <TOKEN_MINT_ADDRESS>",
+    "description": "Zeigt den SPL-Token-Bestand des Haupt-Accounts für das angegebene Token",
+    "favorite": false
+  },
+  {
+    "id": 1744888000032,
+    "command": "spl-token accounts",
+    "description": "Listet alle SPL-Token-Konten des aktuellen Wallets auf",
+    "favorite": false
+  },
+  {
+    "id": 1744888000033,
+    "command": "spl-token mint <TOKEN_MINT_ADDRESS> <AMOUNT> [RECIPIENT]",
+    "description": "Prägt SPL-Token und sendet sie an das angegebene Account",
+    "favorite": false
+  },
+  {
+    "id": 1744888000034,
+    "command": "spl-token transfer <TOKEN_MINT_ADDRESS> <AMOUNT> <RECIPIENT>",
+    "description": "Überträgt SPL-Token an eine andere Adresse",
+    "favorite": false
+  },
+  {
+    "id": 1744888000035,
+    "command": "spl-token authorize <TOKEN_MINT_ADDRESS> <OPERATION> <NEW_AUTHORITY>",
+    "description": "Ändert die Berechtigungen (Mint/Freeze) für das SPL-Token",
+    "favorite": false
+  },
+  {
+    "id": 1744888000036,
+    "command": "solana help",
+    "description": "Zeigt Hilfe und Übersicht über alle Solana-CLI-Befehle",
+    "favorite": false
+  }
+]
