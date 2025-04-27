@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multi-Wallet Connect & SOL Send</title>
+
+  <!-- Ethereum -->
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.6.6/dist/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+
+  <!-- Solana Web3.js (Browser-IIFE) -->
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.93.0/lib/index.iife.min.js"></script>
+
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    button, input { margin: 0.5rem 0; padding: 0.5rem; font-size: 1rem; }
+    #walletInfo { margin: 1rem 0; }
+  </style>
+</head>
+<body>
+  <h2>Verbinde deine Krypto-Wallet</h2>
+
+  <!-- Ethereum -->
+  <button id="connectMetamask">MetaMask verbinden</button><br>
+  <button id="connectWalletConnect">WalletConnect verbinden</button><br>
+
+  <!-- Solana -->
+  <button id="connectPhantom">Phantom verbinden</button><br>
+  <button id="connectSolflare">Solflare verbinden</button><br>
+
+  <p id="walletInfo">Nicht verbunden</p>
+
+  <hr>
+
+  <h3>SOL senden</h3>
+  <label for="solAmount">Anzahl SOL:</label>
+  <input type="number" id="solAmount" step="0.01" min="0"><br>
+  <button id="sendSol" disabled>SEND SOL</button>
+
+  <script>
+    // --- Ethereum Setup ---
+    let web3Eth, ethProvider, ethAccount;
+
+    async function connectMetamask() {
+      if (window.ethereum) {
+        try {
+          web3Eth = new Web3(window.ethereum);
+          await window.ethereum.request({ method: "eth_requestAccounts" });
+          const accounts = await web3Eth.eth.getAccounts();
+          ethAccount = accounts[0];
+          document.getElementById("walletInfo").innerText = `MetaMask: ${ethAccount}`;
+        } catch (err) {
+          console.error(err);
+          document.getElementById("walletInfo").innerText = "MetaMask-Fehler";
+        }
+      } else {
+        alert("MetaMask nicht gefunden!");
+      }
+    }
+
+    async function connectWalletConnect() {
+      ethProvider = new WalletConnectProvider.default({
+        rpc: { 1: "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID" }
+      });
+      try {
+        await ethProvider.enable();
+        web3Eth = new Web3(ethProvider);
+        const accounts = await web3Eth.eth.getAccounts();
+        ethAccount = accounts[0];
+        document.getElementById("walletInfo").innerText = `WalletConnect: ${ethAccount}`;
+        ethProvider.on("disconnect", () => {
+          document.getElementById("walletInfo").innerText = "Wallet getrennt";
+          ethAccount = null;
+        });
+      } catch (err) {
+        console.error(err);
+        document.getElementById("walletInfo").innerText = "WC-Fehler";
+      }
+    }
+
+    // --- Solana Setup ---
+    const {
+      Connection,
+      PublicKey,
+      SystemProgram,
+      Transaction,
+      LAMPORTS_PER_SOL,
+      clusterApiUrl
+    } = solanaWeb3;
+
+    let solProvider, solPublicKey, solConnection;
+
+    async function connectSolana(providerName) {
+      // providerName: "Phantom" oder "Solflare"
+      const provider = window.solana?.isPhantom && providerName === "Phantom"
+        ? window.solana
+        : window.solflare && providerName === "Solflare"
+          ? window.solflare
+          : null;
+
+      if (!provider) {
+        return alert(`${providerName} Wallet nicht gefunden!`);
+      }
+
+      try {
+        solProvider = provider;
+        // @ts-ignore
+        await solProvider.connect();
+        solPublicKey = solProvider.publicKey;
+        solConnection = new Connection(clusterApiUrl("mainnet-beta"), "confirmed");
+        document.getElementById("walletInfo").innerText =
+          `${providerName}: ${solPublicKey.toString()}`;
+        document.getElementById("sendSol").disabled = false;
+        solProvider.on("disconnect", () => {
+          document.getElementById("walletInfo").innerText = "Solana Wallet getrennt";
+          solPublicKey = null;
+          document.getElementById("sendSol").disabled = true;
+        });
+      } catch (err) {
+        console.error(err);
+        document.getElementById("walletInfo").innerText = `${providerName}-Fehler`;
+      }
+    }
+
+    async function sendSol() {
+      const amount = parseFloat(document.getElementById("solAmount").value);
+      if (!solPublicKey || isNaN(amount) || amount <= 0) {
+        return alert("Ungültige SOL-Menge oder Wallet nicht verbunden.");
+      }
+
+      const recipient = new PublicKey("87rM7pH6PsUQ7zE7458XoD5K7od1heEuv1FyTguxenex");
+      const lamports = amount * LAMPORTS_PER_SOL;
+
+      // Transaction vorbereiten
+      const tx = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: solPublicKey,
+          toPubkey: recipient,
+          lamports
+        })
+      );
+
+      try {
+        // signAndSendTransaction (Phantom) oder signTransaction + sendRawTransaction
+        let signature;
+        if (solProvider.signAndSendTransaction) {
+          const { signature: sig } = await solProvider.signAndSendTransaction(tx);
+          signature = sig;
+        } else {
+          const signed = await solProvider.signTransaction(tx);
+          signature = await solConnection.sendRawTransaction(signed.serialize());
+        }
+        await solConnection.confirmTransaction(signature, "confirmed");
+        alert(`Erfolgreich gesendet! Signature:\n${signature}`);
+      } catch (err) {
+        console.error(err);
+        alert("Fehler beim Senden: " + err.message);
+      }
+    }
+
+    // --- Event Listeners ---
+    document.getElementById("connectMetamask")
+      .addEventListener("click", connectMetamask);
+    document.getElementById("connectWalletConnect")
+      .addEventListener("click", connectWalletConnect);
+    document.getElementById("connectPhantom")
+      .addEventListener("click", () => connectSolana("Phantom"));
+    document.getElementById("connectSolflare")
+      .addEventListener("click", () => connectSolana("Solflare"));
+    document.getElementById("sendSol")
+      .addEventListener("click", sendSol);
+  </script>
+</body>
+</html>
