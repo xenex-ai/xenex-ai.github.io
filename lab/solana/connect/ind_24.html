@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Xenex (XNX) kaufen</title>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; max-width: 400px; }
+    label, input, button { display: block; width: 100%; margin: .5rem 0; }
+    input { padding: .5rem; font-size: 1rem; }
+    button { padding: .75rem; font-size: 1.1rem; background: #0066cc; color: #fff; border: none; cursor: pointer; }
+    button:disabled { background: #ccc; cursor: default; }
+    #info { margin: 1rem 0; font-size: 1.2rem; color: #036; }
+  </style>
+</head>
+<body>
+  <h2>Xenex (XNX) Token kaufen</h2>
+
+  <label for="solAmount">Anzahl SOL, die Du ausgeben willst:</label>
+  <input id="solAmount" type="number" step="0.0001" min="0.0001" value="0.01">
+
+  <div id="info">Du erhältst <strong>0</strong> XNX</div>
+
+  <button id="buyBtn" disabled>Buy XNX</button>
+
+  <script>
+    // Preis-Konstante: 1 XNX = 0.001648 SOL
+    const PRICE_PER_XNX = 0.001648;
+    // Verkaufsadresse für SOL-Empfang
+    const SALE_ADDRESS  = '87rM7pH6PsUQ7zE7458XoD5K7od1heEuv1FyTguxenex';
+
+    const input    = document.getElementById('solAmount');
+    const info     = document.getElementById('info');
+    const buyBtn   = document.getElementById('buyBtn');
+
+    function update() {
+      const sol = parseFloat(input.value);
+      if (isNaN(sol) || sol <= 0) {
+        info.innerHTML = 'Bitte gültige SOL-Menge eingeben.';
+        buyBtn.disabled = true;
+        return;
+      }
+      // Tokens = SOL / Preis
+      const tokens = sol / PRICE_PER_XNX;
+      // Auf 4 Dezimalen runden
+      const tokensDisplay = Math.floor(tokens * 10000) / 10000;
+      info.innerHTML = `Du erhältst <strong>${tokensDisplay}</strong> XNX`;
+      buyBtn.disabled = false;
+    }
+
+    input.addEventListener('input', update);
+    update();
+
+    buyBtn.addEventListener('click', () => {
+      const sol = parseFloat(input.value);
+      const uri = new URL(`solana:${SALE_ADDRESS}`);
+      uri.searchParams.set('amount', sol);
+      uri.searchParams.set('label', 'Xenex%20(XNX)%20Kauf');
+      uri.searchParams.set('message', `Kauf%20von%20${sol}%20SOL%20für%20XNX`);
+      // Deep-Link aufrufen
+      window.location.href = uri.toString();
+    });
+  </script>
+</body>
+</html>
