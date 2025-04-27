@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multi-Wallet Connect & SOL Send</title>
+
+  <!-- Ethereum -->
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.6.6/dist/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+
+  <!-- Solana Web3.js (Browser-IIFE) -->
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.93.0/lib/index.iife.min.js"></script>
+
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    select, button, input { margin: 0.5rem 0; padding: 0.5rem; font-size: 1rem; }
+    #walletInfo { margin: 1rem 0; }
+  </style>
+</head>
+<body>
+  <h2>Verbinde deine Krypto-Wallet</h2>
+
+  <label for="walletSelect">Wallet wählen:</label>
+  <select id="walletSelect">
+    <option value="metamask">MetaMask (Ethereum)</option>
+    <option value="walletconnect">WalletConnect (Ethereum)</option>
+    <option value="phantom">Phantom (Solana)</option>
+    <option value="solflare">Solflare (Solana)</option>
+  </select>
+  <button id="connectWallet">Verbinden</button>
+
+  <p id="walletInfo">Nicht verbunden</p>
+
+  <hr>
+
+  <h3>SOL senden</h3>
+  <label for="solAmount">Anzahl SOL:</label>
+  <input type="number" id="solAmount" step="0.01" min="0"><br>
+  <button id="sendSol" disabled>SEND SOL</button>
+
+  <script>
+    // --- Ethereum Globals ---
+    let web3Eth, ethProvider, ethAccount;
+
+    // --- Solana Globals ---
+    const {
+      Connection,
+      PublicKey,
+      SystemProgram,
+      Transaction,
+      LAMPORTS_PER_SOL,
+      clusterApiUrl
+    } = solanaWeb3;
+    let solProvider, solPublicKey, solConnection;
+
+    // --- Connect Dispatcher ---
+    document.getElementById("connectWallet").addEventListener("click", async () => {
+      const choice = document.getElementById("walletSelect").value;
+      // Reset states
+      ethAccount = null;
+      solPublicKey = null;
+      document.getElementById("sendSol").disabled = true;
+
+      if (choice === "metamask") {
+        await connectMetamask();
+      } else if (choice === "walletconnect") {
+        await connectWalletConnect();
+      } else if (choice === "phantom") {
+        await connectSolana("Phantom");
+      } else if (choice === "solflare") {
+        await connectSolana("Solflare");
+      }
+    });
+
+    // --- Ethereum Connect ---
+    async function connectMetamask() {
+      if (!window.ethereum) return alert("MetaMask nicht gefunden!");
+      try {
+        web3Eth = new Web3(window.ethereum);
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        const accounts = await web3Eth.eth.getAccounts();
+        ethAccount = accounts[0];
+        document.getElementById("walletInfo").innerText = `MetaMask: ${ethAccount}`;
+      } catch (err) {
+        console.error(err);
+        document.getElementById("walletInfo").innerText = "MetaMask-Fehler";
+      }
+    }
+
+    async function connectWalletConnect() {
+      ethProvider = new WalletConnectProvider.default({
+        rpc: { 1: "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID" }
+      });
+      try {
+        await ethProvider.enable();
+        web3Eth = new Web3(ethProvider);
+        const accounts = await web3Eth.eth.getAccounts();
+        ethAccount = accounts[0];
+        document.getElementById("walletInfo").innerText = `WalletConnect: ${ethAccount}`;
+        ethProvider.on("disconnect", () => {
+          document.getElementById("walletInfo").innerText = "ETH Wallet getrennt";
+          ethAccount = null;
+        });
+      } catch (err) {
+        console.error(err);
+        document.getElementById("walletInfo").innerText = "WC-Fehler";
+      }
+    }
+
+    // --- Solana Connect ---
+    async function connectSolana(providerName) {
+      const provider = (providerName === "Phantom" && window.solana?.isPhantom)
+        ? window.solana
+        : (providerName === "Solflare" && window.solflare)
+          ? window.solflare
+          : null;
+      if (!provider) return alert(`${providerName} Wallet nicht gefunden!`);
+      try {
+        solProvider = provider;
+        await solProvider.connect();
+        solPublicKey = solProvider.publicKey;
+        solConnection = new Connection(clusterApiUrl("mainnet-beta"), "confirmed");
+        document.getElementById("walletInfo").innerText =
+          `${providerName}: ${solPublicKey.toString()}`;
+        document.getElementById("sendSol").disabled = false;
+        solProvider.on("disconnect", () => {
+          document.getElementById("walletInfo").innerText = "Solana Wallet getrennt";
+          solPublicKey = null;
+          document.getElementById("sendSol").disabled = true;
+        });
+      } catch (err) {
+        console.error(err);
+        document.getElementById("walletInfo").innerText = `${providerName}-Fehler`;
+      }
+    }
+
+    // --- Send SOL ---
+    document.getElementById("sendSol").addEventListener("click", async () => {
+      const amount = parseFloat(document.getElementById("solAmount").value);
+      if (!solPublicKey || isNaN(amount) || amount <= 0) {
+        return alert("Ungültige SOL-Menge oder Wallet nicht verbunden.");
+      }
+      const recipient = new PublicKey("87rM7pH6PsUQ7zE7458XoD5K7od1heEuv1FyTguxenex");
+      const lamports = Math.floor(amount * LAMPORTS_PER_SOL);
+
+      // Transaction vorbereiten
+      const tx = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: solPublicKey,
+          toPubkey: recipient,
+          lamports
+        })
+      );
+      // Setze feePayer & recentBlockhash
+      tx.feePayer = solPublicKey;
+      const { blockhash } = await solConnection.getLatestBlockhash("confirmed");
+      tx.recentBlockhash = blockhash;
+
+      try {
+        let signature;
+        if (solProvider.signAndSendTransaction) {
+          // Phantom & kompatible Wallets
+          const resp = await solProvider.signAndSendTransaction(tx);
+          signature = resp.signature;
+        } else {
+          // Solflare älterer Flow
+          const signed = await solProvider.signTransaction(tx);
+          signature = await solConnection.sendRawTransaction(signed.serialize());
+        }
+        await solConnection.confirmTransaction(signature, "confirmed");
+        alert(`Erfolgreich gesendet!\nSignature: ${signature}`);
+      } catch (err) {
+        console.error(err);
+        alert("Fehler beim Senden: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
