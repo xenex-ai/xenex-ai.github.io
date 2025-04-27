@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Solana Wallet Demo mit sanfter Fehlerbehandlung</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      max-width: 500px;
+      margin: auto;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      margin: 0.5rem 0;
+      cursor: pointer;
+    }
+    input {
+      padding: 0.4rem;
+      width: 6rem;
+    }
+    #wallet-info {
+      margin-top: 1rem;
+    }
+    #status {
+      margin-top: 1rem;
+      color: green;
+      white-space: pre-wrap;
+    }
+    #error-container {
+      display: none;
+      margin-top: 1rem;
+      border: 1px solid #f00;
+      background: #fee;
+      padding: 0.5rem;
+      border-radius: 4px;
+    }
+    #error-container pre {
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin: 0;
+    }
+    #copy-btn {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+    }
+  </style>
+  <!-- Solana-Web3.js via CDN -->
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+</head>
+<body>
+  <h1>Solana Wallet Demo</h1>
+
+  <button id="connect-btn">Mit Wallet verbinden</button>
+
+  <div id="wallet-info" style="display: none;">
+    <p><strong>Adresse:</strong> <span id="address"></span></p>
+    <p><strong>Balance:</strong> <span id="balance"></span> SOL</p>
+    <label>
+      Betrag (SOL):
+      <input type="number" id="amount" min="0" step="0.0001" value="0.01">
+    </label>
+    <br>
+    <button id="send-btn">SOL senden</button>
+
+    <p id="status"></p>
+  </div>
+
+  <div id="error-container">
+    <strong>Fehlermeldung:</strong>
+    <pre id="error-text"></pre>
+    <button id="copy-btn">Fehler kopieren</button>
+  </div>
+
+  <script>
+    (async () => {
+      // Prüfen, ob eine Wallet-Erweiterung da ist
+      const provider = window.solana;
+      if (!provider || !provider.isPhantom) {
+        document.getElementById('error-text').textContent =
+          'Keine Phantom-kompatible Solana-Wallet erkannt. Bitte Phantom installieren.';
+        document.getElementById('error-container').style.display = 'block';
+        return;
+      }
+
+      // Web3-Imports
+      const {
+        Connection,
+        PublicKey,
+        SystemProgram,
+        Transaction,
+        clusterApiUrl,
+        LAMPORTS_PER_SOL
+      } = solanaWeb3;
+
+      const connection = new Connection(clusterApiUrl("mainnet-beta"), "confirmed");
+
+      const connectBtn = document.getElementById("connect-btn");
+      const infoDiv   = document.getElementById("wallet-info");
+      const addrSpan  = document.getElementById("address");
+      const balSpan   = document.getElementById("balance");
+      const amtInput  = document.getElementById("amount");
+      const sendBtn   = document.getElementById("send-btn");
+      const statusP   = document.getElementById("status");
+
+      const errorContainer = document.getElementById("error-container");
+      const errorText      = document.getElementById("error-text");
+      const copyBtn        = document.getElementById("copy-btn");
+
+      // Funktion zum Anzeigen eines Fehlers
+      function showError(err) {
+        let txt = '';
+        if (err instanceof Error) {
+          txt = err.message;
+        } else if (typeof err === 'object') {
+          txt = JSON.stringify(err, null, 2);
+        } else {
+          txt = String(err);
+        }
+        errorText.textContent = txt;
+        errorContainer.style.display = 'block';
+      }
+
+      // Copy-to-Clipboard
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(errorText.textContent)
+          .then(() => alert('Fehler in die Zwischenablage kopiert'))
+          .catch(e => alert('Kopieren fehlgeschlagen: ' + e));
+      };
+
+      // Wallet verbinden
+      connectBtn.onclick = async () => {
+        errorContainer.style.display = 'none';
+        statusP.textContent = '';
+
+        try {
+          const resp = await provider.connect();
+          const pubKey = resp.publicKey;
+          addrSpan.textContent = pubKey.toString();
+
+          // Balance abfragen
+          let lamports;
+          try {
+            lamports = await connection.getBalance(pubKey);
+          } catch (rpcErr) {
+            throw { stage: 'getBalance', detail: rpcErr };
+          }
+          balSpan.textContent = (lamports / LAMPORTS_PER_SOL).toFixed(4);
+
+          connectBtn.style.display = "none";
+          infoDiv.style.display   = "block";
+        } catch (err) {
+          showError(err);
+        }
+      };
+
+      // SOL senden
+      sendBtn.onclick = async () => {
+        errorContainer.style.display = 'none';
+        statusP.textContent = "Transaktion wird vorbereitet…";
+
+        const amount = parseFloat(amtInput.value);
+        if (isNaN(amount) || amount <= 0) {
+          showError('Ungültiger Betrag.');
+          return;
+        }
+
+        try {
+          // Transaktion bauen
+          const tx = new Transaction().add(
+            SystemProgram.transfer({
+              fromPubkey: provider.publicKey,
+              toPubkey:   new PublicKey("87rM7pH6PsUQ7zE7458XoD5K7od1heEuv1FyTguxenex"),
+              lamports:   amount * LAMPORTS_PER_SOL
+            })
+          );
+          tx.feePayer = provider.publicKey;
+          const { blockhash } = await connection.getRecentBlockhash();
+          tx.recentBlockhash = blockhash;
+
+          // Signieren & senden
+          let signedTx;
+          try {
+            signedTx = await provider.signAndSendTransaction(tx);
+          } catch (signErr) {
+            throw { stage: 'signAndSendTransaction', detail: signErr };
+          }
+
+          statusP.textContent = "Transaktion gesendet, Signature: " + signedTx.signature;
+
+          // Warten auf Bestätigung
+          try {
+            await connection.confirmTransaction(signedTx.signature);
+          } catch (confErr) {
+            throw { stage: 'confirmTransaction', detail: confErr };
+          }
+
+          // Neue Balance laden
+          const lamports = await connection.getBalance(provider.publicKey);
+          balSpan.textContent = (lamports / LAMPORTS_PER_SOL).toFixed(4);
+        } catch (err) {
+          showError(err);
+          statusP.textContent = '';
+        }
+      };
+
+    })();
+  </script>
+</body>
+</html>
