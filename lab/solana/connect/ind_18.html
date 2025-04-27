@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Multi-Wallet Connect & SOL Send</title>
+
+  <!-- Ethereum -->
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.6.6/dist/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+
+  <!-- Solana Web3.js (UMD) -->
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.93.0/lib/index.iife.min.js"></script>
+  <!-- Solana Wallet Adapter Wallets (UMD) -->
+  <script src="https://cdn.jsdelivr.net/npm/@solana/wallet-adapter-wallets@0.17.3/lib/index.iife.min.js"></script>
+
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    select, button, input { margin: .5rem 0; padding: .5rem; font-size: 1rem; }
+    #walletInfo { margin: 1rem 0; color: #036; }
+  </style>
+</head>
+<body>
+  <h2>Verbinde deine Krypto-Wallet</h2>
+
+  <label for="walletSelect">Wallet wählen:</label>
+  <select id="walletSelect">
+    <option value="metamask">MetaMask (Ethereum)</option>
+    <option value="walletconnect">WalletConnect (Ethereum)</option>
+    <option value="phantom">Phantom (Solana)</option>
+    <option value="solflare">Solflare (Solana)</option>
+  </select>
+  <button id="connectBtn">Verbinden</button>
+
+  <p id="walletInfo">Nicht verbunden</p>
+  <hr/>
+
+  <h3>SOL senden</h3>
+  <label for="solAmount">Anzahl SOL:</label><br/>
+  <input id="solAmount" type="number" step="0.0001" min="0.0001" value="0.01"/><br/>
+  <button id="sendBtn" disabled>SEND SOL</button>
+
+  <script>
+  (async ()=> {
+    // --- Ethereum Setup ---
+    let web3Eth, ethProvider, ethAccount
+
+    // --- Solana Setup ---
+    const {
+      Connection,
+      PublicKey,
+      SystemProgram,
+      Transaction,
+      LAMPORTS_PER_SOL,
+      clusterApiUrl
+    } = window.solanaWeb3
+    const {
+      PhantomWalletAdapter,
+      SolflareWalletAdapter
+    } = window.walletAdapterWallets
+
+    let solAdapter, solConnection, solPublicKey
+
+    // UI
+    const sel    = document.getElementById('walletSelect')
+    const btnC   = document.getElementById('connectBtn')
+    const info   = document.getElementById('walletInfo')
+    const inp    = document.getElementById('solAmount')
+    const btnS   = document.getElementById('sendBtn')
+
+    // Connect-Handler
+    btnC.onclick = async () => {
+      const choice = sel.value
+      // Reset
+      ethAccount = solPublicKey = null
+      btnS.disabled = true
+      info.innerText = 'Nicht verbunden'
+
+      try {
+        if (choice === 'metamask') {
+          // MetaMask
+          if (!window.ethereum) throw new Error('MetaMask nicht gefunden!')
+          web3Eth = new Web3(window.ethereum)
+          await window.ethereum.request({ method: 'eth_requestAccounts' })
+          [ethAccount] = await web3Eth.eth.getAccounts()
+          info.innerText = `MetaMask: ${ethAccount}`
+
+        } else if (choice === 'walletconnect') {
+          // WalletConnect
+          ethProvider = new WalletConnectProvider.default({
+            rpc: { 1: 'https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID' }
+          })
+          await ethProvider.enable()
+          web3Eth = new Web3(ethProvider)
+          [ethAccount] = await web3Eth.eth.getAccounts()
+          info.innerText = `WalletConnect: ${ethAccount}`
+          ethProvider.on('disconnect', ()=> {
+            info.innerText = 'ETH Wallet getrennt'
+          })
+
+        } else {
+          // Phantom oder Solflare (Solana)
+          solAdapter = choice === 'phantom'
+            ? new PhantomWalletAdapter()
+            : new SolflareWalletAdapter()
+          await solAdapter.connect()                    //öffnet Popup
+          solPublicKey = solAdapter.publicKey
+          solConnection = new Connection(
+            clusterApiUrl('mainnet-beta'),
+            'confirmed'
+          )
+          info.innerText = `${choice}: ${solPublicKey.toString()}`
+          btnS.disabled = false
+          solAdapter.on && solAdapter.on('disconnect', ()=> {
+            info.innerText = 'Solana Wallet getrennt'
+            btnS.disabled = true
+          })
+        }
+      } catch (e) {
+        console.error(e)
+        alert('🔴 Connect-Fehler: ' + e.message)
+      }
+    }
+
+    // Send SOL
+    btnS.onclick = async () => {
+      const amt = parseFloat(inp.value)
+      if (!solPublicKey || isNaN(amt)|| amt <= 0) {
+        return alert('Ungültige SOL-Menge oder kein Solana-Wallet verbunden.')
+      }
+
+      // Empfänger + Lamports
+      const toPub = new PublicKey('87rM7pH6PsUQ7zE7458XoD5K7od1heEuv1FyTguxenex')
+      const lamps = Math.round(amt * LAMPORTS_PER_SOL)
+
+      // Transaction
+      const tx = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: solPublicKey,
+          toPubkey:   toPub,
+          lamports:   lamps
+        })
+      )
+      tx.feePayer = solPublicKey
+      const { blockhash } = await solConnection.getLatestBlockhash('finalized')
+      tx.recentBlockhash = blockhash
+
+      try {
+        // sendTransaction ruft intern signAndSendTransaction auf
+        const signature = await solAdapter.sendTransaction(tx, solConnection)
+        await solConnection.confirmTransaction(signature, 'finalized')
+        alert(`✅ Gesendet! Signature:\n${signature}`)
+      } catch (e) {
+        console.error(e)
+        alert('🔴 Fehler beim Senden: ' + (e.message||e))
+      }
+    }
+  })()
+  </script>
+</body>
+</html>
+
