@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Phantom SOL Send Deep Debug</title>
+
+  <!-- Solana Web3.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.93.0/lib/index.iife.min.js"></script>
+
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    button, input { margin: .5rem 0; padding: .5rem; font-size: 1rem; }
+    #walletInfo { margin: 1rem 0; color: #036; }
+    #logs { white-space: pre-wrap; background: #f9f9f9; padding: 1rem; 
+            border: 1px solid #ccc; height: 250px; overflow: auto; }
+    #logs div { margin-bottom: .25rem; }
+  </style>
+</head>
+<body>
+  <h2>Phantom Deep Debug SOL Send</h2>
+
+  <button id="connectPhantom">Phantom verbinden</button>
+  <p id="walletInfo">Nicht verbunden</p>
+  <hr/>
+
+  <h3>SOL senden</h3>
+  <label for="solAmount">Anzahl SOL:</label>
+  <input id="solAmount" type="number" step="0.0001" min="0" value="0.01"/><br/>
+  <button id="sendSol" disabled>SEND SOL</button>
+
+  <h3>Logs</h3>
+  <div id="logs"></div>
+
+  <script>
+    // Logging-Helfer
+    function log(msg) {
+      console.log(msg);
+      const ln = document.createElement('div');
+      ln.textContent = msg;
+      document.getElementById('logs').appendChild(ln);
+    }
+
+    const { Connection, PublicKey, SystemProgram, Transaction, LAMPORTS_PER_SOL, clusterApiUrl } = solanaWeb3;
+    let solProvider = null, solPublicKey = null, solConnection = null;
+
+    // Phantom verbinden
+    document.getElementById('connectPhantom').onclick = async () => {
+      log('▶ Versuch: Phantom verbinden');
+      if (!window.solana?.isPhantom) {
+        log('✖ Phantom nicht gefunden');
+        return alert('Phantom Wallet nicht installiert!');
+      }
+      solProvider = window.solana;
+      try {
+        log('– Aufruf: solProvider.connect()');
+        await solProvider.connect();
+        solPublicKey = solProvider.publicKey;
+        solConnection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed');
+        document.getElementById('walletInfo').innerText = `Phantom: ${solPublicKey}`;
+        document.getElementById('sendSol').disabled = false;
+        log(`✔ Verbunden mit PublicKey: ${solPublicKey}`);
+      } catch (e) {
+        log(`✖ Connect-Fehler: ${e.message||e}`);
+        console.error(e);
+      }
+    };
+
+    // SEND SOL
+    document.getElementById('sendSol').onclick = async () => {
+      log('▶ SEND SOL geklickt');
+      const amt = parseFloat(document.getElementById('solAmount').value);
+      if (!solPublicKey) {
+        log('✖ Kein PublicKey – bitte verbinden');
+        return alert('Bitte zuerst Phantom verbinden!');
+      }
+      if (isNaN(amt) || amt <= 0) {
+        log(`✖ Ungültige Menge: ${amt}`);
+        return alert('Bitte gültige SOL-Menge eingeben.');
+      }
+
+      // Prüfe API-Verfügbarkeit
+      log(`– Provider-Methoden: signAndSendTransaction=${typeof solProvider.signAndSendTransaction}, signTransaction=${typeof solProvider.signTransaction}`);
+      
+      const recipient = new PublicKey('87rM7pH6PsUQ7zE7458XoD5K7od1heEuv1FyTguxenex');
+      const lamports = Math.round(amt * LAMPORTS_PER_SOL);
+      log(`– Erstelle Transfer: ${amt} SOL → ${recipient.toString()} (${lamports} Lamports)`);
+
+      const tx = new Transaction().add(
+        SystemProgram.transfer({ fromPubkey: solPublicKey, toPubkey: recipient, lamports })
+      );
+      tx.feePayer = solPublicKey;
+
+      try {
+        log('– Hole latestBlockhash …');
+        const { blockhash } = await solConnection.getLatestBlockhash('confirmed');
+        tx.recentBlockhash = blockhash;
+        log(`✔ Blockhash erhalten: ${blockhash}`);
+
+        if (typeof solProvider.signAndSendTransaction === 'function') {
+          log('– Aufruf: signAndSendTransaction()');
+          const resp = await solProvider.signAndSendTransaction(tx, { preflightCommitment: 'confirmed' });
+          log(`✔ signAndSendTransaction hat geendet, Signature=${resp.signature}`);
+          log('– Bestätige Transaktion …');
+          await solConnection.confirmTransaction(resp.signature, 'confirmed');
+          log('🟢 Transaktion bestätigt');
+          return alert(`✅ Gesendet! Signature:\n${resp.signature}`);
+        }
+
+        // Fallback auf signTransaction + sendRawTransaction
+        if (typeof solProvider.signTransaction === 'function') {
+          log('– Fallback: signTransaction()');
+          const signed = await solProvider.signTransaction(tx);
+          log('✔ signTransaction abgeschlossen, sende RawTransaction …');
+          const signature = await solConnection.sendRawTransaction(signed.serialize());
+          log(`✔ sendRawTransaction, Signature=${signature}`);
+          await solConnection.confirmTransaction(signature, 'confirmed');
+          log('🟢 Transaktion bestätigt (Fallback)');
+          return alert(`✅ Gesendet! Signature:\n${signature}`);
+        }
+
+        log('✖ Kein bekannter Sign-API verfügbar');
+        alert('Keine unterstützte Signatur-API gefunden.');
+      } catch (e) {
+        log(`✖ Fehler im SEND-Flow: ${e.message||e}`);
+        console.error(e);
+        alert('Fehler beim Senden: ' + (e.message||e));
+      }
+    };
+  </script>
+</body>
+</html>
