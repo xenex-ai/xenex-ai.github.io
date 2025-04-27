@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Solana Multi-Wallet Adapter Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0 auto; padding: 1rem;
+      max-width: 480px; background: #f5f5f5; color: #333;
+    }
+    h1 { text-align:center; font-size:1.5rem; margin-bottom:1rem; }
+    select, input, button {
+      width:100%; box-sizing:border-box;
+      padding:0.75rem; margin:0.5rem 0;
+      font-size:1rem; border-radius:6px;
+    }
+    select, input { border:1px solid #ccc; background:#fff; }
+    button {
+      border:none; background:#007aff; color:#fff;
+      cursor:pointer;
+    }
+    button:disabled { background:#99caff; cursor:not-allowed; }
+    #wallet-info {
+      display:none; background:#fff;
+      padding:1rem; border-radius:6px;
+      box-shadow:0 2px 4px rgba(0,0,0,0.1);
+    }
+    p { margin:0.5rem 0; word-break:break-all; }
+    #status { color:green; }
+    #error-box {
+      display:none; background:#ffe6e6;
+      border:1px solid #ff4d4d; padding:1rem;
+      border-radius:6px; margin-top:1rem;
+    }
+    #error-box pre {
+      max-height:120px; overflow-y:auto;
+      background:#fff; padding:0.5rem;
+      border-radius:4px; word-break:break-all;
+      margin:0.5rem 0;
+    }
+    #copy-btn { background:#ff4d4d; }
+  </style>
+</head>
+<body>
+
+<h1>Solana Wallet Adapter</h1>
+
+<label for="wallet-select"><strong>Wallet wählen:</strong></label>
+<select id="wallet-select">
+  <option value="">– auswählen –</option>
+  <option value="phantom">Phantom</option>
+  <option value="solflare">Solflare</option>
+  <option value="torus">Torus (Web)</option>
+  <option value="backpack">Backpack</option>
+</select>
+
+<button id="connect-btn" disabled>Verbinden</button>
+
+<div id="wallet-info">
+  <p><strong>Adresse:</strong> <span id="address"></span></p>
+  <p><strong>Balance:</strong> <span id="balance"></span> SOL</p>
+  <label for="amount"><strong>Betrag (SOL):</strong></label>
+  <input type="number" id="amount" min="0" step="0.0001" value="0.01"/>
+  <button id="send-btn">SOL senden</button>
+  <p id="status"></p>
+</div>
+
+<div id="error-box">
+  <strong>Fehler:</strong>
+  <pre id="error-text"></pre>
+  <button id="copy-btn">Kopieren</button>
+</div>
+
+<!-- Solana Web3 + Wallet Adapter über Skypack -->
+<script type="module">
+import { Connection, PublicKey, SystemProgram, Transaction, LAMPORTS_PER_SOL } from 'https://cdn.skypack.dev/@solana/web3.js';
+import { PhantomWalletAdapter }    from 'https://cdn.skypack.dev/@solana/wallet-adapter-phantom';
+import { SolflareWalletAdapter }   from 'https://cdn.skypack.dev/@solana/wallet-adapter-solflare';
+import { TorusWalletAdapter }      from 'https://cdn.skypack.dev/@solana/wallet-adapter-torus';
+import { BackpackWalletAdapter }   from 'https://cdn.skypack.dev/@solana/wallet-adapter-backpack';
+
+(async () => {
+  // RPC + Empfänger
+  const connection = new Connection('https://solana-api.projectserum.com', 'confirmed');
+  const RECIPIENT  = new PublicKey('87rM7pH6PsUQ7zE7458XoD5K7od1heEuv1FyTguxenex');
+
+  // UI-Elemente
+  const walletSelect = document.getElementById('wallet-select');
+  const connectBtn   = document.getElementById('connect-btn');
+  const infoDiv      = document.getElementById('wallet-info');
+  const addrSpan     = document.getElementById('address');
+  const balSpan      = document.getElementById('balance');
+  const amtInput     = document.getElementById('amount');
+  const sendBtn      = document.getElementById('send-btn');
+  const statusP      = document.getElementById('status');
+  const errorBox     = document.getElementById('error-box');
+  const errorText    = document.getElementById('error-text');
+  const copyBtn      = document.getElementById('copy-btn');
+
+  let adapter = null, pubkey = null;
+
+  // Fehleranzeige
+  function showError(e) {
+    const txt = (typeof e==='string') ? e
+      : (e && e.message) ? e.message
+      : JSON.stringify(e, null, 2);
+    errorText.textContent = txt;
+    errorBox.style.display = 'block';
+  }
+
+  // Fehler kopieren
+  copyBtn.onclick = () => {
+    navigator.clipboard.writeText(errorText.textContent)
+      .then(()=>alert('Kopiert!'))
+      .catch(e=>alert('Fehler beim Kopieren: '+e));
+  };
+
+  // Connect-Button aktivieren
+  walletSelect.onchange = () => {
+    connectBtn.disabled = walletSelect.value === '';
+    errorBox.style.display = 'none';
+  };
+
+  // Wallet-Adapter Factory
+  function getAdapter(name) {
+    switch (name) {
+      case 'phantom':  return new PhantomWalletAdapter();
+      case 'solflare': return new SolflareWalletAdapter({ network: 'mainnet-beta' });
+      case 'torus':    return new TorusWalletAdapter();
+      case 'backpack': return new BackpackWalletAdapter();
+      default: return null;
+    }
+  }
+
+  // Verbinden
+  connectBtn.onclick = async () => {
+    errorBox.style.display = 'none';
+    statusP.textContent = '';
+    sendBtn.disabled = true;
+    connectBtn.disabled = true;
+
+    const choice = walletSelect.value;
+    adapter = getAdapter(choice);
+    if (!adapter) {
+      showError('Unbekannte Wallet.');
+      connectBtn.disabled = false;
+      return;
+    }
+
+    try {
+      await adapter.connect();
+      pubkey = adapter.publicKey;
+      addrSpan.textContent = pubkey.toString();
+
+      const lamports = await connection.getBalance(pubkey);
+      balSpan.textContent = (lamports / LAMPORTS_PER_SOL).toFixed(4);
+
+      // UI umschalten
+      walletSelect.style.display = 'none';
+      connectBtn.style.display   = 'none';
+      infoDiv.style.display      = 'block';
+      sendBtn.disabled           = false;
+    } catch (err) {
+      showError(err);
+      connectBtn.disabled = false;
+    }
+  };
+
+  // SOL senden
+  sendBtn.onclick = async () => {
+    errorBox.style.display = 'none';
+    statusP.textContent = 'Sende…';
+    sendBtn.disabled = true;
+
+    const amount = parseFloat(amtInput.value);
+    if (isNaN(amount) || amount <= 0) {
+      showError('Ungültiger Betrag.');
+      sendBtn.disabled = false;
+      statusP.textContent = '';
+      return;
+    }
+
+    try {
+      const tx = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: pubkey,
+          toPubkey:   RECIPIENT,
+          lamports:   amount * LAMPORTS_PER_SOL
+        })
+      );
+      tx.feePayer       = pubkey;
+      tx.recentBlockhash= (await connection.getRecentBlockhash()).blockhash;
+
+      // signTransaction liefert signedTransaction
+      const signed = await adapter.signTransaction(tx);
+      // raw senden
+      const sig    = await connection.sendRawTransaction(signed.serialize());
+      statusP.textContent = 'Signature: ' + sig;
+
+      await connection.confirmTransaction(sig);
+      const newBal = await connection.getBalance(pubkey);
+      balSpan.textContent = (newBal / LAMPORTS_PER_SOL).toFixed(4);
+    } catch (err) {
+      showError(err);
+    } finally {
+      sendBtn.disabled = false;
+    }
+  };
+})();
+</script>
+</body>
+</html>
+
