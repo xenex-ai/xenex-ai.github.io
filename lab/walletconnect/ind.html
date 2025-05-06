@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi‑Wallet Connect (Solana) – Phantom, Solflare, Slope, BitKeep</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; }
+    select, button { padding: .5rem; font-size: 1rem; margin-right: .5rem; }
+    #address, #balance, #error { margin-top: 1rem; font-weight: bold; }
+    #error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Multi‑Wallet Connect (Solana)</h1>
+  <select id="wallet-select">
+    <option value="">-- Wallet wählen --</option>
+    <option value="Phantom">Phantom</option>
+    <option value="Solflare">Solflare</option>
+    <option value="Slope">Slope</option>
+    <option value="BitKeep">BitKeep</option>
+  </select>
+  <button id="connect-btn" disabled>Connect</button>
+
+  <div id="address">Adresse: –</div>
+  <div id="balance">SOL‑Balance: –</div>
+  <div id="error"></div>
+
+  <script type="module">
+    // 1) Solana-Web3.js für Connection & Balance :contentReference[oaicite:0]{index=0}
+    import { Connection, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL }
+      from "https://esm.sh/@solana/web3.js";
+
+    // 2) Wallet‑Adapter: Phantom, Solflare, Slope, BitKeep :contentReference[oaicite:1]{index=1}
+    import { PhantomWalletAdapter }   from "https://esm.sh/@solana/wallet-adapter-phantom";
+    import { SolflareWalletAdapter }  from "https://esm.sh/@solana/wallet-adapter-solflare";
+    import SlopeWalletAdapter         from "https://esm.sh/@solana/wallet-adapter-slope";
+    import { BitKeepWalletAdapter }   from "https://esm.sh/@solana/wallet-adapter-bitkeep";
+
+    // 3) RPC‑Connection auf Mainnet‑Beta
+    const network    = "mainnet-beta";
+    const connection = new Connection(clusterApiUrl(network));
+
+    // 4) Adapter‑Instanzen
+    const adapters = {
+      Phantom: new PhantomWalletAdapter(),
+      Solflare: new SolflareWalletAdapter({ network }),
+      Slope: new SlopeWalletAdapter(),
+      BitKeep: new BitKeepWalletAdapter()
+    };
+
+    let adapter = null;
+    const select     = document.getElementById("wallet-select");
+    const btn        = document.getElementById("connect-btn");
+    const divAddr    = document.getElementById("address");
+    const divBal     = document.getElementById("balance");
+    const divErr     = document.getElementById("error");
+
+    // 5) Enable button only when Wallet ausgewählt
+    select.addEventListener("change", () => {
+      divErr.textContent = "";
+      adapter = adapters[select.value] || null;
+      btn.disabled = !adapter;
+    });
+
+    // 6) Connect/Disconnect‑Logik
+    btn.addEventListener("click", async () => {
+      divErr.textContent = "";
+      if (!adapter) return;
+
+      try {
+        if (adapter.connected) {
+          // Disconnect wenn schon verbunden
+          await adapter.disconnect();
+          btn.textContent = "Connect";
+          return;
+        }
+
+        // Connect und UI‑Updates
+        adapter.on("connect", async () => {
+          btn.textContent = "Disconnect";
+          const pkStr = adapter.publicKey.toString();
+          divAddr.textContent = `Adresse: ${pkStr}`;
+
+          // Balance abrufen
+          const lamports = await connection.getBalance(adapter.publicKey);
+          divBal.textContent = `SOL‑Balance: ${lamports / LAMPORTS_PER_SOL} SOL`;
+        });
+        adapter.on("disconnect", () => {
+          divAddr.textContent = `Adresse: –`;
+          divBal.textContent  = `SOL‑Balance: –`;
+        });
+
+        await adapter.connect();
+      } catch (err) {
+        console.error(err);
+        divErr.textContent = `Fehler: ${err.message || err}`;
+      }
+    });
+  </script>
+</body>
+</html>
+
