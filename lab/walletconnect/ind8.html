@@ -5,23 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Solana Multi‑Wallet Connect (Debug)</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 1rem; }
-    select, button { padding: .5rem; font-size: 1rem; margin-right: .5rem; }
-    #address, #balance { margin-top: 1rem; font-weight: bold; }
-    #error { margin-top: 1rem; color: red; }
-    #debug { margin-top: 1rem; padding: .5rem; background: #f4f4f4; height: 150px; overflow: auto; font-family: monospace; white-space: pre-wrap; }
+    body { font-family: Arial; padding: 1rem; }
+    select, button { padding: .5rem; margin-right: .5rem; font-size: 1rem; }
+    #address,#balance { margin-top:1rem; font-weight:bold; }
+    #error { margin-top:1rem; color:red; }
+    #debug { margin-top:1rem; padding:.5rem; background:#f4f4f4; height:150px; overflow:auto; font-family:monospace; white-space:pre-wrap; }
   </style>
 </head>
 <body>
   <h1>Solana Multi‑Wallet Connect (Debug)</h1>
   <label for="wallet-select">Wallet:</label>
   <select id="wallet-select">
-    <option value="">– bitte wählen –</option>
-    <option value="Phantom">Phantom</option>
-    <option value="Solflare">Solflare</option>
-    <option value="Slope">Slope</option>
-    <option value="BitKeep">BitKeep</option>
+    <option value="">– wählen –</option>
     <option value="WalletConnect">WalletConnect</option>
+    <option value="Phantom">Phantom</option>
   </select>
   <button id="connect-btn">Connect</button>
 
@@ -31,103 +28,92 @@
   <div id="debug"></div>
 
   <script type="module">
-    // Debug‑Helper
     const dbg = document.getElementById("debug");
-    function log(...args) { dbg.textContent += args.map(a=> typeof a==="object"? JSON.stringify(a):a).join(" ") + "\n"; }
-    function error(...args) { dbg.textContent += "ERROR: " + args.join(" ") + "\n"; }
+    function log(...a){ dbg.textContent+= a.join(" ")+"\n"; }
+    function errLog(...a){ dbg.textContent+= "ERROR: "+a.join(" ")+"\n"; }
 
-    // Solana‑Web3.js 
     import { Connection, clusterApiUrl, LAMPORTS_PER_SOL, PublicKey }
       from "https://cdn.jsdelivr.net/npm/@solana/web3.js@latest/lib/index.esm.js";
-    log("Imported solanaWeb3");
+    log("✅ solanaWeb3 imported");
 
-    // Wallet‑Adapter 
-    import { PhantomWalletAdapter } from "https://esm.sh/@solana/wallet-adapter-phantom";
-    import { SolflareWalletAdapter } from "https://esm.sh/@solana/wallet-adapter-solflare";
-    import SlopeWalletAdapter       from "https://esm.sh/@solana/wallet-adapter-slope";
-    import { BitKeepWalletAdapter } from "https://esm.sh/@solana/wallet-adapter-bitkeep";
-    import { WalletConnectWalletAdapter }
-      from "https://esm.sh/@solana/wallet-adapter-walletconnect";
-    log("Imported wallet adapters");
+    import UniversalProvider from "https://esm.sh/@walletconnect/universal-provider";
+    import { SolanaProvider }    from "https://esm.sh/@walletconnect/solana-adapter";
+    log("✅ WalletConnect UniversalProvider & SolanaAdapter imported");
 
-    const network    = "mainnet-beta";
-    const connection = new Connection(clusterApiUrl(network));
-    log("Connection to", network, "initialized");
+    import { PhantomWalletAdapter }
+      from "https://esm.sh/@solana/wallet-adapter-phantom";
+    log("✅ PhantomWalletAdapter imported");
 
-    const wcProjectId = "HIER_DEINE_PROJECT_ID";
+    const connection = new Connection(clusterApiUrl("mainnet-beta"));
+    log("✅ Solana connection initialized");
+
+    const wcProjectId = "262e67d5e1f2205615ff102f60b2f1dc";
+    let ucProvider, solProvider;
+    async function initWC(){
+      ucProvider = await UniversalProvider.init({ projectId: wcProjectId });
+      ucProvider.on("display_uri", uri=>{
+        log("→ display_uri:", uri);
+      });
+      solProvider = await SolanaProvider.init({ provider: ucProvider });
+      log("✅ SolanaProvider initialized");
+    }
 
     const adapters = {
-      Phantom:       new PhantomWalletAdapter(),
-      Solflare:      new SolflareWalletAdapter({ network }),
-      Slope:         new SlopeWalletAdapter(),
-      BitKeep:       new BitKeepWalletAdapter(),
-      WalletConnect: new WalletConnectWalletAdapter({
-        network,
-        options: {
-          relayUrl:  "wss://relay.walletconnect.com",
-          projectId: wcProjectId,
-          metadata: { name:"DApp", description:"Demo", url:window.location.origin, icons:[] }
-        }
-      })
+      Phantom: {
+        connect: async()=> {
+          log("Phantom connect()");
+          const p = window.solana;
+          if (!p?.isPhantom) throw new Error("Phantom nicht injiziert");
+          const resp = await p.connect();
+          log("Phantom connected:", resp.publicKey.toString());
+          return resp;
+        },
+        on: window.solana?.on?.bind(window.solana),
+        disconnect: ()=> window.solana?.disconnect()
+      },
+      WalletConnect: {
+        connect: async()=>{
+          if (!ucProvider) await initWC();
+          log("WC connect()");
+          await solProvider.connect();
+        },
+        on: solProvider?.on?.bind(solProvider),
+        disconnect: ()=> ucProvider.disconnect()
+      }
     };
-    log("Adapter instances created:", Object.keys(adapters).join(", "));
 
-    const sel  = document.getElementById("wallet-select");
-    const btn  = document.getElementById("connect-btn");
+    const sel = document.getElementById("wallet-select");
+    const btn = document.getElementById("connect-btn");
     const addr = document.getElementById("address");
-    const bal  = document.getElementById("balance");
-    const err  = document.getElementById("error");
+    const bal = document.getElementById("balance");
+    const err = document.getElementById("error");
 
-    btn.addEventListener("click", async () => {
+    btn.addEventListener("click", async()=>{
       err.textContent = "";
-      log("Button clicked");
+      log("→ Button clicked");
       const key = sel.value;
-      if (!key) {
-        err.textContent = "Bitte wähle zuerst ein Wallet aus.";
-        error("No wallet selected");
-        return;
-      }
-      const adapter = adapters[key];
-      if (!adapter) {
-        err.textContent = "Unbekanntes Wallet: " + key;
-        error("Adapter not found for", key);
-        return;
-      }
-      log("Using adapter:", key, adapter);
+      if (!key){ err.textContent="Bitte Wallet wählen"; errLog("No wallet selected"); return; }
+      const a = adapters[key];
+      if (!a){ err.textContent="Adapter fehlt"; errLog("Adapter undefined for", key); return; }
 
       try {
-        if (adapter.connected) {
-          log("Adapter.connected === true → disconnect()");
-          await adapter.disconnect();
-          btn.textContent = "Connect";
-          return;
-        }
-
-        // Events
-        adapter.on("connect", async () => {
-          log("EVENT connect");
-          btn.textContent = "Disconnect";
-          const pk = adapter.publicKey.toString();
+        log("Using adapter:", key);
+        a.on("connect", async(info)=>{
+          log("EVENT connect", info||"");
+          const pk = info?.publicKey?.toString?.() || window.solana?.publicKey.toString();
           addr.textContent = `Adresse: ${pk}`;
-          const lamports = await connection.getBalance(adapter.publicKey);
-          bal.textContent = `SOL‑Balance: ${lamports / LAMPORTS_PER_SOL} SOL`;
+          const lam = await connection.getBalance(new PublicKey(pk));
+          bal.textContent = `SOL‑Balance: ${lam/LAMPORTS_PER_SOL} SOL`;
         });
-        adapter.on("disconnect", () => {
+        a.on("disconnect", ()=>{
           log("EVENT disconnect");
-          btn.textContent = "Connect";
-          addr.textContent = "Adresse: –";
-          bal.textContent = "SOL‑Balance: –";
+          addr.textContent="Adresse: –"; bal.textContent="SOL‑Balance: –";
         });
-        adapter.on("error", (e) => {
-          error("EVENT error", e.message || e);
-          err.textContent = e.message || JSON.stringify(e);
-        });
+        a.on("error", e=>{ err.textContent=e.message; errLog("EVENT error", e.message); });
 
-        log("Calling adapter.connect()");
-        await adapter.connect();
-      } catch (e) {
-        error("Connect failed:", e.message || e);
-        err.textContent = e.message || JSON.stringify(e);
+        await a.connect();
+      } catch(e) {
+        err.textContent=e.message; errLog("Connect failed:", e.message);
       }
     });
   </script>
