@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Solana Connect</title>
+
+  <!-- Buffer‑Polyfill -->
+  <script src="https://cdn.jsdelivr.net/npm/buffer@6.0.3/index.min.js"></script>
+  <script>window.Buffer = buffer.Buffer;</script>
+
+  <!-- Solana Web3 IIFE (enthält buffer) -->
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+
+  <style>
+    body { font-family: Arial; padding: 1rem; }
+    button { padding: .5rem; font-size: 1rem; }
+    #debug { margin-top:1rem; background:#f4f4f4; padding:.5rem; height:100px; overflow:auto; font-family:monospace; }
+  </style>
+</head>
+<body>
+  <h1>Test Solana Connect</h1>
+  <button id="btn">Test</button>
+  <div id="debug"></div>
+
+  <script type="module">
+    const dbg = document.getElementById("debug");
+    function log(msg){ dbg.textContent += msg + "\n"; }
+
+    log("📥 IIFE web3 vorhanden? " + (window.solanaWeb3 ? "JA" : "NEIN"));
+
+    // Test Solana Connection
+    try {
+      const { Connection, clusterApiUrl } = window.solanaWeb3;
+      const conn = new Connection(clusterApiUrl("mainnet-beta"));
+      log("✅ Solana Connection erstellt");
+    } catch(e) {
+      log("❌ Solana Connection Fehler: " + e.message);
+    }
+
+    document.getElementById("btn").onclick = () => {
+      log("🔥 Button clicked");
+    };
+  </script>
+</body>
+</html>
