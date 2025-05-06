@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi‑Wallet Connect (Solana)</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; }
+    select, button { padding: .5rem; font-size: 1rem; margin-right: .5rem; }
+    #address, #balance, #error { margin-top: 1rem; font-weight: bold; }
+    #error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Multi‑Wallet Connect (Solana)</h1>
+  <select id="wallet-select">
+    <option value="">-- Wallet wählen --</option>
+    <option value="Phantom">Phantom</option>
+    <option value="Solflare">Solflare</option>
+    <option value="Slope">Slope</option>
+    <option value="BitKeep">BitKeep</option>
+    <option value="WalletConnect">WalletConnect</option>
+  </select>
+  <button id="connect-btn" disabled>Connect</button>
+
+  <div id="address">Adresse: –</div>
+  <div id="balance">SOL‑Balance: –</div>
+  <div id="error"></div>
+
+  <script type="module">
+    // 1) Solana-Web3 für Connection & Balance
+    import {
+      Connection,
+      clusterApiUrl,
+      LAMPORTS_PER_SOL
+    } from "https://cdn.jsdelivr.net/npm/@solana/web3.js@latest/lib/index.esm.js";  /*  */
+
+    // 2) Wallet‑Adapter von unpkg (ESM‑Bundles)
+    import { PhantomWalletAdapter }
+      from "https://unpkg.com/@solana/wallet-adapter-phantom@latest/lib/esm/index.js";   /*  */
+    import { SolflareWalletAdapter }
+      from "https://unpkg.com/@solana/wallet-adapter-solflare@latest/lib/esm/index.js";  /*  */
+    import SlopeWalletAdapter
+      from "https://unpkg.com/@solana/wallet-adapter-slope@latest/lib/esm/index.js";     /*  */
+    import { BitKeepWalletAdapter }
+      from "https://unpkg.com/@solana/wallet-adapter-bitkeep@latest/lib/esm/index.js";   /* :contentReference[oaicite:4]{index=4} */
+    import { WalletConnectWalletAdapter }
+      from "https://unpkg.com/@solana/wallet-adapter-walletconnect@latest/lib/esm/index.js"; /* :contentReference[oaicite:5]{index=5} */
+
+    // 3) RPC‑Connection
+    const network    = "mainnet-beta";
+    const connection = new Connection(clusterApiUrl(network));
+
+    // 4) Deine WalletConnect‑Project ID (aus https://cloud.walletconnect.com)
+    const wcProjectId = "262e67d5e1f2205615ff102f60b2f1dc";
+
+    // 5) Adapter‑Instanzen
+    const adapters = {
+      Phantom:       new PhantomWalletAdapter(),
+      Solflare:      new SolflareWalletAdapter({ network }),
+      Slope:         new SlopeWalletAdapter(),
+      BitKeep:       new BitKeepWalletAdapter(),
+      WalletConnect: new WalletConnectWalletAdapter({
+        network,
+        options: {
+          relayUrl:  "wss://relay.walletconnect.com",
+          projectId: wcProjectId,
+          metadata: {
+            name:        "Meine Solana‑DApp",
+            description: "Multi‑Wallet Connect Demo",
+            url:         window.location.origin,
+            icons:       []
+          }
+        }
+      })
+    };
+
+    let adapter = null;
+    const sel  = document.getElementById("wallet-select");
+    const btn  = document.getElementById("connect-btn");
+    const divA = document.getElementById("address");
+    const divB = document.getElementById("balance");
+    const divE = document.getElementById("error");
+
+    // Logging aktivieren
+    console.log("Available adapters:", Object.keys(adapters));
+
+    sel.addEventListener("change", () => {
+      divE.textContent = "";
+      adapter = adapters[sel.value] || null;
+      console.log("Selected adapter:", sel.value, adapter);
+      btn.disabled = !adapter;
+      btn.textContent = adapter?.connected ? "Disconnect" : "Connect";
+    });
+
+    btn.addEventListener("click", async () => {
+      divE.textContent = "";
+      if (!adapter) return;
+
+      try {
+        if (adapter.connected) {
+          console.log("Disconnecting…");
+          await adapter.disconnect();
+          btn.textContent = "Connect";
+          return;
+        }
+
+        // Events vor connect() registrieren!
+        adapter.on("connect", async () => {
+          console.log("→ connected", adapter.publicKey.toString());
+          btn.textContent = "Disconnect";
+          divA.textContent = `Adresse: ${adapter.publicKey.toString()}`;
+          const lamports = await connection.getBalance(adapter.publicKey);
+          divB.textContent = `SOL‑Balance: ${lamports / LAMPORTS_PER_SOL} SOL`;
+        });
+        adapter.on("disconnect", () => {
+          console.log("→ disconnected");
+          divA.textContent = "Adresse: –";
+          divB.textContent = "SOL‑Balance: –";
+        });
+        adapter.on("error", (err) => {
+          console.error("Adapter‑Error:", err);
+          divE.textContent = `Fehler: ${err.message || err}`;
+        });
+
+        console.log("Calling connect() on adapter…");
+        await adapter.connect();
+      } catch (err) {
+        console.error("Connect‑Fehler:", err);
+        divE.textContent = `Fehler: ${err.message || err}`;
+      }
+    });
+  </script>
+</body>
+</html>
