@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Solana Multi‑Wallet (Mobile + Desktop)</title>
+  <style>
+    body { font-family: Arial; padding: 2rem; }
+    select, button { padding: .5rem; margin-right: .5rem; }
+    #address,#balance { margin-top:1rem; font-weight: bold; }
+    #error { margin-top:1rem; color: red; }
+  </style>
+</head>
+<body>
+  <h1>Solana Multi‑Wallet Connect</h1>
+  <select id="wallet-select">
+    <option value="">– Wallet wählen –</option>
+    <option value="WalletConnect">WalletConnect (Mobile)</option>
+    <option value="Phantom">Phantom (In‑App)</option>
+  </select>
+  <button id="connect-btn" disabled>Connect</button>
+  <div id="address">Adresse: –</div>
+  <div id="balance">SOL‑Balance: –</div>
+  <div id="error"></div>
+
+  <script type="module">
+    // Solana-Web3 für Balance-Check :contentReference[oaicite:1]{index=1}
+    import { Connection, clusterApiUrl, LAMPORTS_PER_SOL, PublicKey }
+      from "https://cdn.jsdelivr.net/npm/@solana/web3.js@latest/lib/index.esm.js";
+
+    // Phantom-Adapter :contentReference[oaicite:2]{index=2}
+    import { PhantomWalletAdapter }
+      from "https://unpkg.com/@solana/wallet-adapter-phantom@latest/lib/esm/index.js";
+
+    // WalletConnect Universal-Provider & Solana-Adapter :contentReference[oaicite:3]{index=3} :contentReference[oaicite:4]{index=4}
+    import UniversalProvider from "https://esm.sh/@walletconnect/universal-provider";
+    import { SolanaProvider }    from "https://esm.sh/@walletconnect/solana-adapter";
+
+    // WalletConnect Modal (QR & Deep‑Link UI) :contentReference[oaicite:5]{index=5}
+    import { Web3Modal } from "https://unpkg.com/@walletconnect/modal@2.7.0/dist/umd/index.min.js";
+
+    const network    = "mainnet-beta";
+    const connection = new Connection(clusterApiUrl(network));
+
+    // Deine WalletConnect Project ID aus https://cloud.walletconnect.com :contentReference[oaicite:6]{index=6}
+    const wcProjectId = "262e67d5e1f2205615ff102f60b2f1dc";
+
+    // Baue Modal für WalletConnect
+    const modal = new Web3Modal({
+      projectId: wcProjectId,
+      themeMode: "light"
+    });
+
+    // Setup UniversalProvider
+    let ucProvider;
+    let solProvider;
+    async function initWC() {
+      ucProvider = await UniversalProvider.init({
+        projectId: wcProjectId,
+        metadata: {
+          name: "Meine Solana‑DApp",
+          description: "Multi‑Wallet Demo",
+          url: window.location.origin,
+          icons: []
+        }
+      });
+      // zeige Modal wenn WalletConnect URI bereitsteht
+      ucProvider.on("display_uri", (uri) => {
+        modal.openModal({ uri });
+      });
+      solProvider = await SolanaProvider.init({ provider: ucProvider });
+    }
+
+    // Adapter‑Map
+    const adapters = {
+      Phantom:     new PhantomWalletAdapter(),
+      WalletConnect: { connect: async () => { // custom connect wrapper
+          if (!ucProvider) await initWC();
+          await ucProvider.connect({ chains: ["solana:mainnet"] });
+        },
+        on: solProvider?.on.bind(solProvider),
+        disconnect: () => ucProvider.disconnect()
+      }
+    };
+
+    let adapter = null;
+    const sel = document.getElementById("wallet-select");
+    const btn = document.getElementById("connect-btn");
+    const divA = document.getElementById("address");
+    const divB = document.getElementById("balance");
+    const divE = document.getElementById("error");
+
+    sel.addEventListener("change", () => {
+      adapter = adapters[sel.value] || null;
+      btn.disabled = !adapter;
+      divE.textContent = "";
+    });
+
+    btn.addEventListener("click", async () => {
+      divE.textContent = "";
+      if (!adapter) return;
+      try {
+        // disconnect toggle
+        if (adapter.publicKey || adapter.connected) {
+          await adapter.disconnect();
+          btn.textContent = "Connect";
+          return;
+        }
+        // on connect Event
+        adapter.on("connect", async () => {
+          btn.textContent = "Disconnect";
+          const pk = (adapter.publicKey || ucProvider.accounts[0]).toString();
+          divA.textContent = `Adresse: ${pk}`;
+          const bal = await connection.getBalance(new PublicKey(pk));
+          divB.textContent = `SOL‑Balance: ${bal / LAMPORTS_PER_SOL} SOL`;
+        });
+        await adapter.connect();
+      } catch (err) {
+        console.error(err);
+        divE.textContent = err.message || err;
+      }
+    });
+  </script>
+</body>
+</html>
