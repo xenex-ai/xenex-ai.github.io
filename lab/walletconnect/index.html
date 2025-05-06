@@ -3,60 +3,61 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WalletConnect + Solana Demo</title>
+  <title>Solana Wallet Connect (Phantom)</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 2rem; }
-    button { padding: 0.5rem 1rem; font-size: 1rem; }
+    button { padding: .5rem 1rem; font-size: 1rem; cursor: pointer; }
     #address, #balance { margin-top: 1rem; font-weight: bold; }
+    #error { margin-top: 1rem; color: red; }
   </style>
 </head>
 <body>
-  <h1>WalletConnect + Solana</h1>
-  <button id="connect">Mit Wallet verbinden</button>
+  <h1>Solana Wallet Connect (Phantom)</h1>
+  <button id="connect">Mit Phantom verbinden</button>
   <div id="address">Adresse: –</div>
   <div id="balance">SOL‑Balance: –</div>
+  <div id="error"></div>
 
-  <script type="module">
-    // 1) Import des Universal Provider und Solana‑Adapters von WalletConnect v2
-    import UniversalProvider from "https://esm.sh/@walletconnect/universal-provider";
-    import { SolanaProvider }    from "https://esm.sh/@walletconnect/solana-adapter";
-    // 2) Import der Solana Web3.js‑Klassen zum Abfragen des Kontostandes
-    import { Connection, PublicKey, LAMPORTS_PER_SOL, clusterApiUrl }
-      from "https://esm.sh/@solana/web3.js";
-
-    // HIER deine Project ID von https://cloud.walletconnect.com/ eintragen:
-    const projectId = "DEINE_PROJECT_ID_HIER";
-    const chains    = ["solana:mainnet"];
-
-    const btnConnect = document.getElementById("connect");
+  <!-- Solana Web3.js als globales solanaWeb3-Objekt :contentReference[oaicite:0]{index=0} -->
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+  <script>
+    const btn = document.getElementById("connect");
     const divAddress = document.getElementById("address");
     const divBalance = document.getElementById("balance");
+    const divError   = document.getElementById("error");
 
-    let solProvider, connection;
+    // Prüfe, ob Phantom‑Provider verfügbar
+    function getProvider() {
+      if (window.solana && window.solana.isPhantom) {
+        return window.solana;
+      }
+      return null;
+    }
 
-    btnConnect.addEventListener("click", async () => {
+    btn.addEventListener("click", async () => {
+      divError.textContent = "";
+      const provider = getProvider();
+      if (!provider) {
+        divError.textContent = "Phantom‑Wallet nicht gefunden. Bitte installieren: https://phantom.app/"; 
+        return;
+      }
+
       try {
-        // Initialisiere Universal Provider
-        const provider = await UniversalProvider.init({ projectId, chains });
-        // Wrappe ihn mit dem Solana‑Adapter
-        solProvider = await SolanaProvider.init({ provider });
-        // Öffne WalletConnect‑Modal und verbinde
-        await solProvider.connect();
+        // Verbindung anstoßen :contentReference[oaicite:1]{index=1}
+        const resp = await provider.connect();
+        const pubkey = resp.publicKey.toString();
+        divAddress.textContent = `Adresse: ${pubkey}`;
 
-        // Adresse(n) abfragen
-        const accounts = await solProvider.request({ method: "solana_accounts" });
-        const address  = accounts[0];
-        divAddress.textContent = `Adresse: ${address}`;
-
-        // Neue Solana‑Connection (Mainnet‑Beta)
-        connection = new Connection(clusterApiUrl("mainnet-beta"));
-
+        // Solana‑Connection über Web3.js
+        const connection = new solanaWeb3.Connection(
+          solanaWeb3.clusterApiUrl("mainnet-beta")
+        );
         // Kontostand in Lamports abfragen und in SOL umrechnen
-        const lamports = await connection.getBalance(new PublicKey(address));
-        divBalance.textContent = `SOL‑Balance: ${lamports / LAMPORTS_PER_SOL} SOL`;
+        const lamports = await connection.getBalance(resp.publicKey);
+        divBalance.textContent = `SOL‑Balance: ${lamports / solanaWeb3.LAMPORTS_PER_SOL} SOL`;
       } catch (err) {
         console.error(err);
-        alert("Verbindung fehlgeschlagen: " + err.message);
+        divError.textContent = `Fehler: ${err.message || err}`;
       }
     });
   </script>
