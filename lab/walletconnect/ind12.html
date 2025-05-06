@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solana Multi‑Wallet (Mobile)</title>
+
+  <!-- Buffer‑Polyfill für Browser (sonst fehlt `buffer`) :contentReference[oaicite:0]{index=0} -->
+  <script src="https://cdn.jsdelivr.net/npm/buffer@6.0.3/index.min.js"></script>
+  <script>window.Buffer = buffer.Buffer;</script>
+
+  <!-- Solana Web3 IIFE‑Bundle (enthält alle Abhängigkeiten inkl. buffer) :contentReference[oaicite:1]{index=1} -->
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+
+  <style>
+    body { font-family: Arial, padding: 1rem; }
+    select, button { padding: .5rem; font-size: 1rem; margin-right: .5rem; }
+    #address, #balance { margin-top:1rem; font-weight:bold; }
+    #error { margin-top:1rem; color:red; }
+  </style>
+</head>
+<body>
+  <h1>Solana Multi‑Wallet (Mobile)</h1>
+
+  <label for="wallet-select">Wallet:</label>
+  <select id="wallet-select">
+    <option value="">– wählen –</option>
+    <option value="Phantom">Phantom (In‑App)</option>
+    <option value="WC">WalletConnect (QR/Deep‑Link)</option>
+  </select>
+  <button id="connect-btn">Connect</button>
+
+  <div id="address">Adresse: –</div>
+  <div id="balance">SOL‑Balance: –</div>
+  <div id="error"></div>
+
+  <script type="module">
+    // UniversalProvider & SolanaAdapter für WalletConnect v2 :contentReference[oaicite:2]{index=2}
+    import UniversalProvider from "https://esm.sh/@walletconnect/universal-provider";
+    import { SolanaProvider }    from "https://esm.sh/@walletconnect/solana-adapter";
+
+    // Phantom‑Adapter für In‑App‑Browser (window.solana) :contentReference[oaicite:3]{index=3}
+    import { PhantomWalletAdapter } from "https://esm.sh/@solana/wallet-adapter-phantom";
+
+    const { Connection, clusterApiUrl, LAMPORTS_PER_SOL, PublicKey } = window.solanaWeb3;
+    const connection = new Connection(clusterApiUrl("mainnet-beta"));
+
+    const wcProjectId = "HIER_DEINE_PROJECT_ID"; // <-- eintragen!
+
+    // WalletConnect‑Provider initialisieren
+    let ucProvider, solProvider;
+    async function initWC() {
+      ucProvider = await UniversalProvider.init({ projectId: wcProjectId, chains: ["solana:mainnet"] });
+      // Deep‑Link / QR öffnen
+      ucProvider.on("display_uri", uri => {
+        console.log("WC URI:", uri);
+        // öffnet Trust, Best Wallet, Rainbow… oder zeigt QR
+        window.location.href = uri;
+      });
+      solProvider = await SolanaProvider.init({ provider: ucProvider });
+    }
+
+    // Phantom‑Connect
+    async function connectPhantom() {
+      const p = window.solana;
+      if (!p?.isPhantom) throw new Error("Phantom‑Injektion nicht gefunden");
+      return p.connect();
+    }
+
+    // UI‑Referenzen
+    const sel = document.getElementById("wallet-select");
+    const btn = document.getElementById("connect-btn");
+    const addr= document.getElementById("address");
+    const bal = document.getElementById("balance");
+    const err = document.getElementById("error");
+
+    btn.addEventListener("click", async () => {
+      err.textContent = "";
+      addr.textContent = "Adresse: –";
+      bal.textContent  = "SOL‑Balance: –";
+
+      const key = sel.value;
+      if (!key) { err.textContent = "Bitte zuerst ein Wallet wählen"; return; }
+
+      try {
+        let info;
+        if (key === "Phantom") {
+          info = await connectPhantom();
+        } else {
+          // WalletConnect
+          if (!ucProvider) await initWC();
+          info = await solProvider.connect();
+        }
+        // Sobald verbunden:
+        const pk = info.publicKey?.toString?.() || info[0];
+        addr.textContent = `Adresse: ${pk}`;
+        const lam = await connection.getBalance(new PublicKey(pk));
+        bal.textContent  = `SOL‑Balance: ${lam / LAMPORTS_PER_SOL} SOL`;
+      } catch (e) {
+        console.error(e);
+        err.textContent = e.message || e;
+      }
+    });
+  </script>
+</body>
+</html>
