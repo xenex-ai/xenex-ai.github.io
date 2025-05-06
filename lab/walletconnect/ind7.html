@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solana Multi‑Wallet Connect</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; }
+    select, button { padding: .5rem; font-size: 1rem; margin-right: .5rem; }
+    #address, #balance, #error { margin-top: 1rem; font-weight: bold; }
+    #error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Solana Multi‑Wallet Connect</h1>
+
+  <!-- Wallet‑Auswahl -->
+  <label for="wallet-select">Wallet:</label>
+  <select id="wallet-select">
+    <option value="">– bitte wählen –</option>
+    <option value="Phantom">Phantom</option>
+    <option value="Solflare">Solflare</option>
+    <option value="Slope">Slope</option>
+    <option value="BitKeep">BitKeep</option>
+    <option value="WalletConnect">WalletConnect</option>
+  </select>
+
+  <!-- Connect‑Button ist immer klickbar -->
+  <button id="connect-btn">Connect</button>
+
+  <div id="address">Adresse: –</div>
+  <div id="balance">SOL‑Balance: –</div>
+  <div id="error"></div>
+
+  <script type="module">
+    // Solana-Web3 für Balance :contentReference[oaicite:0]{index=0}
+    import { Connection, clusterApiUrl, LAMPORTS_PER_SOL, PublicKey }
+      from "https://cdn.jsdelivr.net/npm/@solana/web3.js@latest/lib/index.esm.js";
+
+    // Adapter (ESM‑Bundles) :contentReference[oaicite:1]{index=1}
+    import { PhantomWalletAdapter }
+      from "https://esm.sh/@solana/wallet-adapter-phantom";
+    import { SolflareWalletAdapter }
+      from "https://esm.sh/@solana/wallet-adapter-solflare";
+    import SlopeWalletAdapter
+      from "https://esm.sh/@solana/wallet-adapter-slope";
+    import { BitKeepWalletAdapter }
+      from "https://esm.sh/@solana/wallet-adapter-bitkeep";
+    import { WalletConnectWalletAdapter }
+      from "https://esm.sh/@solana/wallet-adapter-walletconnect";
+
+    const network    = "mainnet-beta";
+    const connection = new Connection(clusterApiUrl(network));
+
+    // WalletConnect‑Project ID (aus https://cloud.walletconnect.com) 
+    const wcProjectId = "262e67d5e1f2205615ff102f60b2f1dc";
+
+    const adapters = {
+      Phantom:       new PhantomWalletAdapter(),
+      Solflare:      new SolflareWalletAdapter({ network }),
+      Slope:         new SlopeWalletAdapter(),
+      BitKeep:       new BitKeepWalletAdapter(),
+      WalletConnect: new WalletConnectWalletAdapter({
+        network,
+        options: {
+          relayUrl:  "wss://relay.walletconnect.com",
+          projectId: wcProjectId,
+          metadata: {
+            name:        "Meine Solana‑DApp",
+            description: "Multi‑Wallet Demo",
+            url:         window.location.origin,
+            icons:       []
+          }
+        }
+      })
+    };
+
+    const sel = document.getElementById("wallet-select");
+    const btn = document.getElementById("connect-btn");
+    const divA = document.getElementById("address");
+    const divB = document.getElementById("balance");
+    const divE = document.getElementById("error");
+
+    btn.addEventListener("click", async () => {
+      divE.textContent = "";
+
+      const key = sel.value;
+      if (!key) {
+        divE.textContent = "Bitte wähle zuerst ein Wallet aus.";
+        return;
+      }
+
+      const adapter = adapters[key];
+      if (!adapter) {
+        divE.textContent = "Unbekanntes Wallet: " + key;
+        return;
+      }
+
+      try {
+        // Wenn schon verbunden: trennen
+        if (adapter.connected) {
+          await adapter.disconnect();
+          btn.textContent = "Connect";
+          return;
+        }
+
+        // Events vor connect() registrieren
+        adapter.on("connect", async () => {
+          btn.textContent = "Disconnect";
+          const pk = adapter.publicKey.toString();
+          divA.textContent = `Adresse: ${pk}`;
+          const lamports = await connection.getBalance(adapter.publicKey);
+          divB.textContent = `SOL‑Balance: ${lamports / LAMPORTS_PER_SOL} SOL`;
+        });
+        adapter.on("disconnect", () => {
+          btn.textContent = "Connect";
+          divA.textContent = "Adresse: –";
+          divB.textContent = "SOL‑Balance: –";
+        });
+        adapter.on("error", (err) => {
+          divE.textContent = `Fehler: ${err.message || err}`;
+        });
+
+        // Connect aufrufen
+        await adapter.connect();
+      } catch (err) {
+        divE.textContent = `Fehler: ${err.message || err}`;
+      }
+    });
+  </script>
+</body>
+</html>
