@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Stripe Testzahlung</title>
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+  <button id="checkout-button">Testzahlung starten</button>
+
+  <script>
+    const stripe = Stripe("pk_test_XXXXXXXXXXXXXXXXXXXXXXXX"); // ← Deine Test-Publishable Key hier einfügen
+
+    document.getElementById("checkout-button").addEventListener("click", () => {
+      stripe.redirectToCheckout({
+        lineItems: [{ price: 'price_12345', quantity: 1 }], // ← Dein Testpreis
+        mode: 'payment',
+        successUrl: 'https://example.com/success',
+        cancelUrl: 'https://example.com/cancel',
+      });
+    });
+  </script>
+</body>
+</html>
