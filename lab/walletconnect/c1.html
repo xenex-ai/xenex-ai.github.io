@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Meine Reown-Integration</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    button { padding: 0.75rem 1.5rem; margin: 0.5rem; border: none; border-radius: 4px; cursor: pointer; }
+    #connect { background:#0d6efd; color:#fff; }
+    #swap, #onramp, #send { background:#6c757d; color:#fff; }
+    #log { margin-top:1rem; white-space: pre-wrap; background:#f8f9fa; padding:1rem; border-radius:4px; height:200px; overflow:auto; }
+  </style>
+</head>
+<body>
+
+  <h1>Reown AppKit Integration</h1>
+
+  <!-- 1) Connect Wallet -->
+  <button id="connect">Wallet verbinden</button>
+
+  <!-- 2) On-Chain Aktionen -->
+  <button id="swap" disabled>Swap</button>
+  <button id="onramp" disabled>On-Ramp</button>
+  <button id="send" disabled>Send</button>
+
+  <!-- 3) Log-Ausgabe -->
+  <div id="log"></div>
+
+  <!-- 4) AppKit Browser-Bundle laden -->
+  <script src="https://unpkg.com/@reown/appkit@latest/dist/appkit.browser.js"></script>
+  <!-- Mehr dazu: Quickstart JavaScript :contentReference[oaicite:0]{index=0} -->
+
+  <script>
+    // === Initialisierung ===
+    const projectId = "262e67d5e1f2205615ff102f60b2f1dc"; 
+    // aus Reown Cloud Dashboard kopieren :contentReference[oaicite:1]{index=1}
+
+    // createAppKit kommt aus dem geladenen Browser-Bundle
+    const appkit = createAppKit({
+      projectId,
+      // hier kannst du Farben und Theme-Variablen setzen
+      themeVariables: {
+        '--w3m-accent': '#00BB7F',
+      }
+    });
+
+    const log = msg => {
+      document.getElementById('log').textContent += msg + "\n";
+    };
+
+    // === Wallet verbinden ===
+    document.getElementById('connect').onclick = async () => {
+      try {
+        await appkit.open();           // öffnet das Modal
+        log("Modal geöffnet → Wallet auswählen…");
+      } catch(e) {
+        log("Fehler beim Öffnen: " + e.message);
+      }
+    };
+
+    // Wenn Wallet verbunden ist, werden Buttons aktiviert
+    appkit.on("connect", ({ address, chainId }) => {
+      log(`▶️ Verbunden: ${address} (Chain ${chainId})`);
+      document.getElementById('swap').disabled   = false;
+      document.getElementById('onramp').disabled = false;
+      document.getElementById('send').disabled   = false;
+    });
+
+    // Trenne Wallet-Verbindung
+    appkit.on("disconnect", () => {
+      log("🔌 Wallet getrennt");
+      document.getElementById('swap').disabled = true;
+      document.getElementById('onramp').disabled = true;
+      document.getElementById('send').disabled = true;
+    });
+
+    // === Swap, On-Ramp & Send ===
+    document.getElementById('swap').onclick = () => {
+      appkit.openFeature("swap");   // öffnet Swap-Dialog :contentReference[oaicite:2]{index=2}
+      log("Swap-Feature aufgerufen");
+    };
+    document.getElementById('onramp').onclick = () => {
+      appkit.openFeature("onramp"); // öffnet On-Ramp-Dialog
+      log("On-Ramp-Feature aufgerufen");
+    };
+    document.getElementById('send').onclick = () => {
+      appkit.openFeature("send");   // öffnet Send-Dialog
+      log("Send-Feature aufgerufen");
+    };
+
+    // === Email & Social Login ===
+    // AppKit öffnet im selben Modal automatisch die Login-Optionen, 
+    // wenn keine Wallet-Verbindung existiert :contentReference[oaicite:3]{index=3}
+
+    // === Fehler abfangen ===
+    appkit.on("error", err => {
+      log("❌ Fehler: " + err.message);
+    });
+  </script>
+</body>
+</html>
