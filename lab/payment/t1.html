@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web3 Wallet Connect & Kaufbuttons</title>
+  <!-- Web3Modal & WalletConnect -->
+  <script src="https://unpkg.com/@web3modal/html@2.0.0-alpha.1"></script>
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <!-- Ethers.js für Ethereum -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+  <!-- Solana Web3.js -->
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
+    button { padding: 0.6rem 1.2rem; margin: 0.5rem; border: none; border-radius: 4px; cursor: pointer; }
+    .connect { background: #4CAF50; color: white; }
+    .buy { background: #008CBA; color: white; }
+    .address { margin-top: 1rem; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Web3 Wallet Connect und Kaufbuttons</h1>
+
+  <!-- Connect Button -->
+  <button id="btn-connect" class="connect">Mit Wallet verbinden</button>
+  <div id="address-display" class="address">Keine Adresse verbunden</div>
+
+  <!-- Kaufbuttons -->
+  <h2>Token kaufen</h2>
+  <button id="buy-sol" class="buy">Solana kaufen</button>
+  <button id="buy-eth" class="buy">Ethereum kaufen</button>
+  <button id="buy-usdt" class="buy">USDT kaufen</button>
+  <button id="buy-btc" class="buy">Bitcoin kaufen</button>
+
+  <script>
+    // Web3Modal-Setup
+    const providerOptions = {
+      walletconnect: {
+        package: WalletConnectProvider.default,
+        options: {
+          infuraId: "YOUR_INFURA_ID"
+        }
+      }
+    };
+    const web3Modal = new window.Web3ModalHTML.default({
+      projectId: "YOUR_PROJECT_ID",
+      themeMode: 'light',
+      accentColor: 'default',
+      ethereum: {
+        appName: 'Demo App',
+        chains: ["eip155:1"]
+      }
+    });
+
+    let provider, signer;
+
+    async function connectWallet() {
+      // Öffnet WalletConnect Modal
+      provider = await web3Modal.connect();
+      // Ethers.js Provider
+      const ethersProvider = new ethers.providers.Web3Provider(provider);
+      signer = ethersProvider.getSigner();
+      const address = await signer.getAddress();
+      document.getElementById('address-display').innerText = `Adresse: ${address}`;
+    }
+
+    document.getElementById('btn-connect').onclick = connectWallet;
+
+    // Kaufbuttons führen zu On-Ramp Services (z.B. Transak)
+    document.getElementById('buy-sol').onclick = () => {
+      window.open('https://global.transak.com?apiKey=YOUR_TRANSAK_KEY&cryptoCurrency=SOL', '_blank');
+    };
+    document.getElementById('buy-eth').onclick = () => {
+      window.open('https://global.transak.com?apiKey=YOUR_TRANSAK_KEY&cryptoCurrency=ETH', '_blank');
+    };
+    document.getElementById('buy-usdt').onclick = () => {
+      window.open('https://global.transak.com?apiKey=YOUR_TRANSAK_KEY&cryptoCurrency=USDT', '_blank');
+    };
+    document.getElementById('buy-btc').onclick = () => {
+      window.open('https://global.transak.com?apiKey=YOUR_TRANSAK_KEY&cryptoCurrency=BTC', '_blank');
+    };
+  </script>
+</body>
+</html>
