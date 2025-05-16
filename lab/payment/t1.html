@@ -3,14 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Web3 Wallet Connect & Kaufbuttons</title>
-  <!-- Web3Modal & WalletConnect -->
-  <script src="https://unpkg.com/@web3modal/html@2.0.0-alpha.1"></script>
-  <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
-  <!-- Ethers.js für Ethereum -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
-  <!-- Solana Web3.js -->
-  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+  <title>XenexAi Presale Wallet Connect</title>
   <style>
     body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
     button { padding: 0.6rem 1.2rem; margin: 0.5rem; border: none; border-radius: 4px; cursor: pointer; }
@@ -20,66 +13,84 @@
   </style>
 </head>
 <body>
-  <h1>Web3 Wallet Connect und Kaufbuttons</h1>
+  <h1>XenexAi Presale</h1>
+  <p>Verbinde dein Wallet und kaufe $XENAI für 0.01 ETH pro Token.</p>
 
-  <!-- Connect Button -->
   <button id="btn-connect" class="connect">Mit Wallet verbinden</button>
   <div id="address-display" class="address">Keine Adresse verbunden</div>
 
-  <!-- Kaufbuttons -->
-  <h2>Token kaufen</h2>
-  <button id="buy-sol" class="buy">Solana kaufen</button>
-  <button id="buy-eth" class="buy">Ethereum kaufen</button>
-  <button id="buy-usdt" class="buy">USDT kaufen</button>
-  <button id="buy-btc" class="buy">Bitcoin kaufen</button>
+  <h2>Presale kaufen</h2>
+  <button id="buy-xenai" class="buy" disabled>Kaufe 1 $XENAI</button>
 
-  <script>
-    // Web3Modal-Setup
-    const providerOptions = {
-      walletconnect: {
-        package: WalletConnectProvider.default,
-        options: {
-          infuraId: "00441a4f8b8541a886c0b0bd4f270e4e"
+  <script type="module">
+    import { Core } from "https://unpkg.com/@walletconnect/core/dist/esm/index.js";
+    import { WalletKit } from "https://unpkg.com/@reown/walletkit/dist/esm/index.js";
+
+    const CONTRACT_ADDRESS = "0x78dbE8A761EA452ddC9eE3321394F846967a96F8"; // XenexAi Presale Contract
+    const TOKEN_PRICE_ETH = 0.01; // ETH per token
+
+    let walletKit;
+    let session;
+    let userAddress;
+
+    async function initWalletKit() {
+      const core = new Core({ projectId: "YOUR_PROJECT_ID" });
+      walletKit = await WalletKit.init({
+        core,
+        metadata: {
+          name: "XenexAi Presale",
+          description: "Buy XenexAi presale tokens",
+          url: window.location.origin,
+          icons: []
         }
-      }
-    };
-    const web3Modal = new window.Web3ModalHTML.default({
-      projectId: "262e67d5e1f2205615ff102f60b2f1dc",
-      themeMode: 'light',
-      accentColor: 'default',
-      ethereum: {
-        appName: 'Demo App',
-        chains: ["eip155:1"]
-      }
-    });
+      });
 
-    let provider, signer;
+      walletKit.on('session_proposal', async (proposal) => {
+        const namespaces = {
+          eip155: {
+            chains: ['eip155:1'],
+            methods: ['eth_sendTransaction'],
+            events: ['accountsChanged', 'chainChanged'],
+            accounts: [ `${proposal.params.requiredNamespaces.eip155.chains[0]}:${userAddress}` ]
+          }
+        };
+        session = await walletKit.approveSession({ id: proposal.id, namespaces });
+        document.getElementById('buy-xenai').disabled = false;
+      });
+
+      walletKit.on('session_request', async (event) => {
+        // Handle other session requests if needed
+      });
+    }
 
     async function connectWallet() {
-      // Öffnet WalletConnect Modal
-      provider = await web3Modal.connect();
-      // Ethers.js Provider
-      const ethersProvider = new ethers.providers.Web3Provider(provider);
-      signer = ethersProvider.getSigner();
-      const address = await signer.getAddress();
-      document.getElementById('address-display').innerText = `Adresse: ${address}`;
+      if (!walletKit) await initWalletKit();
+      const uri = await walletKit.core.pairing.create({});
+      await walletKit.pair({ uri });
+
+      const sessions = walletKit.getActiveSessions();
+      session = sessions[0];
+      userAddress = session.namespaces.eip155.accounts[0].split(':')[2];
+      document.getElementById('address-display').innerText = `Adresse: ${userAddress}`;
+      document.getElementById('buy-xenai').disabled = false;
+    }
+
+    async function buyXenai() {
+      const valueWei = (TOKEN_PRICE_ETH * 1e18).toString(16);
+      const tx = {
+        from: userAddress,
+        to: CONTRACT_ADDRESS,
+        value: `0x${valueWei}`
+      };
+      await walletKit.request({ topic: session.topic, request: {
+        method: 'eth_sendTransaction',
+        params: [tx]
+      }});
+      alert('Transaktion abgeschickt!');
     }
 
     document.getElementById('btn-connect').onclick = connectWallet;
-
-    // Kaufbuttons führen zu On-Ramp Services (z.B. Transak)
-    document.getElementById('buy-sol').onclick = () => {
-      window.open('https://global.transak.com?apiKey=YOUR_TRANSAK_KEY&cryptoCurrency=SOL', '_blank');
-    };
-    document.getElementById('buy-eth').onclick = () => {
-      window.open('https://global.transak.com?apiKey=YOUR_TRANSAK_KEY&cryptoCurrency=ETH', '_blank');
-    };
-    document.getElementById('buy-usdt').onclick = () => {
-      window.open('https://global.transak.com?apiKey=YOUR_TRANSAK_KEY&cryptoCurrency=USDT', '_blank');
-    };
-    document.getElementById('buy-btc').onclick = () => {
-      window.open('https://global.transak.com?apiKey=YOUR_TRANSAK_KEY&cryptoCurrency=BTC', '_blank');
-    };
+    document.getElementById('buy-xenai').onclick = buyXenai;
   </script>
 </body>
 </html>
