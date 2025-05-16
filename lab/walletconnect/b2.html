@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WalletConnect & MetaMask Demo</title>
+  <style>
+    body { font-family: Arial; padding:1rem; }
+    button { padding:.5rem 1rem; margin-right:1rem; font-size:1rem; }
+    #address, #balance, #error { margin-top:1rem; font-weight:bold; }
+    #error { color:red; }
+  </style>
+</head>
+<body>
+  <h1>WalletConnect & MetaMask</h1>
+  <button id="btn-wc">Connect WalletConnect</button>
+  <button id="btn-mm">Connect MetaMask</button>
+
+  <div id="address">Adresse: –</div>
+  <div id="balance">Balance: –</div>
+  <div id="error"></div>
+
+  <script type="module">
+    import { EthereumProvider } from "https://esm.sh/@walletconnect/ethereum-provider@2.8.0";
+
+    const wcBtn  = document.getElementById("btn-wc");
+    const mmBtn  = document.getElementById("btn-mm");
+    const addrEl = document.getElementById("address");
+    const balEl  = document.getElementById("balance");
+    const errEl  = document.getElementById("error");
+
+    // --- WalletConnect mit Namespace-Konfig ---
+    let wcProvider;
+    async function connectWC() {
+      errEl.textContent = "";
+      try {
+        wcProvider = await EthereumProvider.init({
+          projectId: "262e67d5e1f2205615ff102f60b2f1dc",
+          chains: [1],
+          rpcMap: {
+            1: "https://rpc.ankr.com/eth"
+          },
+          methods: ["eth_requestAccounts","eth_chainId","eth_getBalance","eth_sendTransaction","personal_sign"],
+          events: ["accountsChanged","chainChanged"],
+          showQrModal: true
+        });
+
+        // Jetzt connect mit requiredNamespaces aufrufen:
+        const session = await wcProvider.connect({
+          requiredNamespaces: {
+            eip155: {
+              chains: ["eip155:1"],
+              methods: ["eth_requestAccounts","eth_chainId","eth_getBalance"],
+              events: ["accountsChanged","chainChanged"]
+            }
+          }
+        });
+
+        // Die erste Account-URI sieht so aus: "eip155:1:0x1234..."
+        const accountStr = session.namespaces.eip155.accounts[0];
+        const [, , account] = accountStr.split(":");
+
+        addrEl.textContent = `Adresse: ${account}`;
+
+        // Balance abfragen über Provider.request
+        const hexBal = await wcProvider.request({
+          method: "eth_getBalance",
+          params: [account, "latest"]
+        });
+        const ethBal = parseInt(hexBal, 16) / 1e18;
+        balEl.textContent = `Balance: ${ethBal.toFixed(4)} ETH`;
+
+      } catch(e) {
+        errEl.textContent = e.message;
+      }
+    }
+    wcBtn.addEventListener("click", connectWC);
+
+    // --- MetaMask ---
+    async function connectMM() {
+      errEl.textContent = "";
+      try {
+        if (!window.ethereum) throw new Error("MetaMask nicht installiert");
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        addrEl.textContent = `Adresse: ${accounts[0]}`;
+        const hexBal = await window.ethereum.request({
+          method: "eth_getBalance",
+          params: [accounts[0], "latest"]
+        });
+        const ethBal = parseInt(hexBal, 16) / 1e18;
+        balEl.textContent = `Balance: ${ethBal.toFixed(4)} ETH`;
+      } catch(e) {
+        errEl.textContent = e.message;
+      }
+    }
+    mmBtn.addEventListener("click", connectMM);
+
+    // Handle chain/account changes für MetaMask
+    if (window.ethereum) {
+      window.ethereum.on("accountsChanged", accs => {
+        addrEl.textContent = accs.length ? `Adresse: ${accs[0]}` : "Adresse: –";
+        balEl.textContent = "Balance: –";
+      });
+      window.ethereum.on("chainChanged", () => {
+        balEl.textContent = "Balance: –";
+      });
+    }
+  </script>
+</body>
+</html>
