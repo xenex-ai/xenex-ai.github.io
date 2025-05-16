@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Solana WalletConnect</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.91.0/lib/index.iife.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/wallet-adapter-base@0.9.22/lib/index.iife.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/wallet-adapter-wallets@0.11.24/lib/index.iife.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/wallet-adapter-walletconnect@0.11.24/lib/index.iife.min.js"></script>
+</head>
+<body>
+  <h2>Solana WalletConnect Beispiel</h2>
+  <button id="connect-btn">WalletConnect verbinden</button>
+  <p id="wallet-address">Noch nicht verbunden</p>
+
+  <script>
+    (async () => {
+      const { WalletConnectWalletAdapter } = window['@solana/wallet-adapter-walletconnect'];
+      const { Connection, clusterApiUrl } = solanaWeb3;
+
+      // Solana Devnet-Verbindung
+      const connection = new Connection(clusterApiUrl('devnet'));
+
+      // WalletConnect Adapter
+      const wallet = new WalletConnectWalletAdapter({
+        network: 'devnet',
+        options: {
+          projectId: "262e67d5e1f2205615ff102f60b2f1dc", // Hol dir einen bei walletconnect.com
+          relayUrl: "wss://relay.walletconnect.com",
+          metadata: {
+            name: "XenexAi DApp",
+            description: "XenexAi WalletConnect Beispiel",
+            url: "https://xenex-ai.com",
+            icons: ["https://xenex-ai.com/logo.png"]
+          }
+        }
+      });
+
+      document.getElementById('connect-btn').addEventListener('click', async () => {
+        try {
+          await wallet.connect();
+          const publicKey = wallet.publicKey.toString();
+          document.getElementById('wallet-address').innerText = `Verbunden: ${publicKey}`;
+          console.log("Verbunden mit:", publicKey);
+        } catch (err) {
+          console.error("Verbindungsfehler:", err);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
