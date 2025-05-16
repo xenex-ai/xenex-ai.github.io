@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solana Multi-Wallet Connect (Robust Import)</title>
+  <style>
+    body { font-family: Arial; padding: 1rem; }
+    select, button { padding: .5rem; margin-right: .5rem; font-size: 1rem; }
+    #address,#balance { margin-top:1rem; font-weight:bold; }
+    #error { margin-top:1rem; color:red; }
+    #debug { margin-top:1rem; padding:.5rem; background:#f4f4f4; height:200px; overflow:auto; font-family:monospace; white-space:pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Solana Multi-Wallet Connect (Dynamic Import)</h1>
+  <label for="wallet-select">Wallet:</label>
+  <select id="wallet-select">
+    <option value="">– wählen –</option>
+    <option value="Phantom">Phantom</option>
+    <option value="WalletConnect">WalletConnect</option>
+  </select>
+  <button id="connect-btn">Connect</button>
+
+  <div id="address">Adresse: –</div>
+  <div id="balance">SOL-Balance: –</div>
+  <div id="error"></div>
+  <div id="debug"></div>
+
+  <script type="module">
+    const dbg = document.getElementById("debug");
+    function log(...a){ dbg.textContent += a.join(" ") + "\n"; }
+    function errLog(...a){ dbg.textContent += "ERROR: " + a.join(" ") + "\n"; }
+
+    log("🚀 Script gestartet");
+
+    let solanaWeb3,
+        UniversalProvider,
+        SolanaProvider,
+        PhantomWalletAdapter;
+
+    // 1) Browser-bündeltes solanaWeb3 via esm.sh
+    try {
+      solanaWeb3 = await import("https://esm.sh/@solana/web3.js@latest?bundle");
+      log("✅ solanaWeb3 geladen");
+    } catch(e) {
+      errLog("Fehler solanaWeb3 import:", e.message);
+      document.getElementById("error").textContent = "solanaWeb3 import fehlgeschlagen";
+      throw e;
+    }
+
+    // 2) WalletConnect-Module robust importieren
+    try {
+      const wcMod = await import("https://esm.sh/@walletconnect/universal-provider@2?bundle");
+      UniversalProvider = wcMod.UniversalProvider ?? wcMod.default;
+      log("✅ UniversalProvider gefunden");
+
+      const saMod = await import("https://esm.sh/@walletconnect/solana-adapter@0.4?bundle");
+      SolanaProvider = saMod.SolanaProvider ?? saMod.default?.SolanaProvider;
+      log("✅ SolanaProvider gefunden");
+    } catch(e) {
+      errLog("Fehler WalletConnect import:", e.message);
+    }
+
+    // 3) PhantomAdapter laden
+    try {
+      const phMod = await import("https://esm.sh/@solana/wallet-adapter-phantom@0.11?bundle");
+      PhantomWalletAdapter = phMod.PhantomWalletAdapter ?? phMod.default?.PhantomWalletAdapter;
+      log("✅ PhantomWalletAdapter geladen");
+    } catch(e) {
+      errLog("Fehler PhantomAdapter import:", e.message);
+    }
+
+    const { Connection, clusterApiUrl, LAMPORTS_PER_SOL, PublicKey } = solanaWeb3;
+    const connection = new Connection(clusterApiUrl("mainnet-beta"));
+    log("✅ Solana Connection initialisiert");
+
+    // WalletConnect Init und Instanzierung
+    const wcProjectId = "262e67d5e1f2205615ff102f60b2f1dc";
+    let ucProvider, solProvider;
+    async function initWC() {
+      try {
+        ucProvider = await UniversalProvider.init({ projectId: wcProjectId });
+        ucProvider.on("display_uri", uri => log("→ display_uri:", uri));
+
+        // SolanaProvider über Konstruktor
+        solProvider = new SolanaProvider({ provider: ucProvider });
+        log("✅ SolanaProvider initialisiert");
+      } catch(e) {
+        errLog("Fehler initWC():", e.message);
+      }
+    }
+
+    // Adapter-Definitionen
+    const adapters = {
+      Phantom: {
+        connect: async () => {
+          log("Phantom.connect()");
+          const p = window.solana;
+          if (!p?.isPhantom) throw new Error("Phantom nicht gefunden");
+          const resp = await p.connect();
+          log("Phantom verbunden:", resp.publicKey.toString());
+          return resp;
+        },
+        on: window.solana?.on?.bind(window.solana),
+        disconnect: () => window.solana?.disconnect()
+      },
+      WalletConnect: {
+        connect: async () => {
+          if (!ucProvider) await initWC();
+          log("WalletConnect.connect()");
+          await solProvider.connect();
+        },
+        on: solProvider?.on?.bind(solProvider),
+        disconnect: () => ucProvider.disconnect()
+      }
+    };
+
+    // UI-Elemente
+    const sel = document.getElementById("wallet-select");
+    const btn = document.getElementById("connect-btn");
+    const addr = document.getElementById("address");
+    const bal = document.getElementById("balance");
+    const err = document.getElementById("error");
+
+    btn.addEventListener("click", async () => {
+      err.textContent = "";
+      log("→ Button geklickt");
+      const key = sel.value;
+      if (!key) {
+        err.textContent = "Bitte Wallet wählen";
+        errLog("No wallet selected");
+        return;
+      }
+      const a = adapters[key];
+      if (!a) {
+        err.textContent = "Adapter fehlt";
+        errLog("Adapter undefined for " + key);
+        return;
+      }
+
+      try {
+        // Event-Handler setzen
+        a.on?.("connect", async info => {
+          log("EVENT connect", info||"");
+          const pk = info?.publicKey?.toString?.() || window.solana?.publicKey.toString();
+          addr.textContent = `Adresse: ${pk}`;
+          const lam = await connection.getBalance(new PublicKey(pk));
+          bal.textContent = `SOL-Balance: ${lam/LAMPORTS_PER_SOL} SOL`;
+        });
+        a.on?.("disconnect", () => {
+          log("EVENT disconnect");
+          addr.textContent = "Adresse: –";
+          bal.textContent = "SOL-Balance: –";
+        });
+        a.on?.("error", e => {
+          err.textContent = e.message;
+          errLog("EVENT error", e.message);
+        });
+
+        log("Aufruf connect()");
+        await a.connect();
+      } catch(e) {
+        err.textContent = e.message;
+        errLog("Connect failed:", e.message);
+      }
+    });
+  </script>
+</body>
+</html>
