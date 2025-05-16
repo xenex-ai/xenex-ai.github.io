@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WalletConnect & MetaMask Demo</title>
+  <style>
+    body { font-family: Arial; padding:1rem; }
+    button { padding:.5rem 1rem; margin-right:1rem; font-size:1rem; }
+    #address, #balance, #error { margin-top:1rem; font-weight:bold; }
+    #error { color:red; }
+  </style>
+</head>
+<body>
+  <h1>WalletConnect & MetaMask</h1>
+  <button id="btn-wc">Connect WalletConnect</button>
+  <button id="btn-mm">Connect MetaMask</button>
+
+  <div id="address">Adresse: –</div>
+  <div id="balance">Balance: –</div>
+  <div id="error"></div>
+
+  <script type="module">
+    import { EthereumProvider } from "https://esm.sh/@walletconnect/ethereum-provider@2.8.0";
+    // https://github.com/WalletConnect/ethereum-provider/blob/main/docs/README.md
+
+    const wcBtn = document.getElementById("btn-wc");
+    const mmBtn = document.getElementById("btn-mm");
+    const addrEl = document.getElementById("address");
+    const balEl  = document.getElementById("balance");
+    const errEl  = document.getElementById("error");
+
+    // --- WalletConnect ---
+    let wcProvider;
+    async function connectWC() {
+      errEl.textContent = "";
+      try {
+        // Initialisiere WalletConnect-Provider
+        wcProvider = await EthereumProvider.init({
+          projectId: "262e67d5e1f2205615ff102f60b2f1dc",
+          chains: [1],                // 1 = Ethereum Mainnet
+          methods: ["eth_requestAccounts","eth_chainId","eth_sendTransaction","personal_sign"]
+        });
+        // Öffne QR-Code Modal
+        await wcProvider.request({ method: "eth_requestAccounts" });
+        const accounts = await wcProvider.request({ method: "eth_accounts" });
+        const chainId  = await wcProvider.request({ method: "eth_chainId" });
+        addrEl.textContent = `Adresse: ${accounts[0]}`;
+        // Balance abfragen über eth_getBalance
+        const hexBal = await wcProvider.request({ method: "eth_getBalance", params: [accounts[0], "latest"] });
+        const ethBal = parseInt(hexBal, 16) / 1e18;
+        balEl.textContent = `Balance: ${ethBal.toFixed(4)} ETH (Chain ${chainId})`;
+      } catch(e) {
+        errEl.textContent = e.message;
+      }
+    }
+    wcBtn.addEventListener("click", connectWC);
+
+    // --- MetaMask ---
+    async function connectMM() {
+      errEl.textContent = "";
+      try {
+        if (!window.ethereum) throw new Error("MetaMask nicht installiert");
+        // Accounts anfragen
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        addrEl.textContent = `Adresse: ${accounts[0]}`;
+        // Balance abfragen mit web3-rpc
+        const hexBal = await window.ethereum.request({
+          method: "eth_getBalance",
+          params: [accounts[0], "latest"]
+        });
+        const ethBal = parseInt(hexBal, 16) / 1e18;
+        balEl.textContent = `Balance: ${ethBal.toFixed(4)} ETH`;
+      } catch(e) {
+        errEl.textContent = e.message;
+      }
+    }
+    mmBtn.addEventListener("click", connectMM);
+
+    // Handle chain/account changes
+    if (window.ethereum) {
+      window.ethereum.on("accountsChanged", (accs) => {
+        addrEl.textContent = accs.length ? `Adresse: ${accs[0]}` : "Adresse: –";
+        balEl.textContent = "Balance: –";
+      });
+      window.ethereum.on("chainChanged", () => {
+        balEl.textContent = "Balance: –";
+      });
+    }
+  </script>
+</body>
+</html>
