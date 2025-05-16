@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solana Multi-Wallet Connect (Phantom & WC)</title>
+  <style>
+    body { font-family: Arial; padding: 1rem; }
+    select, button { padding: .5rem; margin-right: .5rem; font-size: 1rem; }
+    #address,#balance { margin-top:1rem; font-weight:bold; }
+    #error { margin-top:1rem; color:red; }
+    #debug { margin-top:1rem; padding:.5rem; background:#f4f4f4; height:200px; overflow:auto; font-family:monospace; white-space:pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Solana Multi-Wallet Connect (Phantom & WalletConnect)</h1>
+
+  <label for="wallet-select">Wallet:</label>
+  <select id="wallet-select">
+    <option value="">– wählen –</option>
+    <option value="phantom">Phantom</option>
+    <option value="wc">WalletConnect</option>
+  </select>
+  <button id="connect-btn">Connect</button>
+
+  <div id="address">Adresse: –</div>
+  <div id="balance">SOL-Balance: –</div>
+  <div id="error"></div>
+  <div id="debug"></div>
+
+  <script type="module">
+    const dbg = document.getElementById("debug");
+    function log(...msgs){ dbg.textContent += msgs.join(" ") + "\n"; }
+    function errLog(...msgs){ dbg.textContent += "ERROR: " + msgs.join(" ") + "\n"; }
+
+    log("🚀 Script gestartet");
+
+    // 1) Solana Web3 laden (Skypack)
+    let Connection, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL;
+    try {
+      const web3 = await import("https://cdn.skypack.dev/@solana/web3.js");
+      ({ Connection, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL } = web3);
+      log("✅ @solana/web3.js geladen");
+    } catch(e) {
+      errLog("Web3 import fehlgeschlagen:", e.message);
+      document.getElementById("error").textContent = "Solana-Web3 import fehlgeschlagen";
+      throw e;
+    }
+
+    // 2) Phantom Adapter importieren
+    let PhantomWalletAdapter;
+    try {
+      const ph = await import("https://unpkg.com/@solana/wallet-adapter-phantom@0.11.0/dist/esm/index.js");
+      PhantomWalletAdapter = ph.PhantomWalletAdapter;
+      log("✅ PhantomWalletAdapter geladen");
+    } catch(e) {
+      errLog("Phantom-Adapter import fehlgeschlagen:", e.message);
+    }
+
+    // 3) WalletConnect Wallet Adapter importieren
+    let WalletConnectWalletAdapter;
+    try {
+      const wc = await import("https://unpkg.com/@solana/wallet-adapter-walletconnect@0.11.0/dist/esm/index.js");
+      WalletConnectWalletAdapter = wc.WalletConnectWalletAdapter;
+      log("✅ WalletConnectWalletAdapter geladen");
+    } catch(e) {
+      errLog("WalletConnect-Adapter import fehlgeschlagen:", e.message);
+    }
+
+    // Solana-Connection aufbauen
+    const connection = new Connection(clusterApiUrl("mainnet-beta"));
+    log("✅ Solana Connection initialisiert");
+
+    // Adapter-Instanzen (erst bauen, wenn ausgewählt)
+    const adapters = {
+      phantom: () => {
+        if (!PhantomWalletAdapter) throw new Error("Phantom-Adapter nicht geladen");
+        return new PhantomWalletAdapter();
+      },
+      wc: () => {
+        if (!WalletConnectWalletAdapter) throw new Error("WC-Adapter nicht geladen");
+        return new WalletConnectWalletAdapter({
+          chains: ["mainnet-beta"],
+          options: { 
+            projectId: "262e67d5e1f2205615ff102f60b2f1dc",
+            metadata: {
+              name: "XenexAi Demo",
+              description: "Solana Multi-Wallet Connect Demo",
+              url: window.location.origin,
+              icons: []
+            }
+          }
+        });
+      }
+    };
+
+    // UI-Elemente
+    const sel    = document.getElementById("wallet-select");
+    const btn    = document.getElementById("connect-btn");
+    const addrEl = document.getElementById("address");
+    const balEl  = document.getElementById("balance");
+    const errEl  = document.getElementById("error");
+
+    btn.addEventListener("click", async () => {
+      errEl.textContent = "";
+      log("→ Button geklickt");
+      const key = sel.value;
+      if (!key) {
+        errEl.textContent = "Bitte Wallet wählen";
+        return;
+      }
+
+      let adapter;
+      try {
+        adapter = adapters[key]();
+      } catch(e) {
+        errEl.textContent = e.message;
+        errLog(e.message);
+        return;
+      }
+
+      // Event-Handler registrieren
+      adapter.on("connect", async () => {
+        log("EVENT connect");
+        const pk = adapter.publicKey.toString();
+        addrEl.textContent = `Adresse: ${pk}`;
+        const lam = await connection.getBalance(new PublicKey(pk));
+        balEl.textContent = `SOL-Balance: ${lam / LAMPORTS_PER_SOL} SOL`;
+      });
+      adapter.on("disconnect", () => {
+        log("EVENT disconnect");
+        addrEl.textContent = "Adresse: –";
+        balEl.textContent = "SOL-Balance: –";
+      });
+      adapter.on("error", err => {
+        errEl.textContent = err.message;
+        errLog("EVENT error", err.message);
+      });
+
+      // Connect aufrufen
+      try {
+        log("Aufruf connect()");
+        await adapter.connect();
+      } catch(e) {
+        errEl.textContent = e.message;
+        errLog("Connect failed:", e.message);
+      }
+    });
+  </script>
+</body>
+</html>
