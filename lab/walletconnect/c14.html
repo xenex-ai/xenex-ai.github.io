@@ -191,7 +191,7 @@
           // WalletConnect v2 for Solana
           if (!wcSolUniversal) {
             wcSolUniversal = await UniversalProvider.init({
-              projectId: 'DEINE_SOL_WC_PROJECT_ID',
+              projectId: '262e67d5e1f2205615ff102f60b2f1dc',
               chains: ['solana:mainnet']
             });
             wcSolUniversal.on('display_uri', uri => window.location.href = uri);
