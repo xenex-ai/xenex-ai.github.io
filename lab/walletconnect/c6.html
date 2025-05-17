@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Wallet Connect</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; }
+    button { margin: 0.5rem; padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; }
+    #log { margin-top: 1rem; white-space: pre-wrap; background: #f5f5f5; padding: 1rem; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Multi-Wallet Connect</h1>
+
+  <!-- Ethereum Buttons -->
+  <button id="connectMetaMask">MetaMask (Ethereum)</button>
+  <button id="connectWC">WalletConnect (Ethereum)</button>
+  
+  <!-- Bitcoin Button -->
+  <button id="connectWCBTC">WalletConnect (Bitcoin)</button>
+
+  <div id="log">Status: –</div>
+
+  <!-- Web3.js für Ethereum -->
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.1/dist/web3.min.js"></script>
+  <!-- WalletConnect Ethereum-Provider -->
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <!-- WalletConnect Bitcoin-Provider -->
+  <script src="https://unpkg.com/@walletconnect/btc-provider@1.0.0/dist/umd/index.min.js"></script>
+
+  <script>
+    const logDiv = document.getElementById('log');
+    function log(msg) {
+      console.log(msg);
+      logDiv.textContent = msg;
+    }
+
+    // === Ethereum: MetaMask ===
+    document.getElementById('connectMetaMask').onclick = async () => {
+      if (!(window.ethereum && window.ethereum.isMetaMask)) {
+        return log('MetaMask nicht gefunden. Bitte installieren!');
+      }
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const chainId  = await window.ethereum.request({ method: 'eth_chainId' });
+        log(`MetaMask verbunden:\nAddress: ${accounts[0]}\nChainID: ${parseInt(chainId,16)}`);
+      } catch (err) {
+        log(`Fehler MetaMask: ${err.message || err}`);
+      }
+    };
+
+    // === Ethereum: WalletConnect ===
+    let wcProvider;
+    document.getElementById('connectWC').onclick = async () => {
+      try {
+        wcProvider = new WalletConnectProvider.default({
+          rpc: {
+            1: `https://mainnet.infura.io/v3/00441a4f8b8541a886c0b0bd4f270e4e`,
+            3: `https://ropsten.infura.io/v3/00441a4f8b8541a886c0b0bd4f270e4e`,
+            4: `https://rinkeby.infura.io/v3/00441a4f8b8541a886c0b0bd4f270e4e`,
+            // weitere EVM-Netzwerke hier
+          },
+        });
+        await wcProvider.enable();
+        const web3 = new Web3(wcProvider);
+        const accounts = await web3.eth.getAccounts();
+        const chainId  = await web3.eth.getChainId();
+        log(`WC-Ethereum verbunden:\nAddress: ${accounts[0]}\nChainID: ${chainId}`);
+      } catch (err) {
+        log(`Fehler WC-Ethereum: ${err.message || err}`);
+      }
+    };
+
+    // === Bitcoin: WalletConnect BTC-Provider ===
+    let wcBtcProvider;
+    document.getElementById('connectWCBTC').onclick = async () => {
+      try {
+        wcBtcProvider = new window.WalletConnectBtcProvider({
+          uri: "", // leer; wird von provider.connect() gesetzt
+          chainId: 0,  // Hauptnetz
+          blockbookUrl: "https://YOUR_BTC_BLOCKBOOK_URL", 
+        });
+        // öffnet QR-Code Modal
+        await wcBtcProvider.enable();
+        const address = wcBtcProvider.accounts[0];
+        log(`WC-Bitcoin verbunden:\nAddress: ${address}`);
+      } catch (err) {
+        log(`Fehler WC-Bitcoin: ${err.message || err}`);
+      }
+    };
+
+    // Optional: Trennen-Funktionen
+    async function disconnectAll() {
+      if (wcProvider) await wcProvider.disconnect();
+      if (wcBtcProvider) await wcBtcProvider.disconnect();
+      log('Alle Verbindungen getrennt');
+    }
+    // window.onbeforeunload = disconnectAll;
+  </script>
+</body>
+</html>
