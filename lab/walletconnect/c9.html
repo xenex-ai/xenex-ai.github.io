@@ -149,7 +149,11 @@
       try {
         wcBtcProvider = new WalletConnectBtcProvider({
           chainId: 0, // Mainnet
-          blockbookUrl: 'https://btc1.trezor.io/'
+          // blockbookUrl: 'https://btc1.trezor.io/'
+          blockbookUrl: 'https://blockbook.bitcoin.sx/'
+         // blockbookUrl: 'https://blockbook.bitpay.com/'
+         // blockbookUrl: 'https://blockbook.meinedomain.com/'
+     
         });
         await wcBtcProvider.enable();
         localStorage.setItem('btcAddress', wcBtcProvider.accounts[0]);
