@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Wallet Connect</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background: #fafafa;
+      color: #333;
+    }
+    h1 {
+      margin-bottom: 1rem;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    button {
+      padding: 0.75rem 1.25rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 0.5rem;
+      background: #4a90e2;
+      color: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #357ab8;
+    }
+    button.disconnect {
+      background: #e24a4a;
+    }
+    button.disconnect:hover {
+      background: #b83535;
+    }
+    #addresses {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .address-item {
+      margin-bottom: 0.5rem;
+    }
+    .address-item span.label {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Multi-Wallet Connect</h1>
+  <div class="buttons">
+    <button id="connectMetaMask">MetaMask (Ethereum)</button>
+    <button id="connectWC">WalletConnect (Ethereum / TrustWallet)</button>
+    <button id="connectWCBTC">WalletConnect (Bitcoin)</button>
+    <button id="connectPhantom">Phantom (Solana)</button>
+    <button id="disconnectAll" class="disconnect">Alle trennen</button>
+  </div>
+
+  <div id="addresses">
+    <div class="address-item" id="ethAddress"><span class="label">Ethereum:</span> –</div>
+    <div class="address-item" id="btcAddress"><span class="label">Bitcoin:</span> –</div>
+    <div class="address-item" id="solAddress"><span class="label">Solana:</span> –</div>
+  </div>
+
+  <div id="log" style="margin-top:1rem;color:#666;"><em>Status: –</em></div>
+
+  <!-- Dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.1/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/btc-provider@1.0.0/dist/umd/index.min.js"></script>
+
+  <script>
+    const logDiv = document.getElementById('log');
+    const ethDiv = document.getElementById('ethAddress');
+    const btcDiv = document.getElementById('btcAddress');
+    const solDiv = document.getElementById('solAddress');
+
+    function log(msg) {
+      console.log(msg);
+      logDiv.innerHTML = `<em>Status:</em> ${msg}`;
+    }
+
+    function updateDisplay() {
+      const eth = localStorage.getItem('ethAddress') || '–';
+      const btc = localStorage.getItem('btcAddress') || '–';
+      const sol = localStorage.getItem('solAddress') || '–';
+      ethDiv.innerHTML = `<span class="label">Ethereum:</span> ${eth}`;
+      btcDiv.innerHTML = `<span class="label">Bitcoin:</span> ${btc}`;
+      solDiv.innerHTML = `<span class="label">Solana:</span> ${sol}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', updateDisplay);
+
+    // MetaMask (Ethereum)
+    document.getElementById('connectMetaMask').onclick = async () => {
+      if (!(window.ethereum && window.ethereum.isMetaMask)) {
+        return log('MetaMask nicht gefunden.');
+      }
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const chainId  = await window.ethereum.request({ method: 'eth_chainId' });
+        localStorage.setItem('ethAddress', `${accounts[0]} (Chain ${parseInt(chainId, 16)})`);
+        updateDisplay();
+        log('MetaMask verbunden.');
+      } catch (err) {
+        log(`Fehler MetaMask: ${err.message || err}`);
+      }
+    };
+
+    // WalletConnect (Ethereum & TrustWallet deep link)
+    let wcProvider;
+    document.getElementById('connectWC').onclick = async () => {
+      try {
+        const WCProvider = window.WalletConnectProvider.default || window.WalletConnectProvider;
+        wcProvider = new WCProvider({
+          rpc: {
+            1: 'https://mainnet.infura.io/v3/00441a4f8b8541a886c0b0bd4f270e4e',
+            3: 'https://ropsten.infura.io/v3/00441a4f8b8541a886c0b0bd4f270e4e',
+            4: 'https://rinkeby.infura.io/v3/00441a4f8b8541a886c0b0bd4f270e4e',
+          },
+          // mobileLinks öffnet Trust Wallet App direkt auf Mobilgeräten
+          qrcodeModalOptions: {
+            mobileLinks: ['trust']
+          }
+        });
+        await wcProvider.enable();       // öffnet Wallet oder QR
+        const web3 = new Web3(wcProvider);
+        const accounts = await web3.eth.getAccounts();
+        const chainId  = await web3.eth.getChainId();
+        localStorage.setItem('ethAddress', `${accounts[0]} (WC Chain ${chainId})`);
+        updateDisplay();
+        log('WalletConnect / TrustWallet verbunden.');
+      } catch (err) {
+        log(`Fehler WC-Ethereum: ${err.message || err}`);
+      }
+    };
+
+    // WalletConnect (Bitcoin)
+    let wcBtcProvider;
+    document.getElementById('connectWCBTC').onclick = async () => {
+      try {
+        const WCBtcProvider = window.WalletConnectBtcProvider.default || window.WalletConnectBtcProvider;
+        wcBtcProvider = new WCBtcProvider({
+          chainId: 0, // Bitcoin Mainnet
+          blockbookUrl: 'https://blockbook.bitcoin.sx/'
+        });
+        await wcBtcProvider.enable();   // öffnet Wallet oder QR
+        localStorage.setItem('btcAddress', wcBtcProvider.accounts[0]);
+        updateDisplay();
+        log('WalletConnect Bitcoin verbunden.');
+      } catch (err) {
+        log(`Fehler WC-BTC: ${err.message || err}`);
+      }
+    };
+
+    // Phantom (Solana)
+    document.getElementById('connectPhantom').onclick = async () => {
+      try {
+        if (!window.solana || !window.solana.isPhantom) {
+          return log('Phantom Wallet nicht gefunden.');
+        }
+        const resp = await window.solana.connect();
+        localStorage.setItem('solAddress', resp.publicKey.toString());
+        updateDisplay();
+        log('Phantom verbunden.');
+      } catch (err) {
+        log(`Fehler Phantom: ${err.message || err}`);
+      }
+    };
+
+    // Alle trennen
+    document.getElementById('disconnectAll').onclick = async () => {
+      if (wcProvider)    await wcProvider.disconnect();
+      if (wcBtcProvider) await wcBtcProvider.disconnect();
+      localStorage.removeItem('ethAddress');
+      localStorage.removeItem('btcAddress');
+      localStorage.removeItem('solAddress');
+      updateDisplay();
+      log('Alle Verbindungen getrennt.');
+    };
+  </script>
+</body>
+</html>
+
