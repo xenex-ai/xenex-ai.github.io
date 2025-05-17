@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Chain WalletConnect v2 & Phantom</title>
+
+  <!-- Buffer-Polyfill für Solana -->
+  <script src="https://cdn.jsdelivr.net/npm/buffer@6.0.3/index.min.js"></script>
+  <script>window.Buffer = buffer.Buffer;</script>
+
+  <!-- Solana Web3 IIFE-Bundle -->
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+
+  <style>
+    body { font-family: Arial, padding: 1rem; background: #fafafa; color: #333; }
+    h1 { margin-bottom: 1rem; }
+    .section { background:#fff; padding:1rem; border-radius:.5rem; box-shadow:0 2px 6px rgba(0,0,0,0.05); margin-bottom:1.5rem; }
+    .section h2 { margin-top:0; }
+    select, button { padding:.5rem; font-size:1rem; margin-right:.5rem; margin-top:.5rem; }
+    #error { color:red; margin-top:1rem; }
+    .address, .balance { margin-top:.5rem; font-weight:bold; }
+  </style>
+</head>
+<body>
+
+  <h1>Multi-Chain WalletConnect v2 & Phantom</h1>
+
+  <!-- Ethereum-Section -->
+  <div class="section" id="eth-section">
+    <h2>Ethereum verbinden</h2>
+    <button id="connectMetaMask">MetaMask</button>
+    <button id="connectWC_ETH">WalletConnect v2</button>
+    <button id="disconnectETH" class="disconnect">Trennen</button>
+    <div class="address" id="ethAddress">Adresse: –</div>
+    <div id="ethError" class="error"></div>
+  </div>
+
+  <!-- Solana-Section -->
+  <div class="section" id="sol-section">
+    <h2>Solana verbinden</h2>
+    <select id="solWalletSelect">
+      <option value="">– Wallet wählen –</option>
+      <option value="Phantom">Phantom (In-App)</option>
+      <option value="WC">WalletConnect v2</option>
+    </select>
+    <button id="connectSol">Connect</button>
+    <button id="disconnectSOL" class="disconnect">Trennen</button>
+    <div class="address" id="solAddress">Adresse: –</div>
+    <div class="balance" id="solBalance">Balance: –</div>
+    <div id="solError" class="error"></div>
+  </div>
+
+  <!-- Dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.1/dist/web3.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/ethereum-provider@2.6.7/dist/umd/index.min.js"></script>
+
+  <script type="module">
+  import UniversalProvider from "https://esm.sh/@walletconnect/universal-provider";
+  import { SolanaProvider }    from "https://esm.sh/@walletconnect/solana-adapter";
+  import { PhantomWalletAdapter } from "https://esm.sh/@solana/wallet-adapter-phantom";
+
+  const { Connection, clusterApiUrl, LAMPORTS_PER_SOL, PublicKey } = window.solanaWeb3;
+  const solConnection = new Connection(clusterApiUrl("mainnet-beta"));
+
+  // Project IDs einsetzen
+  const WC_PROJECT_ID = "DEINE_ETH_WC_PROJECT_ID";
+  const SOL_WC_PROJECT_ID = "DEINE_SOL_WC_PROJECT_ID";
+
+  // === ETHEREUM ===
+  const ethAddressDiv = document.getElementById("ethAddress");
+  const ethErrorDiv   = document.getElementById("ethError");
+  let wcEthProvider;
+
+  function logEthError(msg) {
+    ethErrorDiv.textContent = msg;
+  }
+  function setEthAddress(addr) {
+    ethAddressDiv.textContent = "Adresse: " + addr;
+  }
+
+  // MetaMask
+  document.getElementById("connectMetaMask").onclick = async () => {
+    logEthError(""); setEthAddress("–");
+    if (!window.ethereum || !window.ethereum.isMetaMask) {
+      return logEthError("MetaMask nicht gefunden");
+    }
+    try {
+      const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+      const chainId  = await ethereum.request({ method: "eth_chainId" });
+      setEthAddress(`${accounts[0]} (Chain ${parseInt(chainId,16)})`);
+    } catch (e) {
+      logEthError(e.message);
+    }
+  };
+
+  // WalletConnect v2 (Ethereum)
+  document.getElementById("connectWC_ETH").onclick = async () => {
+    logEthError(""); setEthAddress("–");
+    try {
+      wcEthProvider = await WalletConnectEthereumProvider.init({
+        projectId: WC_PROJECT_ID,
+        chains: [1],
+        showQrModal: true
+      });
+      await wcEthProvider.connect();
+      const web3 = new Web3(wcEthProvider);
+      const accounts = await web3.eth.getAccounts();
+      const chainId  = await web3.eth.getChainId();
+      setEthAddress(`${accounts[0]} (WCv2 Chain ${chainId})`);
+    } catch (e) {
+      logEthError(e.message);
+    }
+  };
+
+  // ETH Disconnect
+  document.getElementById("disconnectETH").onclick = async () => {
+    if (wcEthProvider) await wcEthProvider.disconnect();
+    setEthAddress("–");
+    logEthError("");
+  };
+
+  // === SOLANA ===
+  const solSelect   = document.getElementById("solWalletSelect");
+  const solConnect  = document.getElementById("connectSol");
+  const solAddrDiv  = document.getElementById("solAddress");
+  const solBalDiv   = document.getElementById("solBalance");
+  const solErrDiv   = document.getElementById("solError");
+  let wcSolUniversal, solAdapter;
+
+  function logSolError(msg) {
+    solErrDiv.textContent = msg;
+  }
+  function setSolAddress(addr) {
+    solAddrDiv.textContent = "Adresse: " + addr;
+  }
+  function setSolBalance(b) {
+    solBalDiv.textContent = "Balance: " + b + " SOL";
+  }
+
+  solConnect.onclick = async () => {
+    logSolError(""); setSolAddress("–"); setSolBalance("–");
+    const choice = solSelect.value;
+    if (!choice) return logSolError("Bitte Wallet wählen");
+    try {
+      let info;
+      if (choice === "Phantom") {
+        const phantom = window.solana;
+        if (!phantom?.isPhantom) throw new Error("Phantom nicht gefunden");
+        info = await phantom.connect();
+      } else {
+        if (!wcSolUniversal) {
+          wcSolUniversal = await UniversalProvider.init({
+            projectId: SOL_WC_PROJECT_ID,
+            chains: ["solana:mainnet"]
+          });
+          wcSolUniversal.on("display_uri", uri => {
+            window.location.href = uri;
+          });
+          solAdapter = await SolanaProvider.init({ provider: wcSolUniversal });
+        }
+        info = await solAdapter.connect();
+      }
+      const pub = info.publicKey?.toString() || info[0];
+      setSolAddress(pub);
+      const lam = await solConnection.getBalance(new PublicKey(pub));
+      setSolBalance((lam / LAMPORTS_PER_SOL).toFixed(6));
+    } catch (e) {
+      logSolError(e.message);
+    }
+  };
+
+  // SOL Disconnect
+  document.getElementById("disconnectSOL").onclick = async () => {
+    if (wcSolUniversal) await wcSolUniversal.disconnect();
+    setSolAddress("–"); setSolBalance("–"); logSolError("");
+  };
+
+  </script>
+</body>
+</html>
