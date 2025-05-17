@@ -143,6 +143,27 @@
       }
     };
 
+    let wcProviderV2;
+    document.getElementById('connectWC').onclick = async () => {
+      try {
+        wcProviderV2 = await WalletConnectEthereumProvider.init({
+          projectId: '262e67d5e1f2205615ff102f60b2f1dc',  // <-- hier deine WalletConnect Cloud Project-ID eintragen
+          chains: [1],                    // Ethereum Mainnet
+          showQrModal: true               // QR-Modal / deep link
+        });
+        await wcProviderV2.connect();
+        const web3 = new Web3(wcProviderV2);
+        const accounts = await web3.eth.getAccounts();
+        const chainId  = await web3.eth.getChainId();
+        const addr = `${accounts[0]} (WC v2 Chain ${chainId})`;
+        localStorage.setItem('eth', addr);
+        updateDisplay();
+        log('WalletConnect v2 verbunden.');
+      } catch (e) {
+        log('WC v2-Fehler: ' + e.message);
+      }
+    };
+
     // WalletConnect (Bitcoin)
     let wcBtcProvider;
     document.getElementById('connectWCBTC').onclick = async () => {
