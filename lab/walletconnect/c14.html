@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Wallet Connect</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background: #fafafa;
+      color: #333;
+    }
+    h1 {
+      margin-bottom: 1rem;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    button {
+      padding: 0.75rem 1.25rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 0.5rem;
+      background: #4a90e2;
+      color: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #357ab8;
+    }
+    button.disconnect {
+      background: #e24a4a;
+    }
+    button.disconnect:hover {
+      background: #b83535;
+    }
+    #addresses {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      margin-bottom: 2rem;
+    }
+    .address-item {
+      margin-bottom: 0.5rem;
+    }
+    .address-item span.label {
+      font-weight: bold;
+    }
+    #error {
+      color: red;
+      margin-top: 1rem;
+    }
+    select {
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-right: 0.5rem;
+    }
+  </style>
+
+  <!-- Buffer-Polyfill für Solana -->
+  <script src="https://cdn.jsdelivr.net/npm/buffer@6.0.3/index.min.js"></script>
+  <script>window.Buffer = buffer.Buffer;</script>
+
+  <!-- Solana Web3 IIFE-Bundle -->
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+</head>
+<body>
+  <h1>Multi-Wallet Connect</h1>
+
+  <div class="buttons">
+    <button id="connectMetaMask">MetaMask (Ethereum)</button>
+    <button id="connectWC">WalletConnect (Ethereum/TrustWallet)</button>
+    <button id="connectWCBTC">WalletConnect (Bitcoin)</button>
+    <button id="connectPhantom">Phantom (Solana)</button>
+    <button id="disconnectAll" class="disconnect">Alle trennen</button>
+  </div>
+
+  <div id="addresses">
+    <div class="address-item" id="ethAddress"><span class="label">Ethereum:</span> –</div>
+    <div class="address-item" id="btcAddress"><span class="label">Bitcoin:</span> –</div>
+    <div class="address-item" id="solAddress"><span class="label">Solana:</span> –</div>
+  </div>
+
+  <div id="error"></div>
+
+  <!-- Dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.1/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/btc-provider@1.0.0/dist/umd/index.min.js"></script>
+  <script type="module">
+    import UniversalProvider from "https://esm.sh/@walletconnect/universal-provider";
+    import { SolanaProvider }    from "https://esm.sh/@walletconnect/solana-adapter";
+
+    const { Connection, clusterApiUrl, LAMPORTS_PER_SOL, PublicKey } = window.solanaWeb3;
+    const solConnection = new Connection(clusterApiUrl("mainnet-beta"));
+
+    const logDiv = document.getElementById('error');
+    const ethDiv = document.getElementById('ethAddress');
+    const btcDiv = document.getElementById('btcAddress');
+    const solDiv = document.getElementById('solAddress');
+
+    function log(msg) {
+      logDiv.textContent = msg;
+    }
+    function updateDisplay() {
+      ethDiv.innerHTML = `<span class="label">Ethereum:</span> ${localStorage.getItem('ethAddress') || '–'}`;
+      btcDiv.innerHTML = `<span class="label">Bitcoin:</span> ${localStorage.getItem('btcAddress') || '–'}`;
+      solDiv.innerHTML = `<span class="label">Solana:</span> ${localStorage.getItem('solAddress') || '–'}`;
+    }
+    document.addEventListener('DOMContentLoaded', updateDisplay);
+
+    // --- Ethereum: MetaMask ---
+    document.getElementById('connectMetaMask').onclick = async () => {
+      log('');
+      try {
+        if (!window.ethereum || !window.ethereum.isMetaMask) throw new Error('MetaMask nicht gefunden');
+        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        const chainId  = await ethereum.request({ method: 'eth_chainId' });
+        const addr = `${accounts[0]} (Chain ${parseInt(chainId,16)})`;
+        localStorage.setItem('ethAddress', addr);
+        updateDisplay();
+        log('MetaMask verbunden.');
+      } catch (e) {
+        log(e.message);
+      }
+    };
+
+    // --- Ethereum: WalletConnect v1 ---
+    let wcProvider;
+    document.getElementById('connectWC').onclick = async () => {
+      log('');
+      try {
+        const WC = window.WalletConnectProvider.default || window.WalletConnectProvider;
+        wcProvider = new WC({
+          rpc: {
+            1: 'https://mainnet.infura.io/v3/00441a4f8b8541a886c0b0bd4f270e4e',
+            3: 'https://ropsten.infura.io/v3/00441a4f8b8541a886c0b0bd4f270e4e',
+            4: 'https://rinkeby.infura.io/v3/00441a4f8b8541a886c0b0bd4f270e4e'
+          },
+          qrcodeModalOptions: { mobileLinks: ['trust'] }
+        });
+        await wcProvider.enable();
+        const web3 = new Web3(wcProvider);
+        const accounts = await web3.eth.getAccounts();
+        const chainId  = await web3.eth.getChainId();
+        const addr = `${accounts[0]} (WC Chain ${chainId})`;
+        localStorage.setItem('ethAddress', addr);
+        updateDisplay();
+        log('WalletConnect verbunden.');
+      } catch (e) {
+        log(`WC-Ethereum: ${e.message}`);
+      }
+    };
+
+    // --- Bitcoin: WalletConnect v1 ---
+    let wcBtc;
+    document.getElementById('connectWCBTC').onclick = async () => {
+      log('');
+      try {
+        const WCbtc = window.WalletConnectBtcProvider.default || window.WalletConnectBtcProvider;
+        wcBtc = new WCbtc({ chainId: 0, blockbookUrl: 'https://blockbook.bitcoin.sx/' });
+        await wcBtc.enable();
+        localStorage.setItem('btcAddress', wcBtc.accounts[0]);
+        updateDisplay();
+        log('WC-Bitcoin verbunden.');
+      } catch (e) {
+        log(`WC-BTC: ${e.message}`);
+      }
+    };
+
+    // --- Solana: Phantom & WalletConnect v2 ---
+    let wcSolUniversal, solAdapter;
+    document.getElementById('connectPhantom').onclick = async () => {
+      log('');
+      try {
+        // Phantom
+        if (window.solana && window.solana.isPhantom) {
+          const resp = await window.solana.connect();
+          const pub = resp.publicKey.toString();
+          localStorage.setItem('solAddress', pub);
+          updateDisplay();
+          log('Phantom verbunden.');
+        } else {
+          // WalletConnect v2 for Solana
+          if (!wcSolUniversal) {
+            wcSolUniversal = await UniversalProvider.init({
+              projectId: 'DEINE_SOL_WC_PROJECT_ID',
+              chains: ['solana:mainnet']
+            });
+            wcSolUniversal.on('display_uri', uri => window.location.href = uri);
+            solAdapter = await SolanaProvider.init({ provider: wcSolUniversal });
+          }
+          const info = await solAdapter.connect();
+          const pub = info.publicKey?.toString() || info[0];
+          localStorage.setItem('solAddress', pub);
+          updateDisplay();
+          const lam = await solConnection.getBalance(new PublicKey(pub));
+          log(`SOL-Balance: ${lam / LAMPORTS_PER_SOL}`);
+        }
+      } catch (e) {
+        log(`Solana: ${e.message}`);
+      }
+    };
+
+    // --- Disconnect All ---
+    document.getElementById('disconnectAll').onclick = async () => {
+      log('');
+      if (wcProvider)   await wcProvider.disconnect();
+      if (wcBtc)        await wcBtc.disconnect();
+      if (wcSolUniversal) await wcSolUniversal.disconnect();
+      localStorage.removeItem('ethAddress');
+      localStorage.removeItem('btcAddress');
+      localStorage.removeItem('solAddress');
+      updateDisplay();
+      log('Alle Verbindungen getrennt.');
+    };
+  </script>
+</body>
+</html>
