@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wagmi WalletKit Integration</title>
+</head>
+<body>
+  <button id="connectBtn">Connect Wallet</button>
+  <div id="status"></div>
+
+  <!-- Load dependencies via ESM CDN -->
+  <script type="module">
+    import { Core } from 'https://cdn.jsdelivr.net/npm/@walletconnect/core/dist/esm/index.js';
+    import { WalletKit } from 'https://cdn.jsdelivr.net/npm/@reown/walletkit/dist/esm/index.js';
+
+    // Initialize WalletConnect Core
+    const core = new Core({
+      projectId: '262e67d5e1f2205615ff102f60b2f1dc'
+    });
+
+    // Metadata shown in the wallet
+    const metadata = {
+      name: 'xenexAi',
+      description: 'presale',
+      url: 'https://reown.com/appkit',
+      icons: ['https://imagedelivery.net/_aTEfDRm7z3tKgu9JhfeKA/5bde6ed3-3722-48c8-8ff8-b035d23beb00/sm']
+    };
+
+    // Initialize WalletKit
+    const walletKit = await WalletKit.init({
+      core,
+      metadata
+    });
+
+    // UI elements
+    const connectBtn = document.getElementById('connectBtn');
+    const statusDiv = document.getElementById('status');
+
+    // Handle Connect
+    connectBtn.addEventListener('click', async () => {
+      try {
+        const { session } = await walletKit.connect();
+        statusDiv.textContent = `🔗 Connected: ${session.accounts[0]}`;
+      } catch (err) {
+        console.error(err);
+        statusDiv.textContent = '❌ Connection failed';
+      }
+    });
+
+    // Listen for session updates/disconnects
+    core.on('session_update', ({ topic, params }) => {
+      statusDiv.textContent = `🔄 Updated: ${params.accounts[0]}`;
+    });
+
+    core.on('session_delete', () => {
+      statusDiv.textContent = '🔒 Disconnected';
+    });
+  </script>
+</body>
+</html>
