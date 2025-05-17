@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DePay Crypto Payment Widget</title>
+  <!-- DePay Widgets via CDN laden -->
+  <script defer async src="https://integrate.depay.com/widgets/v12.js"></script> <!-- :contentReference[oaicite:0]{index=0} -->
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 480px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      text-align: center;
+    }
+    #payment-widget {
+      margin: 2rem 0;
+    }
+    button { padding: .5rem 1rem; font-size: 1rem; }
+    .status { margin-top: 1rem; color: #2d89ef; }
+  </style>
+</head>
+<body>
+
+  <h1>Spende in Krypto!</h1>
+  <p>Wähle deine Lieblings‑Währung unten aus und sende direkt.</p>
+
+  <!-- Hier rendert das Widget die UI -->
+  <div id="payment-widget"></div>
+
+  <!-- Status-Meldungen -->
+  <div class="status" id="status"></div>
+
+  <script>
+    // Konfiguration: mehrere Zahlungen / Chains parallel anbieten :contentReference[oaicite:1]{index=1}
+    DePayWidgets.Payment({
+      container: '#payment-widget',
+      accept: [
+        {
+          blockchain: 'ethereum',
+          token:       '0x49eBBD8Bf9e8c7E69b656f12956E0032Afe938d6', // deine ETH-Adresse
+          amount:      0.05,   // fester Betrag in ETH
+          receiver:    '0x49eBBD8Bf9e8c7E69b656f12956E0032Afe938d6'
+        },
+        {
+          blockchain: 'solana',
+          token:       'SOL',  // nativer SOL
+          amount:      1.2,    // fester SOL‑Betrag
+          receiver:    'GZVovtKSJvP1Gwu3tUnnw3QBC5mGFvqDyHDgWTsxenex'
+        },
+        {
+          blockchain: 'ethereum',
+          token:       '0xdAC17F958D2ee523a2206206994597C13D831ec7', // USDT‑Token
+          amount:      20,     // 20 USDT
+          receiver:    '0x49eBBD8Bf9e8c7E69b656f12956E0032Afe938d6'
+        }
+      ],
+      // Callback für erfolgreichen Abschluss
+      succeeded: (transaction)=> {
+        document.getElementById('status').textContent =
+          '✅ Zahlung erfolgreich! TX‑Hash: ' + transaction.hash;
+      },
+      // Callback für Fehler
+      failed: (transaction, error)=> {
+        document.getElementById('status').textContent =
+          '❌ Zahlung fehlgeschlagen: ' + error.message;
+      },
+      // Optional: Titel ändern
+      title: 'Spende via Krypto'
+    });
+  </script>
+
+</body>
+</html>
