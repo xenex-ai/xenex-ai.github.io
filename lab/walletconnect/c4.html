@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RainbowKit + Wagmi CDN Demo</title>
+  <!-- React, ReactDOM, Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- wagmi + providers -->
+  <script src="https://cdn.jsdelivr.net/npm/wagmi@1.3.0/dist/index.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+  <!-- RainbowKit CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/@rainbow-me/rainbowkit/styles.css" />
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const {
+      WagmiConfig,
+      createConfig,
+      configureChains,
+      defaultChains,
+      walletConnectProvider,
+      publicProvider,
+    } = wagmi;
+    const { getDefaultWallets, RainbowKitProvider, ConnectButton } = window.RainbowKit;
+
+    const projectId = '262e67d5e1f2205615ff102f60b2f1dc';
+
+    // Configure chains and providers
+    const { chains, publicClient } = configureChains(
+      defaultChains,
+      [walletConnectProvider({ projectId }), publicProvider()]
+    );
+
+    // Get connectors
+    const { connectors } = getDefaultWallets({ appName: 'xenexAi', projectId, chains });
+
+    // Create wagmi config
+    const wagmiConfig = createConfig({ autoConnect: true, connectors, publicClient });
+
+    function App() {
+      return (
+        <WagmiConfig config={wagmiConfig}>
+          <RainbowKitProvider chains={chains} modalSize="compact">
+            <div style={{ fontFamily: 'sans-serif', textAlign: 'center', marginTop: '2rem' }}>
+              <h1>xenexAi Wallet Connect</h1>
+              <ConnectButton />
+            </div>
+          </RainbowKitProvider>
+        </WagmiConfig>
+      );
+    }
+
+    // Render
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
