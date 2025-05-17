@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WalletConnect Browser Integration</title>
+  <!-- Web3.js -->
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.1/dist/web3.min.js"></script>
+  <!-- WalletConnect Provider -->
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    button { padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; }
+    #status { margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>WalletConnect Web3 Adapter</h1>
+  <button id="connectBtn">Wallet verbinden</button>
+  <button id="disconnectBtn" disabled>Trennen</button>
+  <div id="status">Nicht verbunden</div>
+
+  <script>
+    // WalletConnect Provider
+    const provider = new WalletConnectProvider.default({
+      rpc: {
+        // Ketten-IDs und RPC-Endpunkte
+        1: "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID",
+        3: "https://ropsten.infura.io/v3/YOUR_INFURA_PROJECT_ID",
+        // Weitere Netzwerke hier
+      },
+    });
+
+    let web3;
+
+    // Buttons und Status-Element
+    const connectBtn = document.getElementById('connectBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    const statusDiv = document.getElementById('status');
+
+    // Funktion: Wallet verbinden
+    async function connectWallet() {
+      try {
+        // WalletConnect Sitzung starten
+        await provider.enable();
+        web3 = new Web3(provider);
+
+        // Accounts abrufen
+        const accounts = await web3.eth.getAccounts();
+        const chainId = await web3.eth.getChainId();
+
+        statusDiv.textContent = `Verbunden: ${accounts[0]} (Netzwerk: ${chainId})`;
+        connectBtn.disabled = true;
+        disconnectBtn.disabled = false;
+
+        // Ereignisse abonnieren
+        provider.on("accountsChanged", (accounts) => {
+          statusDiv.textContent = `Account gewechselt: ${accounts[0]}`;
+        });
+
+        provider.on("chainChanged", (chainId) => {
+          statusDiv.textContent = `Netzwerk gewechselt: ${parseInt(chainId, 16)}`;
+        });
+
+        provider.on("disconnect", (code, reason) => {
+          resetUI();
+        });
+      } catch (error) {
+        console.error(error);
+        statusDiv.textContent = 'Fehler beim Verbinden';
+      }
+    }
+
+    // Funktion: Wallet trennen
+    async function disconnectWallet() {
+      await provider.disconnect();
+      resetUI();
+    }
+
+    // UI zurücksetzen
+    function resetUI() {
+      statusDiv.textContent = 'Nicht verbunden';
+      connectBtn.disabled = false;
+      disconnectBtn.disabled = true;
+    }
+
+    // Event Listener
+    connectBtn.addEventListener('click', connectWallet);
+    disconnectBtn.addEventListener('click', disconnectWallet);
+  </script>
+</body>
+</html>
