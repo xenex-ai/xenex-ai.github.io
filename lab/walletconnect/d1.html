@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Krypto-Zahlung: BTC, ETH, SOL</title>
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 2rem auto;
+    }
+    label, select, input, button {
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+    code {
+      background: #eee;
+      padding: 0.5rem;
+      display: block;
+      margin-top: 0.5rem;
+      word-break: break-all;
+    }
+    img {
+      width: 200px;
+      height: 200px;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h2>Krypto-Zahlung (BTC, ETH, SOL)</h2>
+
+  <label>Betrag:</label>
+  <input type="number" id="amount" placeholder="z. B. 0.05" />
+
+  <label>Währung:</label>
+  <select id="coin">
+    <option value="BTC">Bitcoin</option>
+    <option value="ETH">Ethereum (MetaMask)</option>
+    <option value="SOL">Solana (Phantom)</option>
+  </select>
+
+  <button onclick="zeigeAdresse()">Zeige Wallet-Adresse + QR</button>
+  <button onclick="sendeTransaktion()">Direkt senden (ETH/SOL)</button>
+
+  <div id="output" style="display:none;">
+    <p>Sende <strong><span id="amountOut"></span></strong> an:</p>
+    <code id="walletOut"></code>
+    <img id="qrOut" src="" alt="QR-Code" />
+  </div>
+
+  <p id="status" style="color:green;"></p>
+
+  <script>
+    const empfaenger = {
+      BTC: 'bc1qcya3t4xge057a0xu2r2yz8jyndmtl7hz9z2yde',
+      ETH: '0x49eBBD8Bf9e8c7E69b656f12956E0032Afe938d6',
+      SOL: 'GZVovtKSJvP1Gwu3tUnnw3QBC5mGFvqDyHDgWTsxenex'
+    };
+
+    function zeigeAdresse() {
+      const coin = document.getElementById('coin').value;
+      const amount = document.getElementById('amount').value;
+      const address = empfaenger[coin];
+      const uri = `${coin.toLowerCase()}:${address}?amount=${amount}`;
+      const qr = `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${encodeURIComponent(uri)}`;
+
+      document.getElementById('walletOut').textContent = address;
+      document.getElementById('amountOut').textContent = amount + ' ' + coin;
+      document.getElementById('qrOut').src = qr;
+      document.getElementById('output').style.display = 'block';
+    }
+
+    async function sendeTransaktion() {
+      const coin = document.getElementById('coin').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const to = empfaenger[coin];
+
+      if (!amount || amount <= 0) {
+        alert("Bitte gültigen Betrag eingeben");
+        return;
+      }
+
+      if (coin === 'ETH') {
+        if (!window.ethereum) return alert('MetaMask nicht gefunden!');
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const tx = await signer.sendTransaction({
+          to,
+          value: ethers.utils.parseEther(amount.toString())
+        });
+        document.getElementById('status').textContent = "ETH gesendet! TX: " + tx.hash;
+
+      } else if (coin === 'SOL') {
+        if (!window.solana || !window.solana.isPhantom) return alert("Phantom Wallet nicht gefunden!");
+        const conn = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'));
+        const pubkey = (await window.solana.connect()).publicKey;
+        const tx = new solanaWeb3.Transaction().add(
+          solanaWeb3.SystemProgram.transfer({
+            fromPubkey: pubkey,
+            toPubkey: new solanaWeb3.PublicKey(to),
+            lamports: amount * solanaWeb3.LAMPORTS_PER_SOL
+          })
+        );
+        const { signature } = await window.solana.signAndSendTransaction(tx);
+        await conn.confirmTransaction(signature);
+        document.getElementById('status').textContent = "SOL gesendet! TX: " + signature;
+      } else {
+        alert("BTC-Zahlung ist nur manuell über QR möglich.");
+      }
+    }
+  </script>
+</body>
+</html>
