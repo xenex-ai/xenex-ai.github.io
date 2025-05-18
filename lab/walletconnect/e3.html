@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Best Wallet ⎮ Verbinden & Zahlungsanforderung</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 480px;
+      margin: 2rem auto;
+      text-align: center;
+    }
+    button, a.button {
+      display: inline-block;
+      margin: 1rem 0;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      text-decoration: none;
+      color: #fff;
+      background: #4F46E5;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #address, #status {
+      margin-top: 1rem;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <h1>Best Wallet ⎮ Verbinden & Zahlung</h1>
+
+  <button id="connectBtn">Wallet verbinden</button>
+  <div id="address">Adresse (Absender): –</div>
+  <div id="status">Status: –</div>
+
+  <!-- Wird nach erfolgreichem Verbinden angezeigt -->
+  <a id="payBtn" class="button" style="display:none;">
+    Zahlungsanforderung: 0.01 SOL
+  </a>
+
+  <script>
+    // --- KONFIGURATION ---
+    const TARGET_ADDRESS = "GZVovtKSJvP1Gwu3tUnnw3QBC5mGFvqDyHDgWTsxenex"; // Empfänger-Adresse
+    const AMOUNT_SOL     = 0.01;                        // Betrag in SOL
+
+    // --- UI-Elemente ---
+    const connectBtn = document.getElementById("connectBtn");
+    const payBtn     = document.getElementById("payBtn");
+    const addrField  = document.getElementById("address");
+    const statusField= document.getElementById("status");
+
+    // Variable für späteren Zugriff auf den Public Key
+    let senderPubkey = null;
+
+    // Prüfen auf Solana-Wallet (z.B. Best Wallet, Phantom)
+    if (!window.solana) {
+      statusField.textContent = "Status: Keine Solana-Wallet gefunden.";
+      connectBtn.disabled = true;
+    }
+
+    // 1. Wallet verbinden
+    connectBtn.addEventListener("click", async () => {
+      statusField.textContent = "Status: Verbindungsversuch…";
+      try {
+        const resp = await window.solana.connect();
+        senderPubkey = resp.publicKey.toString();
+        addrField.textContent = "Adresse (Absender): " + senderPubkey;
+        statusField.textContent = "Status: Verbunden ✅";
+        connectBtn.disabled = true;
+
+        // Zahlungs-Link vorbereiten
+        const uri = `solana:${TARGET_ADDRESS}?amount=${AMOUNT_SOL}`;
+        payBtn.href = uri;
+        payBtn.style.display = "inline-block";
+
+      } catch (err) {
+        console.error(err);
+        statusField.textContent = "Status: Verbindung abgebrochen ❌";
+      }
+    });
+
+    // 2. Bei Klick auf Zahlungsanforderung: Adresse bleibt sichtbar,
+    //    die Wallet-App wird via URI geöffnet
+    payBtn.addEventListener("click", () => {
+      // Absender-Adresse ist schon in addrField; hier keine Änderung nötig
+      // Die URI öffnet die Wallet mit Empfänger + Betrag
+    });
+  </script>
+</body>
+</html>
