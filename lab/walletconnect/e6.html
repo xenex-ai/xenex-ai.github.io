@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Multi-Chain Zahlungsauslöser</title>
+  <style>
+    /* ===== Grundlayout ===== */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      padding: 2rem;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      color: #333;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      margin: 0.5rem 0;
+      padding: 0.75rem;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #fff;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.1s ease-in-out, box-shadow 0.1s;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .note {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #555;
+    }
+  </style>
+  <!-- Solana Web3 + Phantom Provider -->
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Zahlung auslösen</h1>
+    <button class="btn" id="pay-btc">Bitcoin (BTC)</button>
+    <button class="btn" id="pay-eth">Ethereum (ETH)</button>
+    <button class="btn" id="pay-bnb">Binance Smart Chain (BNB)</button>
+    <button class="btn" id="pay-sol">Solana (SOL)</button>
+    <p class="note">Beim Klick wird deine Adresse abgefragt (sofern möglich) und im Anschluss die Wallet geöffnet.</p>
+  </div>
+
+  <script>
+    // ===== Helper: log and optionally send address to your server =====
+    async function recordAddress(chain, addr) {
+      console.log(`${chain} sender address:`, addr);
+      // Fetch to your backend (optional):
+      // await fetch(`/record-address?chain=${chain}&addr=${addr}`);
+    }
+
+    // ===== 1. Bitcoin =====
+    document.getElementById('pay-btc').addEventListener('click', () => {
+      // No address retrieval via URI for BTC
+      const addr = '1BoatSLRHtKNngkdXEeobR76b53LETtpyT'; // Beispiel-Adresse
+      recordAddress('BTC', 'n/a');
+      // amount optional, z.B. 0.001 BTC
+      window.location.href = `bitcoin:${addr}?amount=0.001&label=Zahlung&message=Danke`;
+    });
+
+    // ===== 2. Ethereum =====
+    document.getElementById('pay-eth').addEventListener('click', async () => {
+      if (!window.ethereum) {
+        alert('Bitte installiere MetaMask oder eine andere EIP-1193-kompatible Wallet.');
+        return;
+      }
+      try {
+        // Request account
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const addr = accounts[0];
+        await recordAddress('ETH', addr);
+        // 0.01 ETH in Wei = 0.01 * 1e18
+        const value = '10000000000000000';
+        window.location.href = `ethereum:${addr}@1?value=${value}`;
+      } catch (err) {
+        console.error(err);
+        alert('Kontoabfrage fehlgeschlagen.');
+      }
+    });
+
+    // ===== 3. Binance Smart Chain =====
+    document.getElementById('pay-bnb').addEventListener('click', async () => {
+      if (!window.ethereum) {
+        alert('Bitte installiere MetaMask oder eine andere EIP-1193-kompatible Wallet.');
+        return;
+      }
+      try {
+        // Request account (BNB nutzt dieselbe API)
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const addr = accounts[0];
+        await recordAddress('BNB', addr);
+        // 0.5 BNB in Wei = 0.5 * 1e18
+        const value = '500000000000000000';
+        window.location.href = `ethereum:${addr}@56?value=${value}`;
+      } catch (err) {
+        console.error(err);
+        alert('Kontoabfrage fehlgeschlagen.');
+      }
+    });
+
+    // ===== 4. Solana =====
+    document.getElementById('pay-sol').addEventListener('click', async () => {
+      // Ensure Phantom (or ähnliches) ist verfügbar
+      if (!window.solana || !window.solana.isPhantom) {
+        alert('Bitte installiere Phantom Wallet oder eine kompatible Solana-Wallet.');
+        return;
+      }
+      try {
+        // Connect to Phantom
+        const resp = await window.solana.connect();
+        const addr = resp.publicKey.toString();
+        await recordAddress('SOL', addr);
+        // 0.1 SOL = 100_000_000 Lamports
+        const lamports = 100_000_000;
+        window.location.href = `solana:${addr}?amount=${lamports}&label=Zahlung&memo=XenexAi`;
+      } catch (err) {
+        console.error(err);
+        alert('Verbindung zur Solana-Wallet fehlgeschlagen.');
+      }
+    });
+  </script>
+</body>
+</html>
