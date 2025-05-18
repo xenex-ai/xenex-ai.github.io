@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XNX Master Converter</title>
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Ethers.js -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <!-- Web3Modal v2 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@web3modal/ui@2.4.0/dist/index.css" />
+  <script type="module">
+    import { Web3Modal } from "https://cdn.jsdelivr.net/npm/@web3modal/html@2.4.0/dist/index.js";
+    import { EthereumClient, w3mConnectors, w3mProvider } from "https://cdn.jsdelivr.net/npm/@web3modal/ethereum@2.4.0/dist/index.js";
+    import { configureChains, createConfig, WagmiConfig } from "https://cdn.jsdelivr.net/npm/wagmi@1.6.1/+esm";
+    import { mainnet, polygon, arbitrum, optimism, sepolia } from "https://cdn.jsdelivr.net/npm/wagmi@1.6.1/chains/+esm";
+
+    // --- KONFIGURATION ---
+    const projectId = "262e67d5e1f2205615ff102f60b2f1dc"; // <<< ERSETZEN
+    const chains = [mainnet, polygon, arbitrum, optimism, sepolia];
+    const { publicClient } = configureChains(chains, [w3mProvider({ projectId })]);
+    const wagmiConfig = createConfig({ autoConnect: false, connectors: w3mConnectors({ projectId, version: 2, chains }), publicClient });
+    const ethereumClient = new EthereumClient(wagmiConfig, chains);
+    const web3Modal = new Web3Modal({ projectId, themeMode: 'light', themeColor: 'blue' }, ethereumClient);
+
+    // nach connect Adresse anzeigen
+    window.w3mConnect = async () => {
+      try {
+        await web3Modal.openModal({ standaloneChains: [1, 137, 42161, 10, 11155111] });
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        window.userAddress = accounts[0];
+        document.getElementById('account').innerText = 'Verbunden: ' + window.userAddress;
+      } catch (e) {
+        console.error(e);
+        alert('Wallet-Verbindung fehlgeschlagen.');
+      }
+    };
+
+    window.w3mDisconnect = () => {
+      web3Modal.closeModal();
+      document.getElementById('account').innerText = '';
+      window.userAddress = null;
+    };
+
+    // nach DOMLoad Buttons binden
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('btn-connect').onclick = window.w3mConnect;
+      document.getElementById('btn-buy').onclick = calculateAndBuy;
+    });
+
+    // Preisabfrage und Deep-Link
+    const XNX_USD_RATE = 0.001648;
+    const COINS = ["ETH","BTC","USDT","USDC","SOL","TON","ADA","BNB","DOT","MATIC","AVAX"];
+    const PROVIDERS = {
+      metamask: { label: "MetaMask", buildLink: (addr, token, val) => `https://metamask.app.link/send/${addr}@1?value=${ethers.utils.parseUnits(val.toString(), 18)}` },
+      trustwallet: { label: "Trust Wallet", buildLink: (addr, token, val) => { const slip = {ETH:60,BTC:0,SOL:501,TON:396,ADA:1815,BNB:714,DOT:354,MATIC:966,AVAX:9006}[token]||60; return `https://link.trustwallet.com/send?asset=c${slip}_${addr}&amount=${val}`; } },
+      phantom: { label: "Phantom (SOL)", buildLink: (addr, token, val) => token!=="SOL"?alert("Nur SOL"):`https://phantom.app/ul/v1/send?address=${addr}&amount=${val}` },
+      coinbase: { label: "Coinbase Wallet", buildLink: (addr, token, val) => `https://go.cb-w.com/send?address=${addr}&value=${val}&crypto_currency=${token}` },
+      binance: { label: "Binance", buildLink: (addr, token, val) => `https://www.binance.com/de/send?address=${addr}&crypto=${token}&amount=${val}` },
+      kucoin: { label: "KuCoin", buildLink: (addr, token, val) => `https://www.kucoin.com/asset/transfer?network=${token}&address=${addr}&amount=${val}` },
+      guarda: { label: "Guarda", buildLink: (addr, token, val) => `https://guarda.co/app/send?currencyTo=${token}&family=${token==="BTC"?"btc":"eth"}&addressTo=${addr}&amount=${val}` },
+      tonkeeper: { label: "Tonkeeper", buildLink: (addr, token, val) => `tonkeeper://transfer/${addr}?amount=${val*1e9}&text=Kauf` },
+      bloom: { label: "Bloom", buildLink: (addr, token, val) => `bloom://wallet/sendTransaction?address=${addr}&baseCoinAmount=${val*1e6}` },
+      intmax: { label: "INTMAX", buildLink: (addr, token, val) => `https://wallet.intmax.io/transfer?to=${addr}&amount=${val}&token=${token}` },
+      exodus: { label: "Exodus", buildLink: (addr, token, val) => `exodus://send?address=${addr}&currency=${token}&amount=${val}` },
+      argent: { label: "Argent", buildLink: (addr, token, val) => `argent://send?address=${addr}&asset=${token}&amount=${val}` },
+      imtoken: { label: "imToken", buildLink: (addr, token, val) => `imtokenv2://navigate/send?address=${addr}&coin=${token}&value=${val}` },
+      mew: { label: "MyEtherWallet", buildLink: (addr, token, val) => `https://www.myetherwallet.com/interface/send-transaction?to=${addr}&amount=${val}&currency=${token}` }
+    };
+
+    window.calculateAndBuy = async () => {
+      if (!window.userAddress) { alert('Bitte Wallet verbinden.'); return; }
+      const asset = document.getElementById('asset').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      if (isNaN(amount)||amount<=0){ alert('Ungültige Menge'); return; }
+      let price=0;
+      try{ const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${asset.toLowerCase()}&vs_currencies=usd`);
+        const j=await r.json(); price=j[asset.toLowerCase()]?.usd||0;
+      }catch{ alert('Preis-Abfrage fehlgeschlagen'); return; }
+      const usd=amount*price, xnx=usd/XNX_USD_RATE;
+      document.getElementById('output').innerText=`USD: $${usd.toFixed(2)} → ${xnx.toFixed(2)} XNX`;
+      const prov=document.getElementById('provider').value;
+      const link=PROVIDERS[prov]?.buildLink(window.userAddress,asset,amount);
+      if(link) window.open(link,'_blank');
+    };
+
+    // UI-Befüllung (nach DOM)
+    window.addEventListener('DOMContentLoaded',()=>{
+      const assetSel=document.getElementById('asset'); COINS.forEach(c=>assetSel.add(new Option(c,c)));
+      const provSel=document.getElementById('provider'); Object.entries(PROVIDERS).forEach(([k,p])=>provSel.add(new Option(p.label,k)));
+    });
+  </script>
+</head>
+<body class="hidden">
+  <!-- Body wird via JS aufgebaut nach laden -->
+</body>
+</html>
