@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Web3 Multi‑WalletConnect (ETH & SOL)</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 1rem; }
+    h1 { text-align: center; }
+    button { display: block; margin: 1rem auto; padding: .75rem 1.5rem; font-size: 1rem; }
+    .section { border-top: 1px solid #ddd; padding-top: 1rem; margin-top: 1rem; }
+    .info { margin: .5rem 0; }
+    .error { margin: .5rem 0; color: red; white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <h1>Connect ETH & SOL Wallets</h1>
+  <button id="btn-connect">WalletConnect starten</button>
+  <div id="error" class="error"></div>
+
+  <div id="eth-section" class="section" style="display:none">
+    <h2>Ethereum</h2>
+    <div id="eth-address" class="info"></div>
+    <div id="eth-balance" class="info"></div>
+  </div>
+
+  <div id="sol-section" class="section" style="display:none">
+    <h2>Solana</h2>
+    <div id="sol-address" class="info"></div>
+    <div id="sol-balance" class="info"></div>
+  </div>
+
+  <!-- Solana Web3.js -->
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+  <script type="module">
+    import UniversalProvider from "https://esm.sh/@walletconnect/universal-provider@2.2.1";
+
+    const $ = id => document.getElementById(id);
+    const show = id => $(id).style.display = "block";
+    const logErr = msg => { $("error").textContent += msg + "\n"; };
+
+    let provider, solConn;
+
+    $("btn-connect").onclick = async () => {
+      $("error").textContent = "";
+      try {
+        // 1) Provider initialisieren (nur einmal!)
+        if (!provider) {
+          provider = await UniversalProvider.init({
+            projectId: "262e67d5e1f2205615ff102f60b2f1dc", // Dein WalletConnect Project ID
+            metadata: {
+              name: "My Web3 DApp",
+              description: "Demo: ETH & SOL via WalletConnect v2",
+              url: window.location.origin,
+              icons: []
+            }
+          });
+        }
+
+        // 2) connect() mit Ethereum + Solana Namespaces
+        const session = await provider.connect({
+          requiredNamespaces: {
+            eip155: {
+              chains: ["eip155:1"],
+              methods: [
+                "eth_requestAccounts",
+                "eth_chainId",
+                "eth_getBalance"
+              ],
+              events: ["chainChanged","accountsChanged"]
+            },
+            solana: {
+              chains: ["solana:mainnet"],
+              methods: ["solana_signTransaction","solana_signMessage"],
+              events: []
+            }
+          }
+        });
+
+        // 3) Ethereum-Account auslesen
+        const ethAccStr = session.namespaces.eip155.accounts[0];        // eip155:1:0x123…
+        const ethAddress = ethAccStr.split(":")[2];
+        $("eth-address").textContent = `Adresse: ${ethAddress}`;
+        show("eth-section");
+
+        // 4) Ethereum-Balance abfragen
+        const balanceHex = await provider.request({
+          chainId: "eip155:1",
+          request: {
+            method: "eth_getBalance",
+            params: [ethAddress, "latest"]
+          }
+        });
+        const ethBal = parseInt(balanceHex, 16) / 1e18;
+        $("eth-balance").textContent = `Balance: ${ethBal.toFixed(6)} ETH`;
+
+        // 5) Solana-Account auslesen
+        const solAccStr = session.namespaces.solana.accounts[0];        // solana:mainnet:PublicKey…
+        const solAddress = solAccStr.split(":")[2];
+        $("sol-address").textContent = `Adresse: ${solAddress}`;
+        show("sol-section");
+
+        // 6) Solana-Connection & Balance
+        solConn = solConn || new solanaWeb3.Connection(
+          solanaWeb3.clusterApiUrl("mainnet-beta"),
+          { commitment: "confirmed" }
+        );
+        const lamports = await solConn.getBalance(
+          new solanaWeb3.PublicKey(solAddress),
+          "confirmed"
+        );
+        const solBal = lamports / solanaWeb3.LAMPORTS_PER_SOL;
+        $("sol-balance").textContent = `Balance: ${solBal.toFixed(6)} SOL`;
+
+      } catch (e) {
+        logErr(e.message);
+      }
+    };
+  </script>
+</body>
+</html>
