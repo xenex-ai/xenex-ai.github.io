@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Web3 All‑in‑One: Connect & Send ETH, SOL & BTC</title>
+  <style>
+    body { font-family: Arial; padding:1rem; }
+    button, input { padding:.5rem 1rem; font-size:1rem; margin: .25rem 0; }
+    .info { margin-top:1rem; font-weight:bold; }
+    .tx-form { margin-top:1rem; border: #ccc 1px solid; padding:1rem; border-radius:6px; }
+    .error { margin-top:1rem; color:red; white-space: pre-line; }
+    label { display:block; margin-top:.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Web3: Connect & Send</h1>
+  <button id="btn-web3">Connect Web3</button>
+
+  <div id="eth-section" style="display:none">
+    <div id="eth-address" class="info">ETH‑Adresse: –</div>
+    <div id="eth-balance" class="info">ETH Balance: –</div>
+    <form id="eth-form" class="tx-form">
+      <h2>ETH senden</h2>
+      <label>Empfänger-Adresse: <input id="eth-to" type="text" placeholder="0x..."/></label>
+      <label>Betrag (ETH): <input id="eth-amount" type="number" step="0.0001"/></label>
+      <button type="submit">ETH senden</button>
+    </form>
+  </div>
+
+  <div id="sol-section" style="display:none">
+    <div id="sol-address" class="info">SOL‑Adresse: –</div>
+    <div id="sol-balance" class="info">SOL Balance: –</div>
+    <form id="sol-form" class="tx-form">
+      <h2>SOL senden</h2>
+      <label>Empfänger-Adresse: <input id="sol-to" type="text" placeholder="Solana PublicKey"/></label>
+      <label>Betrag (SOL): <input id="sol-amount" type="number" step="0.0001"/></label>
+      <button type="submit">SOL senden</button>
+    </form>
+  </div>
+
+  <div id="btc-section" style="display:none">
+    <div id="btc-address" class="info">BTC‑Adresse: –</div>
+    <div id="btc-balance" class="info">BTC Balance: –</div>
+    <form id="btc-form" class="tx-form">
+      <h2>BTC senden</h2>
+      <label>Empfänger-Adresse: <input id="btc-to" type="text" placeholder="bitcoin address"/></label>
+      <label>Betrag (BTC): <input id="btc-amount" type="number" step="0.00000001"/></label>
+      <button type="submit">BTC senden</button>
+    </form>
+  </div>
+
+  <div id="error" class="error"></div>
+
+  <!-- Solana Web3.js -->
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+  <script type="module">
+    import { EthereumProvider } from "https://esm.sh/@walletconnect/ethereum-provider@2.8.0";
+
+    // DOM Elements
+    const btn          = document.getElementById("btn-web3");
+    const errEl        = document.getElementById("error");
+
+    // ETH
+    const ethSection   = document.getElementById("eth-section");
+    const ethAddrEl    = document.getElementById("eth-address");
+    const ethBalEl     = document.getElementById("eth-balance");
+    const ethForm      = document.getElementById("eth-form");
+    const ethToInput   = document.getElementById("eth-to");
+    const ethAmtInput  = document.getElementById("eth-amount");
+
+    // SOL
+    const solSection   = document.getElementById("sol-section");
+    const solAddrEl    = document.getElementById("sol-address");
+    const solBalEl     = document.getElementById("sol-balance");
+    const solForm      = document.getElementById("sol-form");
+    const solToInput   = document.getElementById("sol-to");
+    const solAmtInput  = document.getElementById("sol-amount");
+
+    // BTC
+    const btcSection   = document.getElementById("btc-section");
+    const btcAddrEl    = document.getElementById("btc-address");
+    const btcBalEl     = document.getElementById("btc-balance");
+    const btcForm      = document.getElementById("btc-form");
+    const btcToInput   = document.getElementById("btc-to");
+    const btcAmtInput  = document.getElementById("btc-amount");
+
+    let wcProvider;  // WalletConnect fallback for ETH
+    let ethAccount, solAccount, btcAccount;
+    let solProvider; // Phantom
+    let solConnection;
+
+    btn.addEventListener("click", async () => {
+      errEl.textContent = "";
+
+      // ETH Connect
+      try {
+        if (window.ethereum) {
+          const accs = await window.ethereum.request({ method: "eth_requestAccounts" });
+          ethAccount = accs[0];
+        } else {
+          if (!wcProvider) {
+            wcProvider = await EthereumProvider.init({
+              projectId: "262e67d5e1f2205615ff102f60b2f1dc",
+              chains: [1],
+              rpcMap: { 1: "https://mainnet.infura.io/v3/84842078b09946638c03157f83405213" },
+              methods: ["eth_sendTransaction","personal_sign"],
+              events: ["accountsChanged","chainChanged"],
+              showQrModal: true
+            });
+          }
+          await wcProvider.connect({ requiredNamespaces:{ eip155:{ chains:["eip155:1"], methods:["eth_sendTransaction","personal_sign"], events:[] } } });
+          const accs = await wcProvider.request({ method: "eth_requestAccounts" });
+          ethAccount = accs[0];
+        }
+        ethAddrEl.textContent = `ETH‑Adresse: ${ethAccount}`;
+        ethSection.style.display = "block";
+
+        // Balance
+        try {
+          const hex = window.ethereum
+            ? await window.ethereum.request({ method:"eth_getBalance", params:[ethAccount,"latest"] })
+            : await wcProvider.request({ method:"eth_getBalance", params:[ethAccount,"latest"] });
+          const bal = parseInt(hex,16)/1e18;
+          ethBalEl.textContent = `ETH Balance: ${bal.toFixed(6)}`;
+        } catch {}
+      } catch(e) {
+        errEl.textContent += `ETH-Error: ${e.message}\n`;
+      }
+
+      // SOL Connect
+      try {
+        solProvider = window.solana;
+        if (!solProvider || !solProvider.isPhantom) throw new Error("Phantom nicht gefunden");
+        const resp = await solProvider.connect();
+        solAccount = resp.publicKey;
+        solAddrEl.textContent = `SOL‑Adresse: ${solAccount.toString()}`;
+        solSection.style.display = "block";
+
+        solConnection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com");
+        try {
+          const lam = await solConnection.getBalance(solAccount);
+          solBalEl.textContent = `SOL Balance: ${(lam/solanaWeb3.LAMPORTS_PER_SOL).toFixed(6)}`;
+        } catch {}
+      } catch(e) {
+        errEl.textContent += `SOL-Error: ${e.message}\n`;
+      }
+
+      // BTC Connect (injected only)
+      try {
+        if (window.bitcoin && window.bitcoin.request) {
+          const accs = await window.bitcoin.request({ method:"getAccounts" });
+          btcAccount = accs[0];
+        } else if (window.btc && window.btc.request) {
+          const accs = await window.btc.request({ method:"requestAccounts" });
+          btcAccount = accs[0];
+        }
+        if (btcAccount) {
+          btcAddrEl.textContent = `BTC‑Adresse: ${btcAccount}`;
+          btcSection.style.display = "block";
+          try {
+            const r = await fetch(`https://api.blockcypher.com/v1/btc/main/addrs/${btcAccount}/balance`);
+            const d = await r.json();
+            btcBalEl.textContent = `BTC Balance: ${(d.final_balance/1e8).toFixed(6)}`;
+          } catch {}
+        }
+      } catch(e) {
+        errEl.textContent += `BTC-Error: ${e.message}\n`;
+      }
+    });
+
+    // ETH senden
+    ethForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      errEl.textContent = "";
+      const to = ethToInput.value.trim();
+      const val = ethAmtInput.value;
+      if (!to || !val) return alert("Empfänger und Betrag angeben");
+      try {
+        const tx = {
+          from: ethAccount,
+          to,
+          value: "0x" + (BigInt(Math.floor(val*1e18))).toString(16)
+        };
+        let hash;
+        if (window.ethereum) {
+          hash = await window.ethereum.request({ method:"eth_sendTransaction", params:[tx] });
+        } else {
+          hash = await wcProvider.request({ method:"eth_sendTransaction", params:[tx] });
+        }
+        alert(`ETH-Transaktion gesendet: ${hash}`);
+      } catch(err) {
+        errEl.textContent += `ETH-Send Error: ${err.message}\n`;
+      }
+    });
+
+    // SOL senden
+    solForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      errEl.textContent = "";
+      const to = solToInput.value.trim();
+      const val = parseFloat(solAmtInput.value);
+      if (!to || !val) return alert("Empfänger und Betrag angeben");
+      try {
+        const ix = solanaWeb3.SystemProgram.transfer({
+          fromPubkey: solAccount,
+          toPubkey: new solanaWeb3.PublicKey(to),
+          lamports: Math.round(val * solanaWeb3.LAMPORTS_PER_SOL)
+        });
+        const block = await solConnection.getLatestBlockhash();
+        const tx = new solanaWeb3.Transaction({ recentBlockhash:block.blockhash, feePayer:solAccount })
+          .add(ix);
+        const signed = await solProvider.signTransaction(tx);
+        const sig = await solConnection.sendRawTransaction(signed.serialize());
+        alert(`SOL-Transaktion gesendet: ${sig}`);
+      } catch(err) {
+        errEl.textContent += `SOL-Send Error: ${err.message}\n`;
+      }
+    });
+
+    // BTC senden (nur wenn Wallet-injektion send-Methode unterstützt)
+    btcForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      errEl.textContent = "";
+      const to = btcToInput.value.trim();
+      const val = btcAmtInput.value;
+      if (!to || !val) return alert("Empfänger und Betrag angeben");
+      try {
+        // Beispiel für Bitcoin-Provider, z.B. BitKeep
+        if (window.bitcoin && window.bitcoin.request) {
+          const txParams = { to, value: (parseFloat(val)*1e8).toString() };
+          const res = await window.bitcoin.request({ method:"sendTransaction", params:[txParams] });
+          alert(`BTC-Transaktion gesendet: ${res}`);
+        } else {
+          throw new Error("Kein BTC-Provider mit sendTransaction gefunden");
+        }
+      } catch(err) {
+        errEl.textContent += `BTC-Send Error: ${err.message}\n`;
+      }
+    });
+  </script>
+</body>
+</html>
