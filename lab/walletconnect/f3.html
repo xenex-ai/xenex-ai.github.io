@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Krypto → XNX Konverter & Kaufen</title>
+  <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow">
+    <h2 class="text-2xl font-semibold mb-4">Krypto → XNX Konverter & Kaufen</h2>
+
+    <!-- WalletConnect / Web3Modal Connect -->
+    <button id="btn-connect" class="w-full bg-blue-600 text-white py-2 rounded mb-4">Wallet verbinden</button>
+    <div id="account" class="mb-4 text-gray-700"></div>
+
+    <!-- Form -->
+    <label class="block mb-1">Coin:</label>
+    <select id="asset" class="w-full border rounded p-2 mb-4"></select>
+
+    <label class="block mb-1">Menge:</label>
+    <input type="number" id="amount" step="any" placeholder="z. B. 0.5" class="w-full border rounded p-2 mb-4"/>
+
+    <label class="block mb-1">Wallet Anbieter:</label>
+    <select id="provider" class="w-full border rounded p-2 mb-4"></select>
+
+    <div id="output" class="text-lg font-medium mb-4">XNX Wert: –</div>
+    <button id="btn-buy" class="w-full bg-green-600 text-white py-2 rounded">Kaufen & Öffnen</button>
+  </div>
+
+  <script>
+    // --- Konfiguration ---
+    const XNX_USD_RATE = 0.001648; // 1 XNX = 0.001648 USD
+
+    // Provider-Deep-Link-Konfiguration
+    const providers = {
+      metamask: {
+        label: "MetaMask",
+        buildLink: (addr, token, val) =>
+          `https://metamask.app.link/send/${addr}@1?value=${ethers.utils.parseUnits(val.toString(), 18)}`
+      },
+      trustwallet: {
+        label: "Trust Wallet",
+        // offizielle Deep-Link-Doku: https://developer.trustwallet.com/developer/develop-for-trust/deeplinking :contentReference[oaicite:0]{index=0}
+        buildLink: (addr, token, val) => {
+          // slip44-Index für ETH = 60, BTC = 0, SOL = 501, TON = 396
+          const slip44 = { ETH:60, BTC:0, SOL:501, TON:396 }[token];
+          return `https://link.trustwallet.com/send?asset=c${slip44}_${addr}&amount=${val}`;
+        }
+      },
+      phantom: {
+        label: "Phantom",
+        // Phantom DeepLinks: https://docs.phantom.com/phantom-deeplinks/deeplinks-ios-and-android :contentReference[oaicite:1]{index=1}
+        buildLink: (addr, token, val) => {
+          if (token !== "SOL") alert("Phantom unterstützt nur SOL-Transaktionen.");
+          return `https://phantom.app/ul/v1/send?address=${addr}&amount=${val}`;
+        }
+      },
+      coinbase: {
+        label: "Coinbase Wallet",
+        // WalletLink (Coinbase) über Web3Modal – hier als URI-Schema
+        buildLink: (addr, token, val) => `https://go.cb-w.com/send?address=${addr}&value=${val}&crypto_currency=${token}`
+      },
+      binance: {
+        label: "Binance",
+        buildLink: (addr, token, val) =>
+          `https://www.binance.com/de/send?address=${addr}&crypto=${token}&amount=${val}`
+      },
+      kucoin: {
+        label: "KuCoin",
+        buildLink: (addr, token, val) =>
+          `https://www.kucoin.com/asset/transfer?network=${token}&address=${addr}&amount=${val}`
+      },
+      tonkeeper: {
+        label: "Tonkeeper",
+        buildLink: (addr, token, val) =>
+          `tonkeeper://transfer/${addr}?amount=${val * 1e9}&text=Kauf`
+      },
+      // Hier weitere Anbieter hinzufügen…
+    };
+
+    // Coins-Liste
+    const coins = ["ETH","BTC","USDT","SOL","TON"];
+    
+    // --- State & Init ---
+    let web3Modal, provider, signer, userAddress;
+    window.addEventListener("load", init);
+
+    async function init(){
+      // Web3Modal für mehrere Wallets
+      web3Modal = new window.Web3Modal.default({
+        cacheProvider: false,
+        providerOptions: {
+          walletconnect: {
+            package: window.WalletConnectProvider.default,
+            options: {
+              infuraId: "YOUR_INFURA_ID" // <–– ersetzen!
+            }
+          }
+        }
+      });
+
+      // UI befüllen
+      const assetSel = document.getElementById("asset");
+      coins.forEach(c=> assetSel.add(new Option(c, c)));
+      const provSel = document.getElementById("provider");
+      Object.entries(providers).forEach(([key,p])=>
+        provSel.add(new Option(p.label, key))
+      );
+
+      document.getElementById("btn-connect").onclick = connectWallet;
+      document.getElementById("btn-buy").onclick = calculateAndBuy;
+    }
+
+    // --- Wallet verbinden ---
+    async function connectWallet(){
+      try {
+        provider = await web3Modal.connect();
+        const web3Provider = new ethers.providers.Web3Provider(provider);
+        signer = web3Provider.getSigner();
+        userAddress = await signer.getAddress();
+        document.getElementById("account").innerText = "Verbunden: " + userAddress;
+      } catch(e){
+        console.error(e);
+        alert("Wallet-Verbindung fehlgeschlagen.");
+      }
+    }
+
+    // --- Kaufen & Deep-Link öffnen ---
+    async function calculateAndBuy(){
+      const asset = document.getElementById('asset').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const provKey = document.getElementById('provider').value;
+
+      if(!userAddress){
+        alert("Bitte zuerst deine Wallet verbinden.");
+        return;
+      }
+      if(isNaN(amount) || amount <= 0){
+        alert("Bitte eine gültige Menge eingeben.");
+        return;
+      }
+
+      // 1) Preis in USD von CoinGecko
+      let priceUsd = await fetch(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${asset.toLowerCase()}&vs_currencies=usd`
+      ).then(r=>r.json()).then(j=>j[asset.toLowerCase()]?.usd || 0);
+
+      if(priceUsd===0){
+        alert("Preisabfrage fehlgeschlagen.");
+        return;
+      }
+
+      const usdValue = amount * priceUsd;
+      const xnxValue = usdValue / XNX_USD_RATE;
+      document.getElementById('output').innerText = 
+        `USD: $${usdValue.toFixed(2)} → ${xnxValue.toFixed(2)} XNX`;
+
+      // 2) Deep-Link bauen und öffnen
+      const builder = providers[provKey]?.buildLink;
+      if(!builder){
+        alert("Unbekannter Anbieter.");
+        return;
+      }
+      const link = builder(userAddress, asset, amount);
+      window.open(link, "_blank");
+    }
+  </script>
+</body>
+</html>
