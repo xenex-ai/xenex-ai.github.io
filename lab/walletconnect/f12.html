@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Web3 All-in-One: ETH, SOL & BTC</title>
+  <style>
+    body { font-family: Arial, padding:1rem; }
+    button { padding:.5rem 1rem; font-size:1rem; }
+    .info { margin-top:1rem; font-weight:bold; }
+    .error { margin-top:1rem; color:red; white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <h1>Web3 All‑in‑One: ETH, SOL & BTC</h1>
+  <button id="btn-web3">Connect Web3</button>
+
+  <div id="eth-address" class="info">ETH‑Adresse: –</div>
+  <div id="eth-balance" class="info">ETH Balance: –</div>
+  <div id="sol-address" class="info">SOL‑Adresse: –</div>
+  <div id="sol-balance" class="info">SOL Balance: –</div>
+  <div id="btc-address" class="info">BTC‑Adresse: –</div>
+  <div id="btc-balance" class="info">BTC Balance: –</div>
+  <div id="error" class="error"></div>
+
+  <!-- Solana Web3.js -->
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+  <script type="module">
+    import { EthereumProvider } from "https://esm.sh/@walletconnect/ethereum-provider@2.8.0";
+
+    const btn       = document.getElementById("btn-web3");
+    const ethAddrEl = document.getElementById("eth-address");
+    const ethBalEl  = document.getElementById("eth-balance");
+    const solAddrEl = document.getElementById("sol-address");
+    const solBalEl  = document.getElementById("sol-balance");
+    const btcAddrEl = document.getElementById("btc-address");
+    const btcBalEl  = document.getElementById("btc-balance");
+    const errEl     = document.getElementById("error");
+
+    let wcProvider;  // WalletConnect Fallback
+
+    btn.addEventListener("click", async () => {
+      // Reset Darstellung
+      errEl.textContent = "";
+      ethAddrEl.textContent = "ETH‑Adresse: –";
+      ethBalEl.textContent  = "ETH Balance: –";
+      solAddrEl.textContent = "SOL‑Adresse: –";
+      solBalEl.textContent  = "SOL Balance: –";
+      btcAddrEl.textContent = "BTC‑Adresse: –";
+      btcBalEl.textContent  = "BTC Balance: –";
+
+      // 1) Ethereum (MetaMask bevorzugt, sonst WalletConnect)
+      try {
+        let ethAccount;
+        if (window.ethereum) {
+          const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+          ethAccount = accounts[0];
+        } else {
+          if (!wcProvider) {
+            wcProvider = await EthereumProvider.init({
+              projectId: "262e67d5e1f2205615ff102f60b2f1dc",
+              chains: [1],
+              rpcMap: { 1: "https://mainnet.infura.io/v3/84842078b09946638c03157f83405213" },
+              methods: ["eth_sendTransaction","personal_sign"],
+              events: ["accountsChanged","chainChanged"],
+              showQrModal: true
+            });
+          }
+          await wcProvider.connect({
+            requiredNamespaces: {
+              eip155: {
+                chains: ["eip155:1"],
+                methods: ["eth_sendTransaction","personal_sign"],
+                events: ["accountsChanged","chainChanged"]
+              }
+            }
+          });
+          const accounts = await wcProvider.request({ method: "eth_requestAccounts" });
+          ethAccount = accounts[0];
+        }
+        ethAddrEl.textContent = `ETH‑Adresse: ${ethAccount}`;
+
+        // optional: ETH Balance
+        try {
+          const hexBal = window.ethereum
+            ? await window.ethereum.request({ method: "eth_getBalance", params: [ethAccount, "latest"] })
+            : await wcProvider.request({ method: "eth_getBalance", params: [ethAccount, "latest"] });
+          const ethBal = parseInt(hexBal, 16) / 1e18;
+          ethBalEl.textContent = `ETH Balance: ${ethBal.toFixed(6)}`;
+        } catch (_) {
+          // Balance weglassen bei Fehlern
+        }
+      } catch (e) {
+        errEl.textContent += `ETH-Fehler: ${e.message}\n`;
+      }
+
+      // 2) Solana (Phantom) mit Fallback‑RPC
+      try {
+        const solProvider = window.solana;
+        if (!solProvider || !solProvider.isPhantom) throw new Error("Phantom Wallet nicht gefunden");
+        const resp = await solProvider.connect();
+        const solPub = resp.publicKey.toString();
+        solAddrEl.textContent = `SOL‑Adresse: ${solPub}`;
+
+        // versuche Helius‑Demo‑Endpoint, dann fallback auf Official RPC
+        const endpoints = [
+          "https://rpc.helius.io/?api-key=demo",
+          solanaWeb3.clusterApiUrl("mainnet-beta")
+        ];
+        let lamports;
+        for (let url of endpoints) {
+          try {
+            const conn = new solanaWeb3.Connection(url);
+            lamports = await conn.getBalance(resp.publicKey);
+            break;
+          } catch (_err) {
+            continue;
+          }
+        }
+        if (lamports != null) {
+          const sol = lamports / solanaWeb3.LAMPORTS_PER_SOL;
+          solBalEl.textContent = `SOL Balance: ${sol.toFixed(6)}`;
+        }
+      } catch (e) {
+        errEl.textContent += `SOL-Fehler: ${e.message}\n`;
+      }
+
+      // 3) Bitcoin (nur wenn Wallet-injektion vorhanden)
+      try {
+        let btcAccount;
+        if (window.bitcoin && window.bitcoin.request) {
+          const accounts = await window.bitcoin.request({ method: "getAccounts" });
+          btcAccount = accounts[0];
+        } else if (window.btc && window.btc.request) {
+          const accounts = await window.btc.request({ method: "requestAccounts" });
+          btcAccount = accounts[0];
+        }
+        if (btcAccount) {
+          btcAddrEl.textContent = `BTC‑Adresse: ${btcAccount}`;
+          // optional: fetch balance
+          try {
+            const res = await fetch(`https://api.blockcypher.com/v1/btc/main/addrs/${btcAccount}/balance`);
+            if (res.ok) {
+              const data = await res.json();
+              const btcBal = (data.final_balance / 1e8).toFixed(6);
+              btcBalEl.textContent = `BTC Balance: ${btcBal}`;
+            }
+          } catch (_) {
+            // ignore
+          }
+        }
+      } catch (e) {
+        errEl.textContent += `BTC-Fehler: ${e.message}\n`;
+      }
+    });
+  </script>
+</body>
+</html>
