@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Multi-Wallet Connect & Pay</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 480px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      text-align: center;
+      background: #f9fafb;
+      color: #111;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 1rem; }
+    .wallet-btn, .action-btn {
+      display: block;
+      width: 100%;
+      margin: .5rem 0;
+      padding: .75rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: .5rem;
+      cursor: pointer;
+      color: #fff;
+      background: #4f46e5;
+      text-decoration: none;
+    }
+    .wallet-btn[disabled], .action-btn[disabled] {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+    #address, #status {
+      margin-top: 1rem;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <h1>Multi-Wallet Connect & Pay</h1>
+  
+  <div id="wallets">
+    <!-- Buttons für erkannte Wallets werden hier eingehängt -->
+  </div>
+  
+  <div id="address">Adresse (Absender): –</div>
+  <div id="status">Status: –</div>
+  
+  <!-- Nach Connect: Zahlungs-Button -->
+  <a id="payBtn" class="action-btn" style="display:none;">Zahlungsanforderung: 0.01 SOL</a>
+  
+  <script>
+    // KONFIGURATION
+    const TARGET_ADDRESS = "GZVovtKSJvP1Gwu3tUnnw3QBC5mGFvqDyHDgWTsxenex"; // Empfänger
+    const AMOUNT_SOL     = 0.01;                         // Betrag
+    
+    // Wallet-Definitionen
+    const walletDefs = [
+      { name: "Phantom",   check: w => w?.isPhantom,    icon: "🦊" },
+      { name: "Best Wallet", check: w => w?.isBestWallet, icon: "⭐️" },
+      { name: "Trust",     check: w => w?.isTrust,      icon: "🔐" },
+      { name: "Binance",   check: w => w?.isBinance,    icon: "💱" }
+    ];
+    
+    const walletsDiv = document.getElementById("wallets");
+    const addressDiv = document.getElementById("address");
+    const statusDiv  = document.getElementById("status");
+    const payBtn     = document.getElementById("payBtn");
+    
+    let connectedWallet = null;
+    let senderPubkey    = null;
+    
+    // 1) Wallets erkennen und Buttons erzeugen
+    function renderWalletButtons() {
+      const w = window.solana;
+      walletDefs.forEach(def => {
+        // Für Mobile Deep-Link: immer anbieten
+        const isInstalled = def.check(w);
+        const btn = document.createElement(isInstalled ? "button" : "a");
+        btn.className = "wallet-btn";
+        btn.textContent = `${def.icon} ${def.name}`;
+        btn.disabled = false;
+        
+        if (isInstalled) {
+          // Extension-Flow
+          btn.addEventListener("click", () => connectWallet(def.name));
+        } else {
+          // Deep-Link auf Mobile: solana:-URI öffnet Standard-App
+          btn.href = `solana:${TARGET_ADDRESS}?amount=${AMOUNT_SOL}`;
+          btn.target = "_blank";
+        }
+        walletsDiv.appendChild(btn);
+      });
+    }
+    
+    // 2) Connect-Funktion für Extension-Wallets
+    async function connectWallet(wName) {
+      statusDiv.textContent = `Status: Verbinde ${wName}…`;
+      try {
+        const resp = await window.solana.connect();
+        senderPubkey = resp.publicKey.toString();
+        connectedWallet = wName;
+        addressDiv.textContent = "Adresse (Absender): " + senderPubkey;
+        statusDiv.textContent  = `Status: Verbunden mit ${wName} ✅`;
+        // Nach Connect: Zahlungs-Link sichtbar machen
+        payBtn.style.display = "block";
+        payBtn.href = `solana:${TARGET_ADDRESS}?amount=${AMOUNT_SOL}`;
+      } catch (e) {
+        console.error(e);
+        statusDiv.textContent = `Status: Verbindung zu ${wName} fehlgeschlagen ❌`;
+      }
+    }
+    
+    // 3) Klick auf "Zahlungsanforderung": Adresse bleibt, App öffnet
+    payBtn.addEventListener("click", () => {
+      // nothing more to do – das solana:-URI-Schema öffnet die App
+    });
+    
+    // Init
+    renderWalletButtons();
+  </script>
+</body>
+</html>
+
