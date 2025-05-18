@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Web3 Multi‑Wallet: ETH / SOL / BTC</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 1rem; }
+    button { padding: .5rem 1rem; margin-bottom: 1rem; }
+    .section { border-top: 1px solid #ddd; padding-top: 1rem; margin-top: 1rem; }
+    .info { margin: .5rem 0; }
+    .tx-form { border: 1px solid #ccc; padding: 1rem; border-radius: 8px; }
+    .loading { opacity: .6; pointer-events: none; }
+    input { width: 100%; padding: .5rem; margin: .5rem 0; box-sizing: border-box; }
+    .hash a { font-size: .9rem; color: blue; text-decoration: underline; }
+    .error { color: red; white-space: pre-line; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Web3 Multi‑Wallet</h1>
+  <button id="btn-connect">Connect Web3</button>
+  <div id="error" class="error"></div>
+
+  <!-- ETH Section -->
+  <div id="eth-section" class="section" style="display:none">
+    <h2>Ethereum</h2>
+    <div id="eth-address" class="info"></div>
+    <div id="eth-balance" class="info"></div>
+  </div>
+
+  <!-- SOL Section -->
+  <div id="sol-section" class="section" style="display:none">
+    <h2>Solana</h2>
+    <div id="sol-address" class="info"></div>
+    <div id="sol-balance" class="info"></div>
+  </div>
+
+  <!-- BTC Section -->
+  <div id="btc-section" class="section" style="display:none">
+    <h2>Bitcoin</h2>
+    <div id="btc-address" class="info"></div>
+    <div id="btc-balance" class="info"></div>
+  </div>
+
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+  <script type="module">
+    import UniversalProvider from "https://esm.sh/@walletconnect/universal-provider@2.2.1";
+
+    const $ = id => document.getElementById(id);
+    const show = id => $(id).style.display = "block";
+    const logError = msg => { $("error").textContent += msg + "\n"; };
+    const setLoading = (btn, loading) => {
+      btn.disabled = loading;
+      btn.classList.toggle("loading", loading);
+    };
+
+    let wcProvider, ethAccount, solAccount, btcAccount, solConn;
+
+    // Klick auf Connect
+    $("btn-connect").addEventListener("click", async () => {
+      $("error").textContent = "";
+      setLoading($("btn-connect"), true);
+
+      // *** Ethereum ***
+      try {
+        if (window.ethereum) {
+          // MetaMask / Injected
+          [ethAccount] = await window.ethereum.request({ method: "eth_requestAccounts" });
+        } else {
+          // WalletConnect-Fallback
+          if (!wcProvider) {
+            wcProvider = await UniversalProvider.init({ projectId: "262e67d5e1f2205615ff102f60b2f1dc" });
+          }
+          // Nur Ethereum-namespace, niemals leer
+          const session = await wcProvider.connect({
+            requiredNamespaces: {
+              eip155: {
+                chains: ["eip155:1"],
+                methods: ["eth_requestAccounts","eth_getBalance"],
+                events: ["accountsChanged"]
+              }
+            }
+          });
+          const accStr = session.namespaces.eip155.accounts[0];
+          ethAccount = accStr.split(":")[2];
+        }
+        // Adresse anzeigen
+        $("eth-address").textContent = `Adresse: ${ethAccount}`;
+        show("eth-section");
+
+        // Balance
+        const balHex = window.ethereum
+          ? await window.ethereum.request({ method: "eth_getBalance", params: [ethAccount, "latest"] })
+          : await wcProvider.request({ chainId: "eip155:1", request: { method: "eth_getBalance", params: [ethAccount, "latest"] } });
+        const ethBal = parseInt(balHex,16)/1e18;
+        $("eth-balance").textContent = `Balance: ${ethBal.toFixed(6)} ETH`;
+      } catch(e) {
+        logError("ETH Fehler: " + e.message);
+      }
+
+      // *** Solana ***
+      try {
+        if (window.solana?.isPhantom) {
+          // Phantom inject
+          const resp = await window.solana.connect();
+          solAccount = resp.publicKey.toString();
+        } else {
+          throw new Error("Phantom nicht gefunden");
+        }
+        $("sol-address").textContent = `Adresse: ${solAccount}`;
+        show("sol-section");
+
+        solConn = solConn || new solanaWeb3.Connection(solanaWeb3.clusterApiUrl("mainnet-beta"), { commitment: "confirmed" });
+        const lam = await solConn.getBalance(new solanaWeb3.PublicKey(solAccount), "confirmed");
+        $("sol-balance").textContent = `Balance: ${(lam/solanaWeb3.LAMPORTS_PER_SOL).toFixed(6)} SOL`;
+      } catch(e) {
+        logError("SOL Fehler: " + e.message);
+      }
+
+      // *** Bitcoin ***
+      try {
+        if (window.bitcoin?.request) {
+          [btcAccount] = await window.bitcoin.request({ method: "getAccounts" });
+        } else if (window.btc?.request) {
+          [btcAccount] = await window.btc.request({ method: "requestAccounts" });
+        }
+        if (!btcAccount) throw new Error("Keine BTC-Wallet");
+        $("btc-address").textContent = `Adresse: ${btcAccount}`;
+        show("btc-section");
+
+        const res = await fetch(`https://blockstream.info/api/address/${btcAccount}`);
+        const d = await res.json();
+        const btcBal = (d.chain_stats.funded_txo_sum - d.chain_stats.spent_txo_sum)/1e8;
+        $("btc-balance").textContent = `Balance: ${btcBal.toFixed(8)} BTC`;
+      } catch(e) {
+        logError("BTC Fehler: " + e.message);
+      }
+
+      setLoading($("btn-connect"), false);
+    });
+  </script>
+</body>
+</html>
