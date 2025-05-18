@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WalletConnect, MetaMask & Solana Demo</title>
+  <style>
+    body { font-family: Arial, padding:1rem; }
+    button { padding:.5rem 1rem; margin-right:1rem; font-size:1rem; }
+    .info { margin-top:1rem; font-weight:bold; }
+    .error { margin-top:1rem; color:red; }
+  </style>
+</head>
+<body>
+  <h1>WalletConnect, MetaMask & Solana</h1>
+  <button id="btn-wc">Connect WalletConnect</button>
+  <button id="btn-mm">Connect MetaMask</button>
+  <button id="btn-sol">Connect Solana (Phantom)</button>
+
+  <div id="address" class="info">Ethereum-Adresse: –</div>
+  <div id="balance" class="info">ETH Balance: –</div>
+  <div id="sol-address" class="info">Solana-Adresse: –</div>
+  <div id="sol-balance" class="info">SOL Balance: –</div>
+  <div id="error" class="error"></div>
+
+  <!-- Solana Web3.js -->
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+  <script type="module">
+    import { EthereumProvider } from "https://esm.sh/@walletconnect/ethereum-provider@2.8.0";
+
+    const wcBtn     = document.getElementById("btn-wc");
+    const mmBtn     = document.getElementById("btn-mm");
+    const solBtn    = document.getElementById("btn-sol");
+    const addrEl    = document.getElementById("address");
+    const balEl     = document.getElementById("balance");
+    const solAddrEl = document.getElementById("sol-address");
+    const solBalEl  = document.getElementById("sol-balance");
+    const errEl     = document.getElementById("error");
+
+    // ---- WalletConnect ----
+    let wcProvider;
+    async function connectWC() {
+      errEl.textContent = "";
+      try {
+        if (!wcProvider) {
+          wcProvider = await EthereumProvider.init({
+            projectId: "262e67d5e1f2205615ff102f60b2f1dc",
+            chains: [1],
+            rpcMap: { 1: "https://rpc.ankr.com/eth" },
+            methods: ["eth_requestAccounts","eth_chainId","eth_getBalance","eth_sendTransaction","personal_sign"],
+            events: ["accountsChanged","chainChanged"],
+            showQrModal: true
+          });
+        }
+        // Aufbau der Session
+        await wcProvider.connect({
+          requiredNamespaces: {
+            eip155: {
+              chains: ["eip155:1"],
+              methods: ["eth_requestAccounts","eth_chainId","eth_getBalance"],
+              events: ["accountsChanged","chainChanged"]
+            }
+          }
+        });
+        // Session intern verfügbar
+        const session = wcProvider.session;
+        const accountStr = session.namespaces.eip155.accounts[0];
+        const [, , account] = accountStr.split(":");
+        addrEl.textContent = `Ethereum-Adresse: ${account}`;
+
+        // Balance abfragen
+        const hexBal = await wcProvider.request({
+          method: "eth_getBalance",
+          params: [account, "latest"]
+        });
+        const ethBal = parseInt(hexBal, 16) / 1e18;
+        balEl.textContent = `ETH Balance: ${ethBal.toFixed(4)}`;
+      } catch(e) {
+        errEl.textContent = e.message;
+      }
+    }
+    wcBtn.addEventListener("click", connectWC);
+
+    // ---- MetaMask ----
+    async function connectMM() {
+      errEl.textContent = "";
+      try {
+        if (!window.ethereum) throw new Error("MetaMask nicht installiert");
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        const acct = accounts[0];
+        addrEl.textContent = `Ethereum-Adresse: ${acct}`;
+        const hexBal = await window.ethereum.request({
+          method: "eth_getBalance",
+          params: [acct, "latest"]
+        });
+        const ethBal = parseInt(hexBal, 16) / 1e18;
+        balEl.textContent = `ETH Balance: ${ethBal.toFixed(4)}`;
+      } catch(e) {
+        errEl.textContent = e.message;
+      }
+    }
+    mmBtn.addEventListener("click", connectMM);
+
+    if (window.ethereum) {
+      window.ethereum.on("accountsChanged", accs => {
+        const a = accs.length ? accs[0] : "–";
+        addrEl.textContent = `Ethereum-Adresse: ${a}`;
+        balEl.textContent = "ETH Balance: –";
+      });
+      window.ethereum.on("chainChanged", () => {
+        balEl.textContent = "ETH Balance: –";
+      });
+    }
+
+    // ---- Solana (Phantom) ----
+    async function connectSol() {
+      errEl.textContent = "";
+      try {
+        const provider = window.solana;
+        if (!provider || !provider.isPhantom) throw new Error("Phantom Wallet nicht gefunden");
+        // Verbindung herstellen
+        const resp = await provider.connect();
+        const pubKey = resp.publicKey.toString();
+        solAddrEl.textContent = `Solana-Adresse: ${pubKey}`;
+
+        // Verbindung zum Mainnet
+        const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl("mainnet-beta"));
+        const lamports = await connection.getBalance(resp.publicKey);
+        const sol = lamports / solanaWeb3.LAMPORTS_PER_SOL;
+        solBalEl.textContent = `SOL Balance: ${sol.toFixed(4)}`;
+      } catch(e) {
+        errEl.textContent = e.message;
+      }
+    }
+    solBtn.addEventListener("click", connectSol);
+  </script>
+</body>
+</html>
