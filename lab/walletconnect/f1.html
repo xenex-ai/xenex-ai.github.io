@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Krypto zu XNX Konverter & Kauf</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      font-size: 16px;
+    }
+    #output {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Krypto kaufen & in XNX umrechnen</h2>
+
+    <label for="asset">Wähle Coin:</label>
+    <select id="asset">
+      <option value="ETH">Ethereum (ETH)</option>
+      <option value="BTC">Bitcoin (BTC)</option>
+      <option value="USDT">Tether (USDT)</option>
+      <!-- Weitere Coins hier einfügen -->
+    </select>
+
+    <label for="amount">Menge:</label>
+    <input type="number" id="amount" placeholder="z. B. 0.5" step="any" />
+
+    <label for="provider">Anbieter auswählen:</label>
+    <select id="provider">
+      <option value="metamask">MetaMask</option>
+      <option value="trustwallet">Trust Wallet</option>
+      <option value="phantom">Phantom</option>
+      <option value="guarda">Guarda Wallet</option>
+      <!-- Logos und weitere Anbieter später einfügen -->
+    </select>
+
+    <div id="output">XNX Wert: 0</div>
+
+    <button onclick="calculateAndBuy()">Kaufen & Link öffnen</button>
+  </div>
+
+  <script>
+    const xnxRate = 0.001648; // 1 XNX = 0.001648 USD
+    const coinPrices = {
+      ETH: 3500,     // später durch Live-Preis ersetzen
+      BTC: 65000,
+      USDT: 1
+      // Weitere Coins hier ergänzen
+    };
+
+    function calculateAndBuy() {
+      const asset = document.getElementById('asset').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const provider = document.getElementById('provider').value;
+
+      if (isNaN(amount) || amount <= 0) {
+        alert("Bitte eine gültige Menge eingeben.");
+        return;
+      }
+
+      const usdValue = amount * (coinPrices[asset] || 0);
+      const xnxValue = usdValue / xnxRate;
+      document.getElementById('output').innerText = `XNX Wert: ${xnxValue.toFixed(2)} XNX`;
+
+      let link = "#";
+
+      switch (provider) {
+        case "metamask":
+          link = `https://metamask.app.link/send/0xYourAddressHere@1?value=${(usdValue * 1e18).toFixed(0)}`;
+          break;
+        case "trustwallet":
+          link = `https://link.trustwallet.com/send?asset=${asset}&address=0xYourAddressHere&amount=${amount}`;
+          break;
+        case "phantom":
+          link = `phantom://transfer?recipient=YourAddressHere&amount=${amount}`;
+          break;
+        case "guarda":
+          link = `https://guarda.co/app/send?currencyTo=${asset}&family=eth&addressTo=0xYourAddressHere&amount=${amount}`;
+          break;
+        default:
+          alert("Anbieter nicht erkannt.");
+          return;
+      }
+
+      // Aktion: Nutzer zur Wallet weiterleiten
+      window.open(link, "_blank");
+    }
+  </script>
+</body>
+</html>
