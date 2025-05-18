@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Multi-Chain Payment Hub</title>
+  <style>
+    /* ===== Global ===== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #eef2f7;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 1rem;
+    }
+    .card {
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+      max-width: 480px; width: 100%; padding: 2rem;
+    }
+    h1 { font-size: 1.75rem; color: #333; margin-bottom: 1rem; text-align: center; }
+    label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 600; color: #444; }
+    input, select {
+      width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px;
+      font-size: 1rem;
+    }
+    .btn {
+      display: block; width: 100%; margin: 1.25rem 0;
+      padding: 0.85rem; font-size: 1.1rem; font-weight: bold;
+      color: #fff; background: linear-gradient(135deg,#00c6ff,#0072ff);
+      border: none; border-radius: 8px; cursor: pointer;
+      transition: transform .1s, box-shadow .1s;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+    .note { font-size: .875rem; text-align: center; color: #666; margin-top: .5rem; }
+    /* ===== Modal für QR-Code ===== */
+    .modal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); align-items: center; justify-content: center;
+    }
+    .modal .content {
+      background: #fff; padding: 1.5rem; border-radius: 12px; text-align: center;
+    }
+    .modal img { max-width: 260px; }
+    .modal .close {
+      margin-top: 1rem; cursor: pointer; color: #0072ff; font-weight: bold;
+    }
+  </style>
+
+  <!-- Solana/Web3 + WalletConnect -->
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.91.0/lib/index.iife.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/wallet-adapter-base@0.9.22/lib/index.iife.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/wallet-adapter-walletconnect@0.11.24/lib/index.iife.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/sign-client@2.8.14/dist/sign-client.min.js"></script>
+</head>
+<body>
+
+  <div class="card">
+    <h1>💸 Multi-Chain Payment Hub</h1>
+
+    <label for="chain">Blockchain</label>
+    <select id="chain">
+      <option value="btc">Bitcoin</option>
+      <option value="eth">Ethereum</option>
+      <option value="bnb">BNB Smart Chain</option>
+      <option value="sol">Solana</option>
+      <option value="usdt">USDT (ERC-20)</option>
+      <option value="usdc">USDC (ERC-20)</option>
+    </select>
+
+    <label for="address">Empfänger-Adresse</label>
+    <input type="text" id="address" placeholder="z.B. 0xAbC123... oder 1BoatSLR..." />
+
+    <label for="amount">Betrag</label>
+    <input type="number" id="amount" placeholder="z.B. 0.01" step="any" min="0" />
+
+    <button class="btn" id="payBtn">Zahlung auslösen</button>
+    <p class="note">Wählt automatisch die beste Wallet-Methode.</p>
+  </div>
+
+  <!-- QR-Code Modal für WalletConnect -->
+  <div class="modal" id="wcModal">
+    <div class="content">
+      <p>Mit WalletConnect scannen:</p>
+      <img id="wcQR" src="" alt="WalletConnect QR" />
+      <p class="close" id="closeModal">Schließen</p>
+    </div>
+  </div>
+
+  <script>
+  (async()=> {
+    // ===== Globals =====
+    const signClient = await SignClient.init({
+      projectId: "YOUR_WALLETCONNECT_PROJECT_ID",
+      metadata: {
+        name: "XenexAi Payment Hub",
+        description: "Dynamischer Multi-Chain Payment Launcher",
+        url: window.location.origin,
+        icons: [window.location.origin + "/favicon.png"]
+      }
+    });
+
+    const btn = document.getElementById('payBtn');
+    const chainSel = document.getElementById('chain');
+    const addrInput = document.getElementById('address');
+    const amtInput  = document.getElementById('amount');
+    const modal     = document.getElementById('wcModal');
+    const qrImg     = document.getElementById('wcQR');
+    const closeBtn  = document.getElementById('closeModal');
+
+    closeBtn.onclick = ()=> modal.style.display='none';
+
+    // ===== Helper zum Aufzeichnen der Adresse =====
+    async function recordAddr(chain, addr) {
+      console.log(`Sender (${chain}): ${addr}`);
+      // optional: await fetch(`/api/record?chain=${chain}&addr=${addr}`);
+    }
+
+    // ===== Button-Klick Handler =====
+    btn.onclick = async () => {
+      const chain = chainSel.value;
+      const to     = addrInput.value.trim();
+      const amount = parseFloat(amtInput.value);
+      if(!to||!amount||amount<=0) {
+        alert("Bitte gültige Adresse und Betrag eingeben.");
+        return;
+      }
+
+      // 1) BTC (BIP-21) — keine Adressabfrage möglich
+      if(chain==='btc') {
+        recordAddr('BTC','n/a');
+        window.location.href = `bitcoin:${to}?amount=${amount}`;
+        return;
+      }
+
+      // 2+3) ETH/BNB/USDT/USDC (EIP-681, ERC-20)
+      if(['eth','bnb','usdt','usdc'].includes(chain)) {
+        if(window.ethereum && window.ethereum.request) {
+          try {
+            const accounts = await window.ethereum.request({ method:'eth_requestAccounts' });
+            const from = accounts[0];
+            await recordAddr(chain, from);
+            let uri;
+            const wei = (amount * 1e18).toLocaleString('fullwide',{useGrouping:false});
+            const chainId = chain==='bnb'?56:1;
+            // ERC20-Tokens: contract address
+            const tokenContracts = {
+              usdt: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              usdc: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606Eb48'
+            };
+            if(chain==='eth'||chain==='bnb') {
+              uri = `ethereum:${to}@${chainId}?value=${wei}`;
+            } else {
+              // ERC-20-Transfer via EIP-681
+              const contract = tokenContracts[chain];
+              // transfer(address,uint256)
+              const data = `0xa9059cbb${to.replace(/^0x/,'').padStart(64,'0')}${BigInt(wei).toString(16).padStart(64,'0')}`;
+              uri = `ethereum:${contract}@${chainId}/transfer?value=0x0&data=${data}`;
+            }
+            window.location.href = uri;
+            return;
+          } catch(e) {
+            console.error(e);
+            // Fallback zu WalletConnect
+          }
+        }
+        // WalletConnect Fallback
+        const session = await signClient.connect({
+          requiredNamespaces: {
+            eip155: {
+              methods: ['eth_sendTransaction'],
+              chains: ['eip155:1','eip155:56'],
+              events: []
+            }
+          }
+        });
+        const { uri } = session;
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(uri)}`;
+        modal.style.display='flex';
+        return;
+      }
+
+      // 4) Solana (CIP-URL)
+      if(chain==='sol') {
+        if(window.solana && window.solana.isPhantom) {
+          try {
+            const resp = await window.solana.connect();
+            const from = resp.publicKey.toString();
+            await recordAddr('SOL', from);
+            const lamports = Math.floor(amount * 1e9);
+            window.location.href = `solana:${to}?amount=${lamports}`;
+            return;
+          } catch(e) {
+            console.error(e);
+          }
+        }
+        // WalletConnect für Solana
+        const adapter = new window['@solana/wallet-adapter-walletconnect'].WalletConnectWalletAdapter({
+          network: 'mainnet-beta',
+          options: {
+            projectId: "262e67d5e1f2205615ff102f60b2f1dc",
+            metadata: signClient.metadata
+          }
+        });
+        await adapter.connect();
+        const wcUri = adapter.connection.uri;
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(wcUri)}`;
+        modal.style.display='flex';
+        return;
+      }
+    };
+  })();
+  </script>
+</body>
+</html>
