@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Solana Multi-Wallet Zahlungsseite</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #f8fafc, #e2e8f0);
+      margin: 0;
+      padding: 2rem;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      color: #4b5563;
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+    .wallet-btn, .pay-btn {
+      display: block;
+      width: 100%;
+      max-width: 360px;
+      margin: 0.5rem auto;
+      padding: 0.8rem 1.5rem;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 0.6rem;
+      cursor: pointer;
+      background-color: #6366f1;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+    .wallet-btn:hover, .pay-btn:hover {
+      background-color: #4f46e5;
+    }
+    .pay-btn {
+      background-color: #10b981;
+    }
+    #address, #status {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: #1f2937;
+      word-break: break-word;
+    }
+    .section {
+      margin: 2rem 0;
+    }
+    footer {
+      margin-top: 3rem;
+      font-size: 0.85rem;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <h1>Verbinde deine Solana Wallet</h1>
+  <div class="subtitle">Zahlung & Wallet-Adresse anzeigen</div>
+
+  <div id="wallets" class="section">
+    <!-- Dynamisch generierte Wallet-Buttons -->
+  </div>
+
+  <div id="address">Adresse (Absender): –</div>
+  <div id="status">Status: –</div>
+
+  <a id="payBtn" class="pay-btn" style="display:none;">Jetzt 0.01 SOL senden</a>
+
+  <footer>
+    &copy; 2025 XenexAi Payment Gateway
+  </footer>
+
+  <script>
+    // Konfiguration
+    const TARGET_ADDRESS = "DEINE_EMPFÄNGER_ADRESSE_HIER";
+    const AMOUNT_SOL     = 0.01;
+
+    // Wallet-Typen & Checks
+    const walletDefs = [
+      { name: "Phantom",    check: w => w?.isPhantom, icon: "🦊" },
+      { name: "Best Wallet",check: w => w?.isBestWallet, icon: "⭐️" },
+      { name: "Trust",      check: w => w?.isTrust, icon: "🔐" },
+      { name: "Binance",    check: w => w?.isBinance, icon: "💱" },
+      { name: "Solflare",   check: w => w?.isSolflare, icon: "☀️" },
+      { name: "Backpack",   check: w => w?.isBackpack, icon: "🎒" }
+    ];
+
+    const walletsDiv = document.getElementById("wallets");
+    const addressDiv = document.getElementById("address");
+    const statusDiv  = document.getElementById("status");
+    const payBtn     = document.getElementById("payBtn");
+
+    let senderPubkey = null;
+
+    function renderWalletButtons() {
+      const w = window.solana;
+
+      walletDefs.forEach(def => {
+        const isInstalled = def.check(w);
+        const btn = document.createElement(isInstalled ? "button" : "a");
+        btn.className = "wallet-btn";
+        btn.textContent = `${def.icon} ${def.name}`;
+        if (isInstalled) {
+          btn.addEventListener("click", () => connectWallet(def.name));
+        } else {
+          btn.href = `solana:${TARGET_ADDRESS}?amount=${AMOUNT_SOL}`;
+          btn.target = "_blank";
+        }
+        walletsDiv.appendChild(btn);
+      });
+    }
+
+    async function connectWallet(walletName) {
+      statusDiv.textContent = `Status: ${walletName} wird verbunden...`;
+      try {
+        const resp = await window.solana.connect();
+        senderPubkey = resp.publicKey.toString();
+        addressDiv.textContent = "Adresse (Absender): " + senderPubkey;
+        statusDiv.textContent = `Status: Verbunden mit ${walletName} ✅`;
+        payBtn.style.display = "block";
+        payBtn.href = `solana:${TARGET_ADDRESS}?amount=${AMOUNT_SOL}`;
+      } catch (err) {
+        console.error(err);
+        statusDiv.textContent = `Status: Verbindung mit ${walletName} fehlgeschlagen ❌`;
+      }
+    }
+
+    renderWalletButtons();
+  </script>
+</body>
+</html>
