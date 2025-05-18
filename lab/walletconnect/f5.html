@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Wallet Connect</title>
+  <!-- Web3Modal & Provider -->
+  <script src="https://unpkg.com/ethers/dist/ethers.min.js"></script>
+  <script src="https://unpkg.com/web3modal/dist/index.js"></script>
+  <script src="https://unpkg.com/@walletconnect/web3-provider/dist/umd/index.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/btc-provider/dist/umd/index.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 1rem;
+      background: #fafafa;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #0070f3;
+    }
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    button {
+      flex: 1 1 45%;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      background: #0070f3;
+      color: #fff;
+    }
+    button:hover {
+      background: #005bb5;
+      transform: translateY(-2px);
+    }
+    #log {
+      white-space: pre-wrap;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .small {
+      font-size: 0.85rem;
+      color: #666;
+      text-align: center;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Multi-Wallet Connect</h1>
+
+  <div class="buttons">
+    <!-- Ein Button für alle Ethereum-Wallets -->
+    <button id="connectEthereum">Ethereum Wallets (MetaMask, WalletConnect, Coinbase…)</button>
+    <!-- Bitcoin via WalletConnect -->
+    <button id="connectBitcoin">Bitcoin WalletConnect</button>
+    <!-- Solana Phantom -->
+    <button id="connectPhantom">Solana: Phantom</button>
+    <!-- Trennen -->
+    <button id="disconnectAll">Alle Trennen</button>
+  </div>
+
+  <div id="log">Status: –</div>
+  <div class="small">Speicher lädt gespeicherte Adressen beim Neuladen der Seite.</div>
+
+  <script>
+    // Log-Ausgabe
+    const logDiv = document.getElementById('log');
+    function log(msg) {
+      console.log(msg);
+      logDiv.textContent = msg;
+    }
+
+    // gespeicherte Adressen anzeigen
+    window.addEventListener('DOMContentLoaded', () => {
+      const eth = localStorage.getItem('ethAddress');
+      const btc = localStorage.getItem('btcAddress');
+      const sol = localStorage.getItem('solAddress');
+      if (eth || btc || sol) {
+        let msg = 'Gespeicherte Adressen:';
+        if (eth) msg += `\nEthereum: ${eth}`;
+        if (btc) msg += `\nBitcoin:  ${btc}`;
+        if (sol) msg += `\nSolana:   ${sol}`;
+        log(msg);
+      }
+    });
+
+    // ==== Web3Modal Setup für Ethereum ====
+    const providerOptions = {
+      walletconnect: {
+        package: WalletConnectProvider.default,
+        options: {
+          rpc: {
+            1: 'https://mainnet.infura.io/v3/00441a4f8b8541a886c0b0bd4f270e4e',
+            3: 'https://ropsten.infura.io/v3/00441a4f8b8541a886c0b0bd4f270e4e'
+          }
+        }
+      },
+      coinbasewallet: {
+        package: null,
+        options: {
+          appName: 'XenexAi Multi-Wallet',
+          infuraId: '00441a4f8b8541a886c0b0bd4f270e4e'
+        }
+      }
+      // Hier können weitere Provider ergänzt werden…
+    };
+    const web3Modal = new window.Web3Modal.default({
+      cacheProvider: false,
+      providerOptions
+    });
+
+    let ethProvider, ethSigner;
+
+    document.getElementById('connectEthereum').onclick = async () => {
+      try {
+        ethProvider = new ethers.providers.Web3Provider(await web3Modal.connect());
+        ethSigner   = ethProvider.getSigner();
+        const addr  = await ethSigner.getAddress();
+        const network = await ethProvider.getNetwork();
+        localStorage.setItem('ethAddress', `${addr} (Chain ${network.chainId})`);
+        log(`Ethereum verbunden:\n${addr}\nChain ID: ${network.chainId}`);
+      } catch (err) {
+        log(`Fehler Ethereum: ${err.message || err}`);
+      }
+    };
+
+    // ==== Bitcoin via WalletConnect ====
+    let wcBtcProvider;
+    document.getElementById('connectBitcoin').onclick = async () => {
+      try {
+        wcBtcProvider = new window.WalletConnectBtcProvider({
+          uri: '',
+          chainId: 0,
+          blockbookUrl: 'https://YOUR_BTC_BLOCKBOOK_URL'
+        });
+        await wcBtcProvider.enable(); // öffnet QR-Code Modal
+        const address = wcBtcProvider.accounts[0];
+        localStorage.setItem('btcAddress', address);
+        log(`Bitcoin verbunden:\n${address}`);
+      } catch (err) {
+        log(`Fehler BTC: ${err.message || err}`);
+      }
+    };
+
+    // ==== Solana Phantom ====
+    document.getElementById('connectPhantom').onclick = async () => {
+      try {
+        if (!window.solana || !window.solana.isPhantom) {
+          return log('Phantom Wallet nicht gefunden. Bitte installieren!');
+        }
+        const resp = await window.solana.connect();
+        const address = resp.publicKey.toString();
+        localStorage.setItem('solAddress', address);
+        log(`Solana (Phantom) verbunden:\n${address}`);
+      } catch (err) {
+        log(`Fehler Phantom: ${err.message || err}`);
+      }
+    };
+
+    // ==== Trennen ====
+    document.getElementById('disconnectAll').onclick = async () => {
+      try {
+        if (ethProvider?.provider?.disconnect) await ethProvider.provider.disconnect();
+        if (wcBtcProvider?.disconnect)      await wcBtcProvider.disconnect();
+        await web3Modal.clearCachedProvider();
+      } catch (e) { /* ignore */ }
+      localStorage.removeItem('ethAddress');
+      localStorage.removeItem('btcAddress');
+      localStorage.removeItem('solAddress');
+      log('Alle Verbindungen getrennt');
+    };
+  </script>
+</body>
+</html>
