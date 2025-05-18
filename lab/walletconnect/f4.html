@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Krypto → XNX Master-Converter</title>
+  <!-- Web3Modal + WalletConnect + Ethers.js -->
+  <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-lg">
+    <h1 class="text-3xl font-bold mb-4">Krypto → XNX Master-Converter</h1>
+    <button id="btn-connect" class="w-full bg-blue-600 text-white py-2 rounded mb-4 hover:bg-blue-700">
+      🔌 Wallet verbinden
+    </button>
+    <div id="account" class="mb-4 text-gray-700"></div>
+    
+    <div class="space-y-4">
+      <div>
+        <label for="asset" class="block font-medium mb-1">Coin</label>
+        <select id="asset" class="w-full border rounded p-2"></select>
+      </div>
+      <div>
+        <label for="amount" class="block font-medium mb-1">Menge</label>
+        <input type="number" id="amount" step="any" placeholder="z. B. 0.5" class="w-full border rounded p-2" />
+      </div>
+      <div>
+        <label for="provider" class="block font-medium mb-1">Wallet Anbieter</label>
+        <select id="provider" class="w-full border rounded p-2"></select>
+      </div>
+    </div>
+    
+    <div id="output" class="mt-6 text-xl font-semibold">XNX Wert: –</div>
+    <button id="btn-buy" class="mt-4 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+      🚀 Kaufen & Öffnen
+    </button>
+  </div>
+
+  <script>
+    // --- Konstanten & Config ---
+    const XNX_USD_RATE = 0.001648; // 1 XNX = 0.001648 USD
+    const COINS = ["ETH","BTC","USDT","USDC","SOL","TON","ADA","BNB","DOT","MATIC","AVAX"];
+
+    // Offizielle Deep-Link-Konfiguration (Provider + URI-Schema)
+    const PROVIDERS = {
+      metamask: {
+        label: "MetaMask",
+        buildLink: (addr, token, val) =>
+          `https://metamask.app.link/send/${addr}@1?value=${ethers.utils.parseUnits(val.toString(), 18)}`
+      },
+      trustwallet: {
+        label: "Trust Wallet",
+        buildLink: (addr, token, val) => {
+          const slip44 = { ETH:60, BTC:0, SOL:501, TON:396, ADA:1815, BNB:714, DOT:354, MATIC:966, AVAX:9006 }[token] || 60;
+          return `https://link.trustwallet.com/send?asset=c${slip44}_${addr}&amount=${val}`;
+        }
+      },
+      phantom: {
+        label: "Phantom (SOL)",
+        buildLink: (addr, token, val) => {
+          if (token !== "SOL") { alert("Phantom unterstützt nur SOL."); return "#"; }
+          return `https://phantom.app/ul/v1/send?address=${addr}&amount=${val}`;
+        }
+      },
+      coinbase: {
+        label: "Coinbase Wallet",
+        buildLink: (addr, token, val) =>
+          `https://go.cb-w.com/send?address=${addr}&value=${val}&crypto_currency=${token}`
+      },
+      binance: {
+        label: "Binance",
+        buildLink: (addr, token, val) =>
+          `https://www.binance.com/de/send?address=${addr}&crypto=${token}&amount=${val}`
+      },
+      kucoin: {
+        label: "KuCoin",
+        buildLink: (addr, token, val) =>
+          `https://www.kucoin.com/asset/transfer?network=${token}&address=${addr}&amount=${val}`
+      },
+      guarda: {
+        label: "Guarda Wallet",
+        buildLink: (addr, token, val) =>
+          `https://guarda.co/app/send?currencyTo=${token}&family=${token==="BTC"?"btc":"eth"}&addressTo=${addr}&amount=${val}`
+      },
+      tonkeeper: {
+        label: "Tonkeeper",
+        buildLink: (addr, token, val) =>
+          `tonkeeper://transfer/${addr}?amount=${val * 1e9}&text=Kauf`
+      },
+      bloom: {
+        label: "Bloom Wallet",
+        buildLink: (addr, token, val) =>
+          `bloom://wallet/sendTransaction?address=${addr}&baseCoinAmount=${val * 1e6}`
+      },
+      intmax: {
+        label: "INTMAX Wallet",
+        buildLink: (addr, token, val) =>
+          `https://wallet.intmax.io/transfer?to=${addr}&amount=${val}&token=${token}`
+      },
+      exodus: {
+        label: "Exodus",
+        buildLink: (addr, token, val) =>
+          `https://www.exodus.com/send?address=${addr}&currency=${token}&amount=${val}`
+      },
+      argent: {
+        label: "Argent",
+        buildLink: (addr, token, val) =>
+          `argent://send?address=${addr}&asset=${token}&amount=${val}`
+      },
+      imtoken: {
+        label: "imToken",
+        buildLink: (addr, token, val) =>
+          `imtokenv2://navigate/send?address=${addr}&coin=${token}&value=${val}`
+      },
+      mew: {
+        label: "MyEtherWallet",
+        buildLink: (addr, token, val) =>
+          `https://www.myetherwallet.com/interface/send-transaction?to=${addr}&amount=${val}&currency=${token}`
+      }
+    };
+
+    // --- State & Initialization ---
+    let web3Modal, ethProvider, signer, userAddress;
+    window.addEventListener("load", init);
+
+    async function init() {
+      // 1) Web3Modal Setup
+      web3Modal = new window.Web3Modal.default({
+        cacheProvider: false,
+        providerOptions: {
+          walletconnect: {
+            package: window.WalletConnectProvider.default,
+            options: { infuraId: "YOUR_INFURA_ID" } // <<< ERSETZEN!
+          }
+        }
+      });
+
+      // 2) Dropdowns füllen
+      const assetSel = document.getElementById("asset");
+      COINS.forEach(c => assetSel.add(new Option(c, c)));
+      const provSel = document.getElementById("provider");
+      Object.entries(PROVIDERS).forEach(([key, p]) =>
+        provSel.add(new Option(p.label, key))
+      );
+
+      // 3) Buttons
+      document.getElementById("btn-connect").onclick = connectWallet;
+      document.getElementById("btn-buy").onclick     = calculateAndBuy;
+    }
+
+    // --- Wallet Connect ---
+    async function connectWallet() {
+      try {
+        ethProvider = await web3Modal.connect();
+        const web3p   = new ethers.providers.Web3Provider(ethProvider);
+        signer        = web3p.getSigner();
+        userAddress   = await signer.getAddress();
+        document.getElementById("account").innerText = `Verbunden: ${userAddress}`;
+      } catch (err) {
+        console.error(err);
+        alert("🔴 Wallet-Verbindung fehlgeschlagen.");
+      }
+    }
+
+    // --- Konvertieren & Deep-Link ---
+    async function calculateAndBuy() {
+      if (!userAddress) {
+        alert("Bitte zuerst deine Wallet verbinden.");
+        return;
+      }
+      const asset = document.getElementById('asset').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      if (isNaN(amount) || amount <= 0) {
+        alert("Bitte eine gültige Menge eingeben.");
+        return;
+      }
+
+      // Preis via CoinGecko
+      let priceUsd = 0;
+      try {
+        const res = await fetch(
+          `https://api.coingecko.com/api/v3/simple/price?ids=${asset.toLowerCase()}&vs_currencies=usd`
+        );
+        const json = await res.json();
+        priceUsd = json[asset.toLowerCase()]?.usd || 0;
+      } catch (e) {
+        console.error(e);
+      }
+      if (priceUsd === 0) {
+        alert("⚠️ Preis-Abfrage fehlgeschlagen.");
+        return;
+      }
+
+      const usdValue  = amount * priceUsd;
+      const xnxValue  = usdValue / XNX_USD_RATE;
+      document.getElementById('output').innerText =
+        `USD: $${usdValue.toFixed(2)} → ${xnxValue.toFixed(2)} XNX`;
+
+      // Deep-Link bauen
+      const provKey = document.getElementById('provider').value;
+      const builder = PROVIDERS[provKey]?.buildLink;
+      if (!builder) {
+        alert("Unbekannter Anbieter.");
+        return;
+      }
+      const url = builder(userAddress, asset, amount);
+      window.open(url, "_blank");
+    }
+  </script>
+</body>
+</html>
