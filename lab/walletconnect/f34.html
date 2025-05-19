@@ -6,14 +6,14 @@
   <title>Web3 Multi-Wallet: ETH / SOL / BTC</title>
   <style>
     body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 1rem; }
-    button, a.phantom-link { display: inline-block; padding: .5rem 1rem; margin-bottom: 1rem; background: #512da8; color: white; text-decoration: none; border-radius: 4px; }
-    button:disabled, a.phantom-link.disabled { opacity: .6; pointer-events: none; }
+    button { padding: .5rem 1rem; margin-bottom: 1rem; }
     .section { border-top: 1px solid #ddd; padding-top: 1rem; margin-top: 1rem; }
     .info { margin: .5rem 0; }
     .tx-form { border: 1px solid #ccc; padding: 1rem; border-radius: 8px; }
+    .loading { opacity: .6; pointer-events: none; }
+    input { width: 100%; padding: .5rem; margin: .5rem 0; box-sizing: border-box; }
     .hash a { font-size: .9rem; color: blue; text-decoration: underline; }
     .error { color: red; white-space: pre-line; margin-top: 1rem; }
-    input { width: 100%; padding: .5rem; margin: .5rem 0; box-sizing: border-box; }
   </style>
 </head>
 <body>
@@ -35,15 +35,16 @@
     </form>
   </div>
 
-  <!-- SOL Section (nur Phantom-Link) -->
+  <!-- SOL Section -->
   <div id="sol-section" class="section" style="display:none">
     <h2>Solana</h2>
     <div id="sol-address" class="info"></div>
+    <div id="sol-balance" class="info"></div>
     <form id="sol-form" class="tx-form">
-      <h3>SOL senden via Phantom</h3>
+      <h3>SOL senden</h3>
       <input id="sol-to" placeholder="Empfänger-Adresse (PublicKey)" required />
       <input id="sol-amount" type="number" step="0.0001" placeholder="Betrag in SOL" required />
-      <button type="submit">Phantom öffnen</button>
+      <button type="submit">Senden</button>
       <div id="sol-tx" class="hash"></div>
     </form>
   </div>
@@ -71,14 +72,16 @@
     const $ = id => document.getElementById(id);
     const show = id => $(id).style.display = "block";
     const setLoading = (el, loading) => {
-      el.classList.toggle("disabled", loading);
-      el.querySelectorAll("button, a").forEach(b => b.disabled = loading);
+      el.classList.toggle("loading", loading);
+      el.querySelectorAll("button").forEach(b => b.disabled = loading);
     };
     const logError = msg => { $("error").textContent += msg + "\n"; };
 
-    let wcEthProvider, ethAccount, btcAccount;
+    let wcEthProvider, ethAccount;
+    let solAccount, solConn;
+    let btcAccount;
 
-    // Connect Web3 (ETH, SOL-Phantom und BTC)
+    // Connect Web3
     $("btn-connect").addEventListener("click", async () => {
       $("error").textContent = "";
       setLoading($("btn-connect"), true);
@@ -92,14 +95,14 @@
             projectId: "262e67d5e1f2205615ff102f60b2f1dc",
             chains: [1],
             rpcMap: { 1: "https://mainnet.infura.io/v3/84842078b09946638c03157f83405213" },
-            methods: ["eth_sendTransaction", "personal_sign"],
+            methods: ["eth_sendTransaction","personal_sign"],
             events: [],
             showQrModal: true
           });
           await wcEthProvider.connect({ requiredNamespaces: {
             eip155: {
               chains: ["eip155:1"],
-              methods: ["eth_sendTransaction", "personal_sign"],
+              methods: ["eth_sendTransaction","personal_sign"],
               events: []
             }
           }});
@@ -108,34 +111,37 @@
         $("eth-address").textContent = `Adresse: ${ethAccount}`;
         show("eth-section");
 
-        // ETH-Balance abrufen (optional)
         try {
-          const provider = window.ethereum || wcEthProvider;
-          const balanceHex = await provider.request({
+          const balanceHex = await (window.ethereum || wcEthProvider).request({
             method: "eth_getBalance",
             params: [ethAccount, "latest"]
           });
           const bal = parseInt(balanceHex, 16) / 1e18;
           $("eth-balance").textContent = `Balance: ${bal.toFixed(6)} ETH`;
-        } catch {
-          // Balance abrufen kann fehlschlagen, daher still swallen
-        }
+        } catch { /* Balance-Fehler ignorieren */ }
       } catch (e) {
         logError("ETH Fehler: " + e.message);
       }
 
-      // --- Solana (Phantom Deep Link) ---
+      // --- Solana (Phantom) ---
       try {
         if (window.solana?.isPhantom) {
           const resp = await window.solana.connect();
-          const solAccount = resp.publicKey.toString();
-          $("sol-address").textContent = `Adresse: ${solAccount}`;
+          solAccount = resp.publicKey;
+          $("sol-address").textContent = `Adresse: ${solAccount.toString()}`;
           show("sol-section");
+
+          // Solana-RPC (Mainnet Beta)
+          solConn = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com", { commitment: "confirmed" });
+          try {
+            const lamports = await solConn.getBalance(solAccount, "confirmed");
+            $("sol-balance").textContent = `Balance: ${(lamports / solanaWeb3.LAMPORTS_PER_SOL).toFixed(6)} SOL`;
+          } catch { /* Balance-Fehler ignorieren */ }
         } else {
-          logError("Phantom Wallet nicht gefunden. Bitte Phantom installieren oder aktivieren.");
+          logError("Phantom Wallet nicht gefunden. Bitte Phantom installieren/aktivieren.");
         }
       } catch (e) {
-        logError("SOL Fehler (Phantom Connect): " + e.message);
+        logError("SOL Fehler: " + e.message);
       }
 
       // --- Bitcoin ---
@@ -153,9 +159,7 @@
             const data = await res.json();
             const bal = (data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum) / 1e8;
             $("btc-balance").textContent = `Balance: ${bal.toFixed(8)} BTC`;
-          } catch {
-            // Balance still swallow
-          }
+          } catch { /* Balance-Fehler ignorieren */ }
         }
       } catch (e) {
         logError("BTC Fehler: " + e.message);
@@ -179,7 +183,7 @@
           params: [txParams]
         });
         $("eth-tx").innerHTML = `Tx Hash: <a href="https://etherscan.io/tx/${txHash}" target="_blank">${txHash}</a>`;
-        // Balance aktualisieren (optional)
+
         try {
           const balanceHex = await provider.request({
             method: "eth_getBalance",
@@ -194,27 +198,55 @@
       setLoading($("eth-form"), false);
     });
 
-    // SOL senden via Phantom Deep Link
-    $("sol-form").addEventListener("submit", (e) => {
+    // SOL senden (Phantom signAndSendTransaction)
+    $("sol-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       setLoading($("sol-form"), true);
-      const toAddr = $("sol-to").value.trim();
-      const amountSol = $("sol-amount").value.trim();
-      // Phantom Deep Link (Web + Mobile)
-      // Format: https://phantom.app/ul/v1/transfer?destination=<RECIPIENT>&amount=<AMOUNT>
-      const link = `https://phantom.app/ul/v1/transfer?destination=${encodeURIComponent(toAddr)}&amount=${encodeURIComponent(amountSol)}`;
-      // Link anzeigen und öffnen
-      $("sol-tx").innerHTML = `Öffne Phantom: <a class="phantom-link" href="${link}" target="_blank">Auf Phantom senden</a>`;
+      try {
+        if (!window.solana?.isPhantom) {
+          throw new Error("Phantom Wallet nicht verfügbar.");
+        }
+        const toAddr = $("sol-to").value.trim();
+        const amountSol = parseFloat($("sol-amount").value.trim());
+        const lamports = Math.round(amountSol * solanaWeb3.LAMPORTS_PER_SOL);
+
+        // Aufbau der Transaktion
+        const tx = new solanaWeb3.Transaction().add(
+          solanaWeb3.SystemProgram.transfer({
+            fromPubkey: solAccount,
+            toPubkey: new solanaWeb3.PublicKey(toAddr),
+            lamports
+          })
+        );
+        tx.feePayer = solAccount;
+        const { blockhash } = await solConn.getRecentBlockhash("confirmed");
+        tx.recentBlockhash = blockhash;
+
+        // Phantom signAndSendTransaction
+        const signedTx = await window.solana.signTransaction(tx);
+        const signature = await solConn.sendRawTransaction(signedTx.serialize());
+        await solConn.confirmTransaction(signature, "confirmed");
+        $("sol-tx").innerHTML = `Signature: <a href="https://explorer.solana.com/tx/${signature}" target="_blank">${signature}</a>`;
+
+        // Balance aktualisieren
+        try {
+          const newLamports = await solConn.getBalance(solAccount, "confirmed");
+          $("sol-balance").textContent = `Balance: ${(newLamports / solanaWeb3.LAMPORTS_PER_SOL).toFixed(6)} SOL`;
+        } catch { }
+      } catch (e) {
+        logError("SOL Sende-Fehler: " + e.message);
+      }
       setLoading($("sol-form"), false);
     });
 
-    // BTC senden (unverändert, je nach Wallet-API anpassen)
+    // BTC senden (je nach Wallet-API anpassen)
     $("btc-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       setLoading($("btc-form"), true);
       try {
         // Beispiel: Wenn window.bitcoin.request({ method: "sendTransaction", params }) verfügbar ist,
         // kann hier die spezifische API des Wallets aufgerufen werden.
+        // Andernfalls muss man PSBTs erstellen und signieren – das hängt vom genutzten Bitcoin-Wallet ab.
         throw new Error("BTC-Sende-Logik ist hier abhängig von der Wallet-Implementierung.");
       } catch (e) {
         logError("BTC Sende-Fehler: " + e.message);
