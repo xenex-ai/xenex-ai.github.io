@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Web3 Multi-Wallet: ETH / SOL / BTC</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 1rem; }
+    button { padding: .5rem 1rem; margin-bottom: 1rem; }
+    .section { border-top: 1px solid #ddd; padding-top: 1rem; margin-top: 1rem; }
+    .info { margin: .5rem 0; }
+    .tx-form { border: 1px solid #ccc; padding: 1rem; border-radius: 8px; }
+    .loading { opacity: .6; pointer-events: none; }
+    input { width: 100%; padding: .5rem; margin: .5rem 0; box-sizing: border-box; }
+    .hash a { font-size: .9rem; color: blue; text-decoration: underline; }
+    .error { color: red; white-space: pre-line; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Web3 Multi-Wallet</h1>
+  <button id="btn-connect-eth">Connect Ethereum</button>
+  <button id="btn-connect-sol">Connect Solana</button>
+  <div id="error" class="error"></div>
+
+  <!-- ETH Section -->
+  <div id="eth-section" class="section" style="display:none">
+    <h2>Ethereum</h2>
+    <div id="eth-address" class="info"></div>
+    <div id="eth-balance" class="info"></div>
+    <form id="eth-form" class="tx-form">
+      <h3>ETH senden</h3>
+      <input id="eth-to" placeholder="Empfänger-Adresse (0x…)" required />
+      <input id="eth-amount" type="number" step="0.0001" placeholder="Betrag in ETH" required />
+      <button type="submit">Senden</button>
+      <div id="eth-tx" class="hash"></div>
+    </form>
+  </div>
+
+  <!-- SOL Section -->
+  <div id="sol-section" class="section" style="display:none">
+    <h2>Solana</h2>
+    <div id="sol-address" class="info"></div>
+    <div id="sol-balance" class="info"></div>
+    <form id="sol-form" class="tx-form">
+      <h3>SOL senden</h3>
+      <input id="sol-to" placeholder="Empfänger-Adresse (PublicKey)" required />
+      <input id="sol-amount" type="number" step="0.0001" placeholder="Betrag in SOL" required />
+      <button type="submit">Senden</button>
+      <div id="sol-tx" class="hash"></div>
+    </form>
+  </div>
+
+  <!-- BTC Section -->
+  <div id="btc-section" class="section" style="display:none">
+    <h2>Bitcoin</h2>
+    <div id="btc-address" class="info"></div>
+    <div id="btc-balance" class="info"></div>
+    <form id="btc-form" class="tx-form">
+      <h3>BTC senden</h3>
+      <input id="btc-to" placeholder="Empfänger-Adresse" required />
+      <input id="btc-amount" type="number" step="0.00000001" placeholder="Betrag in BTC" required />
+      <button type="submit">Senden</button>
+      <div id="btc-tx" class="hash"></div>
+    </form>
+  </div>
+
+  <!-- Imports -->
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+  <script type="module">
+    import { EthereumProvider } from "https://esm.sh/@walletconnect/ethereum-provider@2.8.0";
+
+    // Hilfsfunktionen
+    const $ = id => document.getElementById(id);
+    const show = id => $(id).style.display = "block";
+    const setLoading = (el, loading) => {
+      el.classList.toggle("loading", loading);
+      el.querySelectorAll("button").forEach(b => b.disabled = loading);
+    };
+    const logError = msg => { $("error").textContent += msg + "\n"; };
+
+    // Variablen
+    let wcEthProvider, ethAccount;
+    let wcSolProvider, solAccount, solConn;
+    let btcAccount;
+
+    // --- ETH Connect (injected oder WalletConnect) ---
+    $("btn-connect-eth").addEventListener("click", async () => {
+      $("error").textContent = "";
+      setLoading($("btn-connect-eth"), true);
+
+      try {
+        if (window.ethereum) {
+          // Metamask oder andere injected Provider
+          [ethAccount] = await window.ethereum.request({ method: "eth_requestAccounts" });
+        } else {
+          // WalletConnect v2 für Ethereum
+          wcEthProvider = wcEthProvider || await EthereumProvider.init({
+            projectId: "262e67d5e1f2205615ff102f60b2f1dc",
+            chains: [1],
+            rpcMap: { 1: "https://mainnet.infura.io/v3/84842078b09946638c03157f83405213" },
+            methods: ["eth_sendTransaction", "personal_sign"],
+            events: [],
+            showQrModal: true
+          });
+          await wcEthProvider.connect({
+            requiredNamespaces: {
+              eip155: {
+                chains: ["eip155:1"],
+                methods: ["eth_sendTransaction", "personal_sign"],
+                events: []
+              }
+            }
+          });
+          [ethAccount] = await wcEthProvider.request({ method: "eth_requestAccounts" });
+        }
+
+        $("eth-address").textContent = `Adresse: ${ethAccount}`;
+        show("eth-section");
+
+        // ETH-Balance abrufen
+        try {
+          const provider = window.ethereum || wcEthProvider;
+          const balanceHex = await provider.request({
+            method: "eth_getBalance",
+            params: [ethAccount, "latest"]
+          });
+          const bal = parseInt(balanceHex, 16) / 1e18;
+          $("eth-balance").textContent = `Balance: ${bal.toFixed(6)} ETH`;
+        } catch { /* Balance-Fehler ignorieren */ }
+      } catch (e) {
+        logError("ETH Connect-Fehler: " + e.message);
+      }
+
+      setLoading($("btn-connect-eth"), false);
+    });
+
+    // --- SOL Connect (WalletConnect v2) ---
+    $("btn-connect-sol").addEventListener("click", async () => {
+      $("error").textContent = "";
+      setLoading($("btn-connect-sol"), true);
+
+      try {
+        // WalletConnect Solana Provider (korrekter Pfad)
+        const { SolanaProvider } = await import("https://unpkg.com/@walletconnect/solana-provider@0.2.0/dist/solanaProvider.browser.esm.js");
+
+        wcSolProvider = wcSolProvider || await SolanaProvider.init({
+          projectId: "262e67d5e1f2205615ff102f60b2f1dc",
+          rpcMap: {
+            // CORS-freundliches Mainnet-Beta RPC
+            "solana:101": "https://solana-api.projectserum.com"
+          },
+          showQrModal: true
+        });
+
+        // Verbindung über WalletConnect anfordern
+        await wcSolProvider.connect({
+          requiredNamespaces: {
+            solana: {
+              chains: ["solana:101"],
+              methods: ["signTransaction", "signAndSendTransaction"],
+              events: []
+            }
+          }
+        });
+
+        // Konten abrufen
+        [solAccount] = await wcSolProvider.request({ method: "solana_requestAccounts" });
+        $("sol-address").textContent = `Adresse: ${solAccount.toString()}`;
+        show("sol-section");
+
+        // Solana-Connection einrichten (RPC)
+        solConn = new solanaWeb3.Connection("https://solana-api.projectserum.com", { commitment: "confirmed" });
+
+        // Balance abrufen
+        try {
+          const lamports = await solConn.getBalance(solAccount, "confirmed");
+          $("sol-balance").textContent = `Balance: ${(lamports / solanaWeb3.LAMPORTS_PER_SOL).toFixed(6)} SOL`;
+        } catch { /* Balance-Fehler ignorieren */ }
+      } catch (e) {
+        logError("SOL Connect-Fehler: " + e.message);
+      }
+
+      setLoading($("btn-connect-sol"), false);
+    });
+
+    // --- ETH senden ---
+    $("eth-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setLoading($("eth-form"), true);
+      try {
+        const to = $("eth-to").value.trim();
+        const amount = $("eth-amount").value.trim();
+        const valueHex = "0x" + BigInt(Math.floor(parseFloat(amount) * 1e18)).toString(16);
+        const txParams = { from: ethAccount, to, value: valueHex };
+        const provider = window.ethereum || wcEthProvider;
+        const txHash = await provider.request({
+          method: "eth_sendTransaction",
+          params: [txParams]
+        });
+        $("eth-tx").innerHTML = `Tx Hash: <a href="https://etherscan.io/tx/${txHash}" target="_blank">${txHash}</a>`;
+
+        // Balance aktualisieren
+        try {
+          const balanceHex = await provider.request({
+            method: "eth_getBalance",
+            params: [ethAccount, "latest"]
+          });
+          const bal = parseInt(balanceHex, 16) / 1e18;
+          $("eth-balance").textContent = `Balance: ${bal.toFixed(6)} ETH`;
+        } catch { }
+      } catch (e) {
+        logError("ETH Sende-Fehler: " + e.message);
+      }
+      setLoading($("eth-form"), false);
+    });
+
+    // --- SOL senden (über WalletConnect) ---
+    $("sol-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setLoading($("sol-form"), true);
+      try {
+        if (!wcSolProvider) {
+          throw new Error("Solana nicht verbunden. Bitte erst verbinden.");
+        }
+        const toAddr = $("sol-to").value.trim();
+        const amountSol = parseFloat($("sol-amount").value.trim());
+        const lamports = Math.round(amountSol * solanaWeb3.LAMPORTS_PER_SOL);
+
+        // Transaktion erstellen
+        const tx = new solanaWeb3.Transaction().add(
+          solanaWeb3.SystemProgram.transfer({
+            fromPubkey: solAccount,
+            toPubkey: new solanaWeb3.PublicKey(toAddr),
+            lamports
+          })
+        );
+        tx.feePayer = solAccount;
+
+        // Blockhash abrufen
+        const { blockhash } = await solConn.getRecentBlockhash("confirmed");
+        tx.recentBlockhash = blockhash;
+
+        // Über WalletConnect signAndSendTransaction
+        const { signature } = await wcSolProvider.signAndSendTransaction(tx);
+        $("sol-tx").innerHTML = `Signature: <a href="https://explorer.solana.com/tx/${signature}" target="_blank">${signature}</a>`;
+
+        // Balance aktualisieren
+        try {
+          const newLamports = await solConn.getBalance(solAccount, "confirmed");
+          $("sol-balance").textContent = `Balance: ${(newLamports / solanaWeb3.LAMPORTS_PER_SOL).toFixed(6)} SOL`;
+        } catch { }
+      } catch (e) {
+        logError("SOL Sende-Fehler: " + e.message);
+      }
+      setLoading($("sol-form"), false);
+    });
+
+    // --- Bitcoin Connect beim Laden (falls verfügbar) ---
+    (async () => {
+      try {
+        if (window.bitcoin?.request) {
+          [btcAccount] = await window.bitcoin.request({ method: "getAccounts" });
+        } else if (window.btc?.request) {
+          [btcAccount] = await window.btc.request({ method: "requestAccounts" });
+        }
+        if (btcAccount) {
+          $("btc-address").textContent = `Adresse: ${btcAccount}`;
+          show("btc-section");
+          try {
+            const res = await fetch(`https://blockstream.info/api/address/${btcAccount}`);
+            const data = await res.json();
+            const bal = (data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum) / 1e8;
+            $("btc-balance").textContent = `Balance: ${bal.toFixed(8)} BTC`;
+          } catch { /* Balance-Fehler ignorieren */ }
+        }
+      } catch (e) {
+        logError("BTC Connect-Fehler: " + e.message);
+      }
+    })();
+
+    // --- Bitcoin senden (an Wallet-API anpassen) ---
+    $("btc-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setLoading($("btc-form"), true);
+      try {
+        // Je nach Wallet-API hier implementieren
+        throw new Error("BTC-Sende-Logik ist abhängig von der Wallet-Implementierung.");
+      } catch (e) {
+        logError("BTC Sende-Fehler: " + e.message);
+      }
+      setLoading($("btc-form"), false);
+    });
+  </script>
+</body>
+</html>
