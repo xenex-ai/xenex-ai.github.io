@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Debug WalletConnect (Solana)</title>
+  <!-- 1. Versuche, SignClient und QRCodeModal aus jsDelivr zu laden -->
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/sign-client@2.20.2/dist/sign-client.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/qrcode-modal@2.0.0/dist/index.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 1rem;
+    }
+    #status {
+      margin-top: 1rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h2>Debug: SignClient-Initialisierung</h2>
+  <div id="status">Starte Initialisierung...</div>
+
+  <script>
+    // === Konfiguration: Trage hier deine Project ID ein ===
+    const projectId = "5256c9d2b3ea2fdbff092cad200c1290";
+    // =====================================================
+
+    async function initSignClient() {
+      // Zuerst prüfen, ob SignClient überhaupt definiert ist
+      if (typeof SignClient === "undefined") {
+        console.error("🚫 SignClient ist UNDEFINED! Das Skript wurde nicht geladen.");
+        document.getElementById("status").textContent =
+          "FEHLER: SignClient-Skript wurde nicht geladen oder blockiert.";
+        return;
+      }
+      console.log("✅ SignClient-Objekt gefunden:", SignClient);
+
+      try {
+        // Versuche, den Client zu initialisieren
+        const client = await SignClient.init({
+          projectId,
+          relayUrl: "wss://relay.walletconnect.com",
+        });
+        console.log("🎉 SignClient erfolgreich initialisiert:", client);
+        document.getElementById("status").textContent =
+          "✔️ SignClient ist bereit!";
+      } catch (error) {
+        console.error("🚫 Fehler bei SignClient.init():", error);
+        document.getElementById("status").textContent =
+          "FEHLER bei SignClient.init(): sieh Konsole an.";
+      }
+    }
+
+    // Warte, bis das DOM geladen ist, und rufe init auf
+    window.addEventListener("load", () => {
+      console.log("Seite geladen, starte initSignClient() …");
+      initSignClient();
+    });
+  </script>
+</body>
+</html>
