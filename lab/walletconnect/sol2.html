@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Solana WalletConnect Beispiel (mit Button-Enable)</title>
+  <!-- WalletConnect SignClient (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/sign-client@2.20.2/dist/sign-client.min.js"></script>
+  <!-- WalletConnect QR-Code Modal -->
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/qrcode-modal@2.0.0/dist/index.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #status {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    #accounts {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Solana WalletConnect Beispiel</h1>
+  <!-- Button ist initial deaktiviert -->
+  <button id="connectBtn" disabled>Wallet verbinden (initialisiere...)</button>
+  <div id="status">Initialisiere SignClient...</div>
+  <div id="accounts"></div>
+
+  <script>
+    // === Konfiguration: Trage hier deine eigene Project ID ein ===
+    const projectId = "5256c9d2b3ea2fdbff092cad200c1290";
+    // =============================================================
+
+    let signClient = null;
+    const connectBtn = document.getElementById("connectBtn");
+    const statusDiv = document.getElementById("status");
+    const accountsDiv = document.getElementById("accounts");
+
+    // 1) SignClient initialisieren und Button aktivieren, wenn fertig
+    async function initSignClient() {
+      try {
+        signClient = await SignClient.init({
+          projectId,
+          relayUrl: "wss://relay.walletconnect.com",
+        });
+        console.log("SignClient initialisiert");
+        statusDiv.textContent = "SignClient bereit. Du kannst dein Wallet verbinden.";
+        connectBtn.textContent = "Wallet verbinden (WalletConnect)";
+        connectBtn.disabled = false;
+      } catch (err) {
+        console.error("Fehler beim Initialisieren des SignClient:", err);
+        statusDiv.textContent = "Fehler bei der Initialisierung! Bitte Seite neu laden.";
+      }
+    }
+
+    // 2) Funktion, die beim Klick auf den Button aufgerufen wird
+    async function connectWallet() {
+      if (!signClient) {
+        // sollte eigentlich nie passieren, da Button erst nach Init freigeschaltet wird
+        alert("SignClient noch nicht bereit. Bitte Seite neu laden und abwarten.");
+        return;
+      }
+
+      try {
+        // Erzeuge eine neue Session mit Namespace "solana"
+        const { uri, approval } = await signClient.connect({
+          requiredNamespaces: {
+            solana: {
+              methods: [
+                "solana_signTransaction",
+                "solana_signAllTransactions",
+                "solana_signMessage"
+              ],
+              chains: ["solana:1"], // "1" = Mainnet; für Devnet/Testnet wären "solana:2" bzw. "solana:3"
+              events: []
+            }
+          }
+        });
+
+        // Wenn wir eine URI zurückbekommen, öffnen wir das QR-Code Modal
+        if (uri) {
+          statusDiv.textContent = "Bitte QR-Code mit deinem Wallet scannen...";
+          QRCodeModal.open(uri, () => {
+            console.log("QR-Code Modal wurde geschlossen");
+            statusDiv.textContent = "Verbindung abgebrochen. Button erneut klicken.";
+          });
+        }
+
+        // Warte, bis der Nutzer in seinem Wallet die Verbindung bestätigt
+        const session = await approval();
+
+        // Schließe das QR-Code Modal nochmal, falls es noch offen ist
+        QRCodeModal.close();
+        statusDiv.textContent = "Verbunden! PublicKey wird angezeigt.";
+
+        // Zeige die verbundene(n) Account(s) an
+        const solanaAccounts = session.namespaces.solana.accounts; // z.B. ["solana:1:<PUBKEY>"]
+        if (solanaAccounts && solanaAccounts.length > 0) {
+          // Wir nehmen nur den ersten Account und splitten, um den PublicKey zu bekommen
+          const parts = solanaAccounts[0].split(":");
+          const pubkey = parts[2];
+          accountsDiv.innerHTML = `<p><strong>Verbundenes Konto:</strong> ${pubkey}</p>`;
+        } else {
+          accountsDiv.innerHTML = `<p>Keine Solana-Accounts gefunden.</p>`;
+        }
+
+        // Optional: Event-Listener für spätere Events
+        signClient.on("session_event", ({ event }) => {
+          console.log("Session Event:", event);
+        });
+
+      } catch (err) {
+        console.error("Fehler beim Verbinden:", err);
+        statusDiv.textContent = "Verbindung fehlgeschlagen. Siehe Konsole für Details.";
+      }
+    }
+
+    // 3) Beim Laden der Seite den SignClient initialisieren
+    window.addEventListener("load", () => {
+      initSignClient();
+      connectBtn.addEventListener("click", connectWallet);
+    });
+  </script>
+</body>
+</html>
