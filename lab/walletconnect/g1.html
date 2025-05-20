@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Buy with Crypto</title>
+  <!-- Web3Modal CSS (optional für Standard-Styles) -->
+  <link rel="stylesheet" href="https://unpkg.com/web3modal@1.9.8/dist/index.css" />
+</head>
+<body>
+  <button id="buyButton">Buy with Crypto</button>
+
+  <!-- Dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+  <script src="https://unpkg.com/web3modal@1.9.8/dist/index.js"></script>
+
+  <script>
+    // 1. Provider-Optionen konfigurieren
+    const providerOptions = {
+      // WalletConnect
+      walletconnect: {
+        package: window.WalletConnectProvider.default,
+        options: {
+          // Infura oder anderer RPC-Provider
+          infuraId: "67c6da8f2ed34c0db0ec07661f8fe93a" 
+        }
+      },
+      // MetaMask (wird automatisch erkannt, kein Eintrag nötig)
+      // Coinbase Wallet
+      "custom-coinbase": {
+        display: {
+          name: "Coinbase Wallet",
+          description: "Bequem mit Coinbase"
+        },
+        package: null,
+        connector: async () => {
+          const CoinbaseWalletSDK = await import("https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk@3.5.8/dist/CoinbaseWalletSDK.min.js");
+          const walletLink = new CoinbaseWalletSDK.default({
+            appName: "Meine DApp",
+            infuraId: "67c6da8f2ed34c0db0ec07661f8fe93a"
+          });
+          const provider = walletLink.makeWeb3Provider(`https://mainnet.infura.io/v3/DEINE_INFURA_ID`, 1);
+          await provider.enable();
+          return provider;
+        }
+      }
+    };
+
+    // 2. Web3Modal initialisieren
+    const web3Modal = new window.Web3Modal.default({
+      cacheProvider: false,
+      providerOptions
+    });
+
+    // 3. Button-Click: Modal öffnen und Wallet verbinden
+    document.getElementById("buyButton").addEventListener("click", async () => {
+      try {
+        const provider = await web3Modal.connect();
+        const ethersProvider = new window.ethers.providers.Web3Provider(provider);
+
+        // Beispiel: Adresse auslesen
+        const signer = ethersProvider.getSigner();
+        const address = await signer.getAddress();
+        alert("Verbunden mit: " + address);
+
+        // Hier kannst du jetzt deinen Kauf-Flow starten,
+        // z.B. Transaktion signieren, Smart Contract aufrufen, etc.
+
+      } catch (e) {
+        console.error("Kein Wallet ausgewählt oder Verbindung fehlgeschlagen:", e);
+      }
+    });
+  </script>
+</body>
+</html>
