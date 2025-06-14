@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>xenRon AI Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* Styling wie gehabt */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #343541;
+      color: #ececec;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .chat-wrapper {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .chat-message {
+      max-width: 700px;
+      margin: 10px auto;
+      padding: 15px;
+      border-radius: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+    .chat-message.user {
+      background-color: #2a2b32;
+      align-self: flex-end;
+    }
+    .chat-message.ai {
+      background-color: #444654;
+      align-self: flex-start;
+    }
+    .input-container {
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      background-color: #40414f;
+      border-top: 1px solid #2e2f3a;
+    }
+    input[type="text"] {
+      width: 100%;
+      max-width: 700px;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      background-color: #343541;
+      color: #fff;
+    }
+    button {
+      margin-left: 10px;
+      padding: 14px 20px;
+      font-size: 16px;
+      background-color: #10a37f;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+    }
+    .loading {
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="chat" class="chat-wrapper"></div>
+
+<div class="input-container">
+  <input type="text" id="user-input" placeholder="Frag xenRon etwas..." autocomplete="off" />
+  <button onclick="sendMessage()">Senden</button>
+</div>
+
+<audio id="send-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-message-pop-alert-2354.mp3"></audio>
+<audio id="receive-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-long-pop-2358.mp3"></audio>
+
+<script>
+const chat = document.getElementById("chat");
+const input = document.getElementById("user-input");
+const sendSound = document.getElementById("send-sound");
+const receiveSound = document.getElementById("receive-sound");
+
+function appendMessage(text, sender) {
+  const msg = document.createElement("div");
+  msg.className = `chat-message ${sender}`;
+  msg.innerText = text;
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+  if (sender === "ai") receiveSound.play();
+}
+
+function sendMessage() {
+  const userText = input.value.trim();
+  if (!userText) return;
+
+  appendMessage(userText, "user");
+  sendSound.play();
+  input.value = "";
+
+  const loader = document.createElement("div");
+  loader.className = "chat-message ai loading";
+  loader.innerText = "xenRon denkt...";
+  chat.appendChild(loader);
+  chat.scrollTop = chat.scrollHeight;
+
+  fetch("https://xenexai.com/connect/con_xenron.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: userText })
+  })
+  .then(response => response.json())
+  .then(data => {
+    loader.remove();
+    if (data && data.reply) {
+      appendMessage(data.reply, "ai");
+    } else {
+      appendMessage("⚠️ xenRon hat keine Antwort geliefert.", "ai");
+    }
+  })
+  .catch(err => {
+    loader.remove();
+    appendMessage("❌ Fehler beim Senden an den Server.", "ai");
+  });
+}
+
+input.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") sendMessage();
+});
+</script>
+
+</body>
+</html>
