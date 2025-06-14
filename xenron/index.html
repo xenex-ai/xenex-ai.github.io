@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>xenRon AI Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      margin: 0;
+      padding: 0;
+    }
+    .chat-container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #161b22;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.5);
+    }
+    .message {
+      padding: 10px;
+      margin-bottom: 8px;
+      background: #21262d;
+      border-radius: 8px;
+    }
+    .message.user { background: #238636; }
+    .input-area {
+      display: flex;
+      margin-top: 20px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px 0 0 6px;
+    }
+    button {
+      padding: 10px;
+      border: none;
+      background: #58a6ff;
+      color: white;
+      border-radius: 0 6px 6px 0;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div id="chat-log"></div>
+    <div class="input-area">
+      <input type="text" id="user-input" placeholder="Schreibe etwas an xenRon..." />
+      <button onclick="sendMessage()">Senden</button>
+    </div>
+  </div>
+
+  <script>
+    const chatLog = document.getElementById("chat-log");
+    const input = document.getElementById("user-input");
+
+    function addMessage(text, from = 'user') {
+      const msg = document.createElement("div");
+      msg.className = `message ${from}`;
+      msg.innerText = text;
+      chatLog.appendChild(msg);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+      addMessage(text, 'user');
+
+      // Speichern via PHP
+      fetch("https://xenexai.com/connect/con_xenron.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data && data.reply) {
+          addMessage(data.reply, 'ai');
+        } else {
+          addMessage("xenRon hat nicht geantwortet.", 'ai');
+        }
+      });
+
+      input.value = "";
+    }
+
+    input.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>
